@@ -92,6 +92,7 @@ int TCCECheck( TCCEngine * tce )
 	tce->stop = (TCELinkage)tcc_get_symbol(tce->state, "stop" );
 	tce->start = (TCELinkage)tcc_get_symbol(tce->state, "start" );
 	tce->start( tce->id );
+	tce->collision = (TCELinkage)tcc_get_symbol(tce->state, "collision" );
 
 	return 1;
 end_err:

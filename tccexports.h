@@ -3,11 +3,12 @@
 
 //File for creating the C linkages to the C++ noneuclid.
 
+
+#include "tccengine.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "tccengine.h"
 
 
 //Call this on your new TCC Engine.

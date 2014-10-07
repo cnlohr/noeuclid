@@ -24,4 +24,4 @@ noneuclid.exe : noneuclid.obj OGLParts.obj GLUTCore.obj RTHelper.obj Map.obj tcc
 
 
 clean :
-	rm -fr *.o *~ noneuclid
+	rm -fr *.o tcc/*.o *~ noneuclid

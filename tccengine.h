@@ -24,6 +24,7 @@ struct TCCEngine
 
 	TCELinkage start;//called any time the script is loaded/reloaded
 	TCELinkage stop;
+	TCELinkage collision;
 	void * id;
 };
 

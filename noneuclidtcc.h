@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-
 extern double worldDeltaTime;
 
 extern float gDaytime;
@@ -38,6 +37,9 @@ extern unsigned char gFocused;
 extern int gMouseLastClickButton;
 
 extern int gOverallUpdateNo;
+
+extern double GameTimer;
+extern double GameAttempt;
 
 extern int AddSizeStride;
 

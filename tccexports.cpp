@@ -14,6 +14,8 @@
 extern double worldDeltaTime;
 int AddSizeStride;
 
+
+
 void PopulateTCCE(TCCEngine * tce )
 {
 	IMPHELPFN( printf );
@@ -65,6 +67,13 @@ void PopulateTCCE(TCCEngine * tce )
 	IMPHELPVA( gOverallUpdateNo );
 
 	IMPHELPVA( gDaytime );
+
+	IMPHELPVA( gKeyMap );
+
+
+	IMPHELPVA( GameTimer );
+	IMPHELPVA( GameAttempt );
+
 }
 
 extern RTHelper * gh;

@@ -16,6 +16,10 @@ int cix = 0;
 int ciy = 0;
 int   gGodMode = 0;
 
+double GameTimer = 1000;
+double GameAttempt = 1413412320332552322;
+
+
 unsigned char gKeyMap[256];
 bool bPause = false;
 unsigned char gFocused;
@@ -241,7 +245,9 @@ void LoadProbes( bool isRerun )
 
 	if( !isRerun )
 	{
-		if( gKeyMap['r'] ) gOverallUpdateNo = 0;
+//		if( gKeyMap['r'] ) gOverallUpdateNo = 0;
+//		'r' is handled by the script, itself.
+
 		if( gKeyMap['t'] ) {
 			//reset full map.
 			gh->TMap->DefaultIt();
@@ -493,6 +499,8 @@ void DoneProbes( bool bReRun )
 			continue;
 		}
 
+
+
 		ndx /= nddiff;ndy /= nddiff;ndz /= nddiff;
 		double iawx = tp->InAreaWarp.r; //Space compression
 		double iawy = tp->InAreaWarp.g; //Space compression
@@ -518,6 +526,12 @@ void DoneProbes( bool bReRun )
 //		press = press * press;
 
 
+		//We have a collision.
+		if( g_tcce && g_tcce->collision )
+		{
+			tp->id = i;
+			g_tcce->collision( tp );
+		}
 /*
 		printf( " +%f (%f %f %f)  ->\n", press, newcollisionx, newcollisiony, newcollisionz );
 		printf( "  %f %f %f %f\n", tp->Position.r, tp->Position.g, tp->Position.b, tp->Position.a );   //x,y,z,unused
@@ -761,8 +775,9 @@ void MyDraw()
 	glTranslatef( GLUT.miWidth/2-7, GLUT.miHeight/2-12, 0 );
 	DrawText("+");
 	glPopMatrix();
-	glTranslatef( 10, 10, 0 );
+	glTranslatef( 10, 30, 0 );
 	DrawText( gDialog );
+	glTranslatef( -10, -30, 0 );
 
 	glTranslatef( 0, 125, 0 );
 
@@ -774,6 +789,14 @@ void MyDraw()
 	sprintf( tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh->LastPass1Time/1000000., gh->LastPass2Time/1000000., gh->LastPass3Time/1000000., pers );
 	glTranslatef( 0, 25, 0 );
 	DrawText( tt );
+
+	glTranslatef( 30, -150, 0 );
+	sprintf( tt, "%3.2f\n", GameTimer ); 
+	DrawText( tt );
+	glTranslatef( 300, 0, 0 );
+	sprintf( tt, "TRY %f\n", GameAttempt );
+	DrawText( tt );
+
 	PopFrom2D();
 
 

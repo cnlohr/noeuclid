@@ -3,8 +3,10 @@
 
 #include "noneuclidtcc.h"
 
+#include "Common.h"
 
-#define DEFAULT_BRIGHT 254
+
+#define DEFAULT_BRIGHT 190
 #define DEFAULT_DENSITY 128
 #define WALL_BLOCK 12
 #define WHITE_BLOCK 19
