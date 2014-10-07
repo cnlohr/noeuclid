@@ -299,9 +299,16 @@ void LoadProbes( bool isRerun )
 	{
 		if( !isRerun )
 		{
+			float xymag = sqrtf( nx * nx + ny * ny );
+			if( xymag > .001 )
+			{
+				nx /= xymag;
+				ny /= xymag;
+			}
+
 			gh->vX = nx*4.;
 			gh->vY = ny*4.;
-			gh->vZ -= worldDeltaTime*16.; //gravity
+ 			gh->vZ -= worldDeltaTime*16.; //gravity
 		}
 /*			else
 		{
