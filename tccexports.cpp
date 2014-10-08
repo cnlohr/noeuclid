@@ -60,6 +60,7 @@ void PopulateTCCE(TCCEngine * tce )
 	IMPHELPVA( gDialog );
 	IMPHELPVA( gFocused );
 	IMPHELPVA( gMouseLastClickButton );
+	IMPHELPVA( gTimeSinceOnGround );
 
 	IMPHELPVA( gRenderMixval );
 	IMPHELPVA( gRenderDensityLimit );

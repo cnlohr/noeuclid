@@ -35,6 +35,7 @@ extern char gDialog[1024];
 extern unsigned char gKeyMap[256];
 extern unsigned char gFocused;
 extern int gMouseLastClickButton;
+extern float gTimeSinceOnGround;
 
 extern int gOverallUpdateNo;
 

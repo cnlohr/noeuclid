@@ -17,9 +17,9 @@ int ciy = 0;
 int   gGodMode = 0;
 
 double GameTimer = 1000;
-double GameAttempt = 1413412320332552322;
+double GameAttempt = 1;
 
-
+float gTimeSinceOnGround;
 unsigned char gKeyMap[256];
 bool bPause = false;
 unsigned char gFocused;
@@ -261,9 +261,9 @@ void LoadProbes( bool isRerun )
 		if( gKeyMap['w'] ) dy -= 1.;
 		if( gKeyMap[']'] ) dz += 1.;
 		if( gKeyMap['['] ) dz -= 1.;
-		if( gKeyMap[' '] && gh->TimeSinceOnGround < 0.1 ) gh->vZ = 10;  // && gh->TimeSinceOnGround < 0.1
-		gh->TimeSinceOnGround += worldDeltaTime;
-	//printf( "%f\n", gh->TimeSinceOnGround );
+		if( gKeyMap[' '] && gTimeSinceOnGround < 0.1 ) gh->vZ = 10;  // && gh->gTimeSinceOnGround < 0.1
+		gTimeSinceOnGround += worldDeltaTime;
+	//printf( "%f\n", gh->gTimeSinceOnGround );
 
 	/*
 		float ny = dx * sin( -Yaw/180.*3.14159 ) + dy * cos( -Yaw/180.*3.14159 );
@@ -553,7 +553,7 @@ void DoneProbes( bool bReRun )
 		//If it is a bottom probe, we are on the ground.
 		if( i > probes.size()-3)
 		{
-			gh->TimeSinceOnGround = 0;
+			gTimeSinceOnGround = 0;
 			//gh->vZ = 0;
 		}
 
@@ -661,17 +661,21 @@ void DoneProbes( bool bReRun )
 
 		lefttestout[2] = 0; //Force flat test.
 
+
 //		cross3d( rerotaxis, uptestcomp, upout );
 		float irtcos = dot3d( upout, lefttestout ) * AUTO_RIGHT_COMP; //how much effort to try to right?
 
-		//if( upout[2] * upout[2] < .999 )
+		float cosofs = (3.14159/2.0);
+
+		//Tricky: If we're upside-down we need to re-right ourselves.
+		if( upout[2] < 0 )
 		{
-			float uprotator[4];
-			quatfromaxisangle(uprotator,fwdtest, acos(irtcos) - 3.14159/2.0 );
-			quatrotateabout( LookQuaternion, LookQuaternion, uprotator  );
-//			printf( "%f %f %f   %f %f %f  %f %f %f %f\n", upout[0], upout[1], upout[2], 
-//				fwdtestout[0], fwdtestout[1], fwdtestout[2], lefttestout[0], lefttestout[1], lefttestout[2], irtcos );
+			irtcos *= -1.0;
 		}
+
+		float uprotator[4];
+		quatfromaxisangle(uprotator,fwdtest, acos(irtcos) - cosofs );
+		quatrotateabout( LookQuaternion, LookQuaternion, uprotator  );
 
 	}
 clend:
@@ -801,7 +805,7 @@ void MyDraw()
 	sprintf( tt, "%3.2f\n", GameTimer ); 
 	DrawText( tt );
 	glTranslatef( 300, 0, 0 );
-	sprintf( tt, "TRY %f\n", GameAttempt );
+	sprintf( tt, "TRY %1.f\n", GameAttempt );
 	DrawText( tt );
 
 	PopFrom2D();

@@ -22,7 +22,7 @@ void RGBAf::FromStringArray( string * arr )
 }
 
 
-RTHelper::RTHelper( bool fakemode ) : vX( 0 ), vY( 0 ), vZ( 0 ), TimeSinceOnGround(10000), ProbePlace(0)
+RTHelper::RTHelper( bool fakemode ) : vX( 0 ), vY( 0 ), vZ( 0 ), ProbePlace(0)
 {
 	printf( "Populate Complete.\n" );
 

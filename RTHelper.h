@@ -60,7 +60,6 @@ public:
 	float MapOffsetZ;
 
 	float vX, vY, vZ; //velocities of player
-	float TimeSinceOnGround;
 
 	float LastPass1Time;
 	float LastPass2Time;

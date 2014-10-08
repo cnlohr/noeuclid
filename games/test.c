@@ -2,44 +2,25 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 4
+#define START_ROOM 5
+#define NR_ROOMS 6
 
 int firstrun = 0;
 int lastroom = -1;
 int room = START_ROOM;
 
-void StartAtRoom( int rid )
+void StartAtRoom( int rid );
+void RunRoom0();
+void RunRoom1();
+void RunRoom2();
+void RunRoom3();
+void RunRoom4();
+void RunRoom5();
+
+void Die()
 {
-	firstrun = 1;
-	room = rid;
-	switch( rid )
-	{
-	case 0:
-		gPositionX = 3;
-		gPositionY = 3;
-		gPositionZ = 64;
-		break;
-	case 1:
-		gPositionX = 4.28;
-		gPositionY = 4.27;
-		gPositionZ = 59.13;
-		break;
-	case 2:
-		gPositionX = 4.5;
-		gPositionY = 7.92;
-		gPositionZ = 51.92;
-		break;
-	case 3:
-		gPositionX = 4.5;
-		gPositionY = 15.29;
-		gPositionZ = 48.44;
-		break;
-	case 4:
-		gPositionX = 6.5;
-		gPositionY = 31.5;
-		gPositionZ = 49;
-		break;
-	}
+	StartAtRoom( room );
+	GameAttempt++;
 }
 
 
@@ -61,6 +42,148 @@ void stop( void * id )
 {
 	printf( "Stop\n" );
 }
+
+
+void RunRoom5()
+{
+	static double TimeInRoom5;
+	TimeInRoom5 += worldDeltaTime;
+	int capden = 255 - TimeInRoom5 * 200;
+	float warp = ((TimeInRoom5*.1)>1)?1:((TimeInRoom5*.1)+.1);
+
+	if( firstrun )
+	{
+		MakeEmptyBox( 3, 45, 30, 4, 4, 13, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Start tube
+		MakeEmptyBox( 3, 30, 30, 7, 15, 4, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //side tube
+		ClearCell( 5, 45, 31 );
+		ClearCell( 5, 45, 32 );
+
+//		SetWarpSpaceArea( 3, 32, 3, 12, 4, 3, .3, .3, .3 ); 
+		SetWarpSpaceArea( 3, 34, 30, 3, 11, 6, 1, .2, 1 );    //very long box.
+		SetWarpSpaceArea( 7, 34, 30, 3, 11, 6, 1, 5, 1 );    //very long box.
+
+		//Target in floor.
+		PaintRange( 5, 30, 31, 1, 1, 2, GOAL_BLOCK, 255 );
+
+		GameTimer = 15;
+		firstrun = 0;
+	}
+
+	//Open Room 3 goal to room 4.
+	if( capden < 0 )
+	{
+		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, 0 );
+	}
+	else
+	{
+		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, capden );
+	}
+
+}
+
+
+void collision( struct CollisionProbe * ddat )
+{
+	///XXX TODO: pointers for where we're aimed should come in here.
+	//printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
+}
+
+void UpdateRoom(int rid)
+{
+	switch( rid )
+	{
+	case 0: RunRoom0(); break;
+	case 1: RunRoom1(); break;
+	case 2: RunRoom2(); break;
+	case 3: RunRoom3(); break;
+	case 4: RunRoom4(); break;
+	case 5: RunRoom5(); break;
+	}
+}
+
+void Update()
+{
+	int i;
+
+	if( gOverallUpdateNo == 0 )
+	{
+		initialize( );
+	}
+
+	if( room != lastroom )
+	{
+		firstrun = 1;
+		lastroom = room;
+	}
+
+	gDaytime += worldDeltaTime;
+	GameTimer -= worldDeltaTime;
+	if( GameTimer < 0 )
+	{
+		Die();
+	}
+
+	UpdateRoom(room);
+
+	sprintf( gDialog, "Room: %d\n", room );
+
+	if( gKeyMap['l'] || gKeyMap['L'] )
+	{
+		for( i = 0; i < NR_ROOMS; i++ )
+		{
+			StartAtRoom( i );
+			UpdateRoom( i );
+		}
+	}
+
+	//Press 'r' to reset room.
+	if( gKeyMap['r'] || gKeyMap['R'] )
+	{
+		StartAtRoom( room );
+	}
+
+//printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );
+
+	
+
+/*
+	totaltime += worldDeltaTime;
+	sprintf( gDialog, "Update %f %f %f\n", gTargetHitX, gTargetHitY, gTargetHitZ );
+	if( gMouseLastClickButton != -1 ) {
+		if( gMouseLastClickButton == 0 )
+		{
+			//Left-mouse
+			double targetx = gTargetHitX + gTargetNormalX*.5;
+			double targety = gTargetHitY + gTargetNormalY*.5;
+			double targetz = gTargetHitZ + gTargetNormalZ*.5;
+			ChangeCell( 0, targetx, targety, targetz, 255, 255, 255, 10 );
+		}
+		else if( gMouseLastClickButton == 2 )
+		{
+			//Left-mouse
+			double targetx = gTargetHitX - gTargetNormalX*.5;
+			double targety = gTargetHitY - gTargetNormalY*.5;
+			double targetz = gTargetHitZ - gTargetNormalZ*.5;
+			ChangeCell( 0, targetx, targety, targetz, 0, 255, 0, 0 );
+		}
+		gMouseLastClickButton = -1;
+	}
+*/
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void RunRoom0()
@@ -274,11 +397,13 @@ void RunRoom3()
 
 void RunRoom4()
 {
+	static unsigned char lavamap[15*11];
 	int x, y;
 
 	//Make evil deadly floor room.
 	static double TimeInRoom4;
 	TimeInRoom4 += worldDeltaTime;
+
 	if( firstrun )
 	{
 		GameTimer = 100;
@@ -299,12 +424,22 @@ void RunRoom4()
 		{
 			i = ( i * 2089 ) % 491;
 			if( ( (i % 7) > 2 ) )
+			{
 				QuickCell( 0, 3+x, 35+y, 43, 1, DEFAULT_BRIGHT, 60, 10 ); //Lava
+				lavamap[x+y*15] = 1;
+			}
+			else
+			{
+				lavamap[x+y*15] = 0;
+			}
 		}
 
 		TimeInRoom4 = 0;
 		firstrun = 0;
 
+
+		//Target in floor.
+		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, 255 );
 	}
 
 	int capden = 255 - TimeInRoom4 * 200;
@@ -329,80 +464,65 @@ void RunRoom4()
 	}
 	UpdateZone( 3, 33, 43+10, 15, 15, 3 );
 
-}
-
-///XXX TODO: pointers should come in here.
-void collision( struct CollisionProbe * ddat )
-{
-	printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
-}
-
-void Update()
-{
-	if( gOverallUpdateNo == 0 )
+	//We're on the ground.  Make sure we don't die.
+	if( gTimeSinceOnGround < .001 )
 	{
-		initialize( );
-	}
-
-	if( room != lastroom )
-	{
-		firstrun = 1;
-		lastroom = room;
-	}
-
-	gDaytime += worldDeltaTime;
-	GameTimer -= worldDeltaTime;
-	if( GameTimer < 0 )
-	{
-		StartAtRoom( room );
-		GameAttempt++;
-	}
-
-	switch( room )
-	{
-	case 0: RunRoom0(); break;
-	case 1: RunRoom1(); break;
-	case 2: RunRoom2(); break;
-	case 3: RunRoom3(); break;
-	case 4: RunRoom4(); break;
-	}
-
-
-	sprintf( gDialog, "Room: %d\n", room );
-
-
-	//Press 'r' to reset room.
-	if( gKeyMap['r'] || gKeyMap['R'] )
-	{
-		StartAtRoom( room );
-	}
-
-//printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );
-
-	
-
-/*
-	totaltime += worldDeltaTime;
-	sprintf( gDialog, "Update %f %f %f\n", gTargetHitX, gTargetHitY, gTargetHitZ );
-	if( gMouseLastClickButton != -1 ) {
-		if( gMouseLastClickButton == 0 )
+		int lx = ((int)gPositionX)-3;
+		int ly = ((int)gPositionY)-35;
+		if( lx >= 0 && lx < 15 && ly >= 0 && ly < 11 )
 		{
-			//Left-mouse
-			double targetx = gTargetHitX + gTargetNormalX*.5;
-			double targety = gTargetHitY + gTargetNormalY*.5;
-			double targetz = gTargetHitZ + gTargetNormalZ*.5;
-			ChangeCell( 0, targetx, targety, targetz, 255, 255, 255, 10 );
+			if( lavamap[lx+ly*15] ) Die();
 		}
-		else if( gMouseLastClickButton == 2 )
-		{
-			//Left-mouse
-			double targetx = gTargetHitX - gTargetNormalX*.5;
-			double targety = gTargetHitY - gTargetNormalY*.5;
-			double targetz = gTargetHitZ - gTargetNormalZ*.5;
-			ChangeCell( 0, targetx, targety, targetz, 0, 255, 0, 0 );
-		}
-		gMouseLastClickButton = -1;
 	}
-*/
+
+	if( IsPlayerInRange( 5, 47, 43, 1, 1, 2 ) )
+	{
+		room = 5;
+	}
 
 }
+
+
+
+
+void StartAtRoom( int rid )
+{
+	firstrun = 1;
+	room = rid;
+	switch( rid )
+	{
+	case 0:
+		GameAttempt = 63123151233141;
+		gPositionX = 3;
+		gPositionY = 3;
+		gPositionZ = 64;
+		break;
+	case 1:
+		GameAttempt = 1;
+		gPositionX = 4.28;
+		gPositionY = 4.27;
+		gPositionZ = 59.13;
+		break;
+	case 2:
+		gPositionX = 4.5;
+		gPositionY = 7.92;
+		gPositionZ = 51.92;
+		break;
+	case 3:
+		gPositionX = 4.5;
+		gPositionY = 15.29;
+		gPositionZ = 48.44;
+		break;
+	case 4:
+		gPositionX = 6.5;
+		gPositionY = 31.5;
+		gPositionZ = 49;
+		break;
+	case 5:
+		gPositionX = 5.5;
+		gPositionY = 47.5;
+		gPositionZ = 42;
+		break;
+	}
+}
+
