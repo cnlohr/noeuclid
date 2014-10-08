@@ -53,8 +53,8 @@ void RunRoom5()
 
 	if( firstrun )
 	{
-		MakeEmptyBox( 3, 45, 30, 4, 4, 13, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Start tube
-		MakeEmptyBox( 3, 30, 30, 7, 15, 4, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //side tube
+		MakeEmptyBox( 3, 45, 30, 4, 4, 13, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Start tube
+		MakeEmptyBox( 3, 30, 30, 7, 15, 4, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //side tube
 		ClearCell( 5, 45, 31 );
 		ClearCell( 5, 45, 32 );
 
