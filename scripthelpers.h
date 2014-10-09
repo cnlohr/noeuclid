@@ -5,9 +5,9 @@
 
 #include "Common.h"
 
-
+#define PICKABLE_CELL 114
 #define DEFAULT_BRIGHT 190
-#define DEFAULT_DENSITY 128
+#define DEFAULT_DENSITY 125
 #define WALL_BLOCK 12
 #define WHITE_BLOCK 19
 #define GOAL_BLOCK 24
@@ -16,6 +16,10 @@
 #define SPAAACE_CELL 255
 
 #define CLAMP( x, mi, ma ) ( ((x)<(mi))?(mi):( ((x)>(ma))?(ma):(x) ) )
+
+
+typedef void (*ClickCellCBType)( int left, float x, float y, float z, float dist );
+ClickCellCBType ClickCellCB;
 
 //File for useful scripts.
 
@@ -84,13 +88,22 @@ void MakeEmptyBox( short x, short y, short z, short sx, short sy, short sz, shor
 
 }
 
-void MakeJumpSection( short x, short y, short z, short sx, short sy, short sz, int xofs, int yofs, int zofs )
+void MakeJumpSection( short x, short y, short z, short sx, short sy, short sz, int xofs, int yofs, int zofs, float * farray )
 {
 	int newalloc = AllocAddInfo(4);
 
-	AlterAddInfo( newalloc+0, 1, 0, 0, 0 );
-	AlterAddInfo( newalloc+1, 0, 1, 0, 0 );
-	AlterAddInfo( newalloc+2, 0, 0, 1, 0 );
+	if( farray )
+	{
+		AlterAddInfo( newalloc+0, farray[0], farray[1], farray[2], 0 );
+		AlterAddInfo( newalloc+1, farray[3], farray[4], farray[5], 0 );
+		AlterAddInfo( newalloc+2, farray[6], farray[7], farray[8], 0 );
+	}
+	else
+	{
+		AlterAddInfo( newalloc+0, 1, 0, 0, 0 );
+		AlterAddInfo( newalloc+1, 0, 1, 0, 0 );
+		AlterAddInfo( newalloc+2, 0, 0, 1, 0 );
+	}
 	AlterAddInfo( newalloc+3, xofs, yofs, zofs, 0 );
 
 	short i, j, k;
@@ -103,6 +116,8 @@ void MakeJumpSection( short x, short y, short z, short sx, short sy, short sz, i
 	UpdateZone( x, y, z, sx+1, sy+1, sz+1 );
 	MarkAddDataForReload();
 }
+
+
 
 void SetWarpSpaceArea( short x, short y, short z, short sx, short sy, short sz, float xcomp, float ycomp, float zcomp )
 {
@@ -145,6 +160,202 @@ int IsPlayerInRange( float x, float y, float z, float sx, float sy, float sz )
 	return 0;
 }
  
+
+#define MAX_PICKABLES 256
+int pickables_in_inventory;
+
+//pickable block helper.
+struct PickableBlock
+{
+	int x, y, z;
+	float phasing;  //If +1 or 0, block is truly here.  If -1, phasing out.  Note: 0 = do not re-update.
+	float density;  //between 0 and 1.
+	char in_use;
+} PBlocks[MAX_PICKABLES];
+
+//Returns id if pickable is there.
+//Returns -1 if no block.
+//Returns -2 if block tween incomplete.
+int GetPickableAt( int x, int y, int z )
+{
+	int i;
+	for( i = 0; i < MAX_PICKABLES; i++ )
+	{
+		struct PickableBlock * pb = &PBlocks[i];
+		if( pb->in_use && pb->x == x && pb->y == y && pb->z == z )
+		{
+			return (pb->density > .99)?i:-2;
+		}
+	}
+	return -1;
+}
+
+void DissolvePickable( int pid )
+{
+	struct PickableBlock * pb = &PBlocks[pid];
+	pb->phasing = -1;
+}
+
+//If -1, no pickables left.
+//If -2, Pickable already there.
+//Otherwise returns which pickable!
+//initial_density should be 0 unless you want to shorten (+) or lengthen (-) tween.
+int PlacePickableAt( int x, int y, int z, float initial_density )
+{
+	int i;
+
+	for( i = 0; i < MAX_PICKABLES; i++ )
+	{
+		struct PickableBlock * pb = &PBlocks[i];
+		if( !pb->in_use )
+		{
+			break;
+		}
+	}
+	if( i == MAX_PICKABLES )
+		return -2;
+
+	struct PickableBlock * pb = &PBlocks[i];
+	pb->x = x; pb->y = y; pb->z = z;
+	pb->phasing = 1;
+	pb->in_use = 1;
+	pb->density = initial_density;
+}
+
+void ClearPicableBlocks()
+{
+	int i;
+	for( i = 0; i < MAX_PICKABLES; i++ )
+	{
+		struct PickableBlock * pb = &PBlocks[i];
+		pb->x = pb->y = pb->z = 0;
+		pb->phasing = 0;
+		pb->density = 0;
+		pb->in_use = 0;
+	}
+	pickables_in_inventory = 0;
+}
+
+//Redraw 
+void UpdatePickableBlocks()
+{
+	int i;
+	for( i = 0; i < MAX_PICKABLES; i++ )
+	{
+		struct PickableBlock * pb = &PBlocks[i];
+
+		if( !pb->in_use ) continue;
+
+		pb->density += worldDeltaTime * pb->phasing;
+
+		if( pb->density >= 1.0 && pb->phasing > 0 )
+		{
+			pb->density = 1.0;
+			pb->phasing = 0;
+		}
+		if( pb->density <= 0 && pb->phasing < 0 )
+		{
+			pb->density = 0.0;
+			pb->phasing = 0.0;
+			pb->in_use = 0;
+		}
+		float drawden = (pb->density<0)?0.0:((pb->density>1.0)?1.0:pb->density);
+
+		if( drawden > .01 )
+		{
+			PaintRange( pb->x, pb->y, pb->z, 1, 1, 1, PICKABLE_CELL, drawden * 200 );
+		}
+		else
+		{
+			ClearCell( pb->x, pb->y, pb->z );
+		}
+
+	}
+}
+
+void PickableClick( int left, float x, float y, float z, float dist )
+{
+	if( dist > 4 ) return;
+	int lx = x;
+	int ly = y;
+	int lz = z;
+	if( left )
+	{
+		if( pickables_in_inventory > 0 )
+		{
+			PlacePickableAt( lx, ly, lz, 0.0 );
+			pickables_in_inventory--;
+		}
+		else
+		{
+			printf( "No blocks.\n" );
+		}
+	}
+	else
+	{
+		int r = GetPickableAt( lx, ly, lz );
+
+		if( r >= 0 )
+		{
+			pickables_in_inventory++;
+			PBlocks[r].phasing = -1;
+		}
+
+	}
+}
+
+
+//Define all lava/death blocks.
+//If the user touches one, he dies.
+#define MAX_DEATH_BLOCKS 8192
+
+struct DeathBlock
+{
+	int x, y, z;
+	int in_use;
+} DeathBlocks[MAX_DEATH_BLOCKS];
+
+void AddDeathBlock( int x, int y, int z )
+{
+	int i;
+
+	//Don't add multiple.
+	for( i = 0; i < MAX_DEATH_BLOCKS; i++ )
+	{
+		struct DeathBlock * db = &DeathBlocks[i];
+		if( db->x == x && db->y == y && db->z == z )
+		{
+			return;
+		}
+	}
+
+	for( i = 0; i < MAX_DEATH_BLOCKS; i++ )
+	{
+		struct DeathBlock * db = &DeathBlocks[i];
+		if( db->in_use == 0 )
+		{
+			db->in_use = 1;
+			db->x = x;
+			db->y = y;
+			db->z = z;
+			break;
+		}
+	}
+}
+
+int IsOnDeathBlock( int x, int y, int z )
+{
+	int i;
+	for( i = 0; i < MAX_DEATH_BLOCKS; i++ )
+	{
+		struct DeathBlock * db = &DeathBlocks[i];
+		if( db->x == x && db->y == y && ( db->z == z || db->z == z-1 ) )
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
 
 
 #endif

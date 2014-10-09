@@ -2,8 +2,8 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 5
-#define NR_ROOMS 6
+#define START_ROOM 4
+#define NR_ROOMS 9 //RunRoom is 0 indexed, this should be one greater.s
 
 int firstrun = 0;
 int lastroom = -1;
@@ -16,6 +16,8 @@ void RunRoom2();
 void RunRoom3();
 void RunRoom4();
 void RunRoom5();
+void RunRoom6();
+void RunRoom7();
 
 void Die()
 {
@@ -35,7 +37,6 @@ void initialize( )
 void start( void * id )
 {	
 	printf( "Start %d\n", gOverallUpdateNo );
-	firstrun = 1;
 }
 
 void stop( void * id )
@@ -43,44 +44,29 @@ void stop( void * id )
 	printf( "Stop\n" );
 }
 
-
-void RunRoom5()
+void RunRoom8()
 {
-	static double TimeInRoom5;
-	TimeInRoom5 += worldDeltaTime;
-	int capden = 255 - TimeInRoom5 * 200;
-	float warp = ((TimeInRoom5*.1)>1)?1:((TimeInRoom5*.1)+.1);
+	static double TimeInRoom;
+	TimeInRoom += worldDeltaTime;
+	int capden = 255 - TimeInRoom * 200;
+	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
 
 	if( firstrun )
 	{
-		MakeEmptyBox( 3, 45, 30, 4, 4, 13, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Start tube
-		MakeEmptyBox( 3, 30, 30, 7, 15, 4, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //side tube
-		ClearCell( 5, 45, 31 );
-		ClearCell( 5, 45, 32 );
-
-//		SetWarpSpaceArea( 3, 32, 3, 12, 4, 3, .3, .3, .3 ); 
-		SetWarpSpaceArea( 3, 34, 30, 3, 11, 6, 1, .2, 1 );    //very long box.
-		SetWarpSpaceArea( 7, 34, 30, 3, 11, 6, 1, 5, 1 );    //very long box.
-
-		//Target in floor.
-		PaintRange( 5, 30, 31, 1, 1, 2, GOAL_BLOCK, 255 );
-
-		GameTimer = 15;
+		printf( "Hi!\n" );
+		GameTimer = 100;
 		firstrun = 0;
 	}
 
-	//Open Room 3 goal to room 4.
 	if( capden < 0 )
 	{
-		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, 0 );
+		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, 0 );
 	}
 	else
 	{
-		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, capden );
+		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, capden );
 	}
-
 }
-
 
 void collision( struct CollisionProbe * ddat )
 {
@@ -98,6 +84,9 @@ void UpdateRoom(int rid)
 	case 3: RunRoom3(); break;
 	case 4: RunRoom4(); break;
 	case 5: RunRoom5(); break;
+	case 6: RunRoom6(); break;
+	case 7: RunRoom7(); break;
+	case 8: RunRoom8(); break;
 	}
 }
 
@@ -136,38 +125,64 @@ void Update()
 		}
 	}
 
+	UpdatePickableBlocks(); //Draw the pickables.
+
 	//Press 'r' to reset room.
 	if( gKeyMap['r'] || gKeyMap['R'] )
 	{
 		StartAtRoom( room );
 	}
 
-//printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );
 
-	
 
-/*
-	totaltime += worldDeltaTime;
-	sprintf( gDialog, "Update %f %f %f\n", gTargetHitX, gTargetHitY, gTargetHitZ );
+//printf( "%f %f %f   %f %f %f\n", targetx, targety, targetz, gDirectionX, gDirectionY, gDirectionZ );
 	if( gMouseLastClickButton != -1 ) {
 		if( gMouseLastClickButton == 0 )
 		{
 			//Left-mouse
-			double targetx = gTargetHitX + gTargetNormalX*.5;
-			double targety = gTargetHitY + gTargetNormalY*.5;
-			double targetz = gTargetHitZ + gTargetNormalZ*.5;
-			ChangeCell( 0, targetx, targety, targetz, 255, 255, 255, 10 );
+			float targetx = gTargetHitX + gTargetNormalX*.5;
+			float targety = gTargetHitY + gTargetNormalY*.5;
+			float targetz = gTargetHitZ + gTargetNormalZ*.5;
+			float dist = sqrt((targetx - gPositionX)*(targetx - gPositionX) +
+				(targety - gPositionY)*(targety - gPositionY) +
+				(targetz - gPositionZ)*(targetz - gPositionZ));
+
+			if( ClickCellCB )
+				ClickCellCB( 1, targetx, targety, targetz, dist );
 		}
 		else if( gMouseLastClickButton == 2 )
 		{
-			//Left-mouse
-			double targetx = gTargetHitX - gTargetNormalX*.5;
-			double targety = gTargetHitY - gTargetNormalY*.5;
-			double targetz = gTargetHitZ - gTargetNormalZ*.5;
-			ChangeCell( 0, targetx, targety, targetz, 0, 255, 0, 0 );
+			//Right-mouse
+			float targetx = gTargetHitX - gTargetNormalX*.5;
+			float targety = gTargetHitY - gTargetNormalY*.5;
+			float targetz = gTargetHitZ - gTargetNormalZ*.5;
+			float dist = sqrt((targetx - gPositionX)*(targetx - gPositionX) +
+				(targety - gPositionY)*(targety - gPositionY) +
+				(targetz - gPositionZ)*(targetz - gPositionZ));
+
+			if( ClickCellCB )
+				ClickCellCB( 0, targetx, targety, targetz, dist );
 		}
 		gMouseLastClickButton = -1;
 	}
+
+	//We're on the ground.  Make sure we don't die.
+	if( gTimeSinceOnGround < .001 )
+	{
+		int px = gPositionX;
+		int py = gPositionY;
+		int pz = gPositionZ;
+		//printf( "%d %d %d\n", px, py, pz );
+		if( IsOnDeathBlock( px, py, pz ) )
+		{
+			printf( "DIE\n" );
+			Die();
+		}
+	}
+
+/*
+	totaltime += worldDeltaTime;
+	sprintf( gDialog, "Update %f %f %f\n", gTargetHitX, gTargetHitY, gTargetHitZ );
 */
 
 }
@@ -261,7 +276,7 @@ void RunRoom2()
 	static double TimeInRoom2;
 	TimeInRoom2 += worldDeltaTime;
 
-	gDaytime = 400;
+	gDaytime = gDaytime  * .99 + 400 * .01;
 	if( firstrun )
 	{
 		GameTimer = 100;
@@ -294,17 +309,17 @@ void RunRoom2()
 	switch( StageInRoom2 )
 	{
 	case 0:
-		if( gDirectionX > .7 && IsPlayerInRange( 3, 12, 48, 3, 3, 3 ) ) StageInRoom2 = 1;
+		if( gDirectionY > .7 && IsPlayerInRange( 3, 12, 48, 3, 3, 3 ) ) StageInRoom2 = 1;
 		break;
 	case 1:
-		if( gDirectionX < -.7 ) StageInRoom2 = 2;
+		if( gDirectionY < -.7 ) StageInRoom2 = 2;
 		break;
 	case 2:
-		if( gDirectionX > .7 ) StageInRoom2 = 3;
+		if( gDirectionY > .7 ) StageInRoom2 = 3;
 		break;
 	case 3:
 		PaintRange( 3, 11, 47, 3, 1, 8, SPAAACE_CELL, 255 );
-		if( gDirectionX < -.7 ) StageInRoom2 = 4;
+		if( gDirectionY < -.7 ) StageInRoom2 = 4;
 		break;
 	case 4:
 		//Open hole in front of room.
@@ -331,7 +346,7 @@ void RunRoom3()
 	static int already_removed_stretch = 0;
 	static double TimeInRoom3;
 	TimeInRoom3 += worldDeltaTime;
-	gDaytime = 472;
+	gDaytime = gDaytime * .99 + 472 * .01;
 
 	if( IsPlayerInRange( 2, 17, 41, 10, 10, 1.1 ) && !already_removed_stretch )
 	{
@@ -370,8 +385,8 @@ void RunRoom3()
 	{
 		ClearRange( 1, 16, 37, 1, 1, 4 );
 		ClearRange( 1, 16, 48, 1, 1, 4 );
-		MakeJumpSection( 1, 16, 39, 12, 12, 3, 0, 0, 7 );
-		MakeJumpSection( 1, 16, 51, 12, 12, 3, 0, 0, -7 );
+		MakeJumpSection( 1, 16, 39, 12, 12, 3, 0, 0, 7, 0 );
+		MakeJumpSection( 1, 16, 51, 12, 12, 3, 0, 0, -7, 0 );
 		printf( "Jumpspace\n" );
 		already_setup_jumpspace = 1;
 	}
@@ -397,7 +412,6 @@ void RunRoom3()
 
 void RunRoom4()
 {
-	static unsigned char lavamap[15*11];
 	int x, y;
 
 	//Make evil deadly floor room.
@@ -408,7 +422,8 @@ void RunRoom4()
 	{
 		GameTimer = 100;
 
-		SetWarpSpaceArea( 2, 34, 42, 17, 15, 20, .2, .2, .4 );    //very flat big box.
+		SetWarpSpaceArea( 2, 34, 42, 12, 15, 20, .2, .2, .4 );    //very flat big box.
+		SetWarpSpaceArea( 14, 34, 42, 8, 15, 20, .8, .8, .4 );    //very flat big box.
 		MakeEmptyBox( 3, 33, 43, 15, 15, 13, 2, 255, DEFAULT_BRIGHT, 1 ); //Main room.
 		MakeEmptyBox( 3, 28, 47, 6, 5, 3, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Tucked away (For start point)
 		PaintRange( 2, 32, 43+12, 17, 17, 3, SPAAACE_CELL, DEFAULT_DENSITY ); //Space on ceiling.
@@ -423,14 +438,10 @@ void RunRoom4()
 		for( y = 0; y < 11; y++ )
 		{
 			i = ( i * 2089 ) % 491;
-			if( ( (i % 7) > 2 ) )
+			if( ( (i % 7) > 1 ) )
 			{
 				QuickCell( 0, 3+x, 35+y, 43, 1, DEFAULT_BRIGHT, 60, 10 ); //Lava
-				lavamap[x+y*15] = 1;
-			}
-			else
-			{
-				lavamap[x+y*15] = 0;
+				AddDeathBlock( 3+x, 35+y, 43 );
 			}
 		}
 
@@ -460,20 +471,9 @@ void RunRoom4()
 	for( x = 0; x < 15; x++ )
 	for( y = 0; y < 15; y++ )
 	{
-		QuickCell( 0, 3+x, 33+y, 43+10, 1, DEFAULT_BRIGHT, (sin( x*2 + y*2 + TimeInRoom4)*80 + 80), 14 ); //Gold ore
+		QuickCell( 0, 3+x, 33+y, 43+10, 1, DEFAULT_BRIGHT, (sin( x*2 + y + TimeInRoom4)*80 + 80), 2 );
 	}
 	UpdateZone( 3, 33, 43+10, 15, 15, 3 );
-
-	//We're on the ground.  Make sure we don't die.
-	if( gTimeSinceOnGround < .001 )
-	{
-		int lx = ((int)gPositionX)-3;
-		int ly = ((int)gPositionY)-35;
-		if( lx >= 0 && lx < 15 && ly >= 0 && ly < 11 )
-		{
-			if( lavamap[lx+ly*15] ) Die();
-		}
-	}
 
 	if( IsPlayerInRange( 5, 47, 43, 1, 1, 2 ) )
 	{
@@ -482,6 +482,195 @@ void RunRoom4()
 
 }
 
+
+void RunRoom5()
+{
+	static double TimeInRoom5;
+	TimeInRoom5 += worldDeltaTime;
+	int capden = 255 - TimeInRoom5 * 200;
+	float warp = ((TimeInRoom5*.1)>1)?1:((TimeInRoom5*.1)+.1);
+
+	if( firstrun )
+	{
+		MakeEmptyBox( 3, 45, 30, 4, 4, 13, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Start tube
+		MakeEmptyBox( 3, 30, 30, 7, 15, 4, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //side tube
+		ClearCell( 5, 45, 31 );
+		ClearCell( 5, 45, 32 );
+
+//		SetWarpSpaceArea( 3, 32, 3, 12, 4, 3, .3, .3, .3 ); 
+		SetWarpSpaceArea( 3, 34, 30, 3, 11, 6, 1, .2, 1 );    //very long box.
+		SetWarpSpaceArea( 7, 34, 30, 3, 11, 6, 1, 5, 1 );    //very long box.
+
+		//Target in floor.
+		PaintRange( 5, 30, 31, 1, 1, 2, GOAL_BLOCK, 255 );
+
+		GameTimer = 15;
+		firstrun = 0;
+	}
+
+	//Open Room 3 goal to room 4.
+	if( capden < 0 )
+	{
+		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, 0 );
+	}
+	else
+	{
+		PaintRange( 5, 47, 43, 1, 1, 1, GOAL_BLOCK, capden );
+	}
+
+	if( IsPlayerInRange( 5, 31, 31, 1, 1, 2 ) )
+	{
+		room = 6;
+	}
+
+
+}
+
+
+
+void RunRoom6()
+{
+	static double TimeInRoom;
+	TimeInRoom += worldDeltaTime;
+	int capden = 255 - TimeInRoom * 200;
+	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
+
+	if( firstrun )
+	{
+		MakeEmptyBox( 3, 15, 30, 5, 15, 4, 1, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //side tube
+
+		PaintRange( 3, 18, 30, 5, 7, 1, 10, 255 ); //lava.
+		PaintRange( 4, 27, 31, 1, 3, 3, 1, 120 ); //tube wall
+		PaintRange( 6, 27, 31, 1, 3, 3, 1, 120 ); //tube wall
+
+		//Target on wall.
+		PaintRange( 5, 15, 31, 1, 1, 2, GOAL_BLOCK, 255 );
+
+		//Hide warp zone next to door.
+		float farrot[] = { 1, 0, 0, 0, 0, 1, 0, 1, 0 };
+		MakeJumpSection( 7, 29, 31, 2, 1, 3, -2, 4, -15, farrot );
+
+		GameTimer = 30;
+		firstrun = 0;
+	}
+
+	if( capden < 0 )
+	{
+		PaintRange( 5, 30, 31, 1, 1, 2, GOAL_BLOCK, 0 );
+	}
+	else
+	{
+		PaintRange( 5, 30, 31, 1, 1, 2, GOAL_BLOCK, capden );
+	}
+
+	if( IsPlayerInRange( 3, 18, 30, 5, 7, 4 ) )
+	{
+		Die();
+	}
+
+	if( IsPlayerInRange( 5, 15, 31, 1, 2, 2 ) )
+	{
+		room = 7;
+	}
+}
+
+
+void RunRoom7()
+{
+	static double TimeInRoom;
+	TimeInRoom += worldDeltaTime;
+	int capden = 255 - TimeInRoom * 200;
+	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
+
+	if( firstrun )
+	{
+		//Mini waiting platform
+
+		MakeEmptyBox( 2, 2, 30, 13, 13, 18, 3, DEFAULT_DENSITY-10, DEFAULT_BRIGHT, 1 ); //Main chamber
+		PaintRange( 3, 14, 30, 5, 3, 1, 1, 120 );
+		PaintRange( 3, 15, 30, 5, 1, 4, 1, 120 );
+
+		//Warp from top of first to top of second.
+		float farrot[] = { 1, 0, 0, 0, -1, 0, 0, 0, -1 };
+		MakeJumpSection( 2, 2, 41, 13, 13, 1, 0, -19, -63, farrot );
+
+
+		//Put a little mound of pickables over in the corner.
+		pickables_in_inventory = 0;
+		ClearPicableBlocks();
+		int x, y, z;
+		for( x = 0; x < 3; x ++ )
+		{
+			for( y = 0; y < 3; y ++ )
+			{
+				for( z = 0; z < 2; z ++ )
+				{
+					PlacePickableAt( x+5, y+5, z+31, -(x+y)-z*2.0-2 );
+				}
+			}
+		}
+
+		ClickCellCB = PickableClick;
+
+
+
+
+		MakeEmptyBox( 2, 2, 20, 22, 13, 5, 4, DEFAULT_DENSITY-10, DEFAULT_BRIGHT, 1 ); //Goal Chamber
+		ClearRange( 14, 3, 19, 5, 12, 2 );
+
+		MakeEmptyBox( 13, 2, 18, 5, 13, 1, 10, DEFAULT_DENSITY-10, DEFAULT_BRIGHT, 1 ); //Lava pit
+
+
+		char lavamap[8*8] = {
+			0, 1, 1, 1, 1, 1, 1, 0,
+			1, 1, 0, 0, 0, 0, 1, 1,
+			1, 0, 1, 0, 0, 1, 0, 1,
+			1, 0, 0, 0, 0, 0, 0, 1,
+			1, 0, 1, 1, 1, 1, 0, 1,
+			1, 0, 0, 1, 1, 0, 0, 1,
+			1, 1, 0, 0, 0, 0, 1, 1,
+			0, 1, 1, 1, 1, 1, 1, 0, };
+
+		//Now, in the goal chamber add some lava.
+		for( x = 0; x < 8; x++ )
+		for( y = 0; y < 8; y++ )
+		{
+			if( lavamap[x+y*8] )
+			{
+				QuickCell( 0, 4+x, 4+y, 20, 1, DEFAULT_BRIGHT, 60, 10 ); //Lava
+				AddDeathBlock( 4+x, 4+y, 20 );
+			}
+		}
+
+
+		GameTimer = 150;
+		firstrun = 0;
+
+
+		//Goal
+		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, 255 );
+
+	}
+
+	if( capden < 0 )
+	{
+		PaintRange( 5, 15, 31, 1, 1, 2, GOAL_BLOCK, 0 );
+	}
+	else
+	{
+		PaintRange( 5, 15, 31, 1, 1, 2, GOAL_BLOCK, capden );
+	}
+
+	if( IsPlayerInRange( 13,1,18, 7,15,3 ) )
+	{
+		Die();
+	}
+
+	if( IsPlayerInRange( 23, 7, 21, 1, 1, 2 ) )
+	{
+		room = 8;
+	}
+}
 
 
 
@@ -492,13 +681,12 @@ void StartAtRoom( int rid )
 	switch( rid )
 	{
 	case 0:
-		GameAttempt = 63123151233141;
+		GameAttempt = 1;
 		gPositionX = 3;
 		gPositionY = 3;
 		gPositionZ = 64;
 		break;
 	case 1:
-		GameAttempt = 1;
 		gPositionX = 4.28;
 		gPositionY = 4.27;
 		gPositionZ = 59.13;
@@ -523,6 +711,22 @@ void StartAtRoom( int rid )
 		gPositionY = 47.5;
 		gPositionZ = 42;
 		break;
+	case 6:
+		gPositionX = 5.5;
+		gPositionY = 30.5;
+		gPositionZ = 32;
+		break;
+	case 7:
+		gPositionX = 5.5;
+		gPositionY = 16.5;
+		gPositionZ = 32;
+		break;
+	case 8:
+		gPositionX = 23;
+		gPositionY = 7.5;
+		gPositionZ = 22;
+		break;
+
 	}
 }
 

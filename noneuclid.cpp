@@ -272,11 +272,11 @@ void LoadProbes( bool isRerun )
 	*/
 	}
 	
-	float ForwardVec[3] = { 0, 0, 1 };
+	float ForwardVec[3] = { 0, 0, -1 };
 	quatrotatevector( ForwardVec, LookQuaternion, ForwardVec );
 	float fwdx = ForwardVec[0];
 	float fwdy = ForwardVec[1];
-	float fwdz = ForwardVec[2];
+	float fwdz = -ForwardVec[2];  //??? WHY? WHY WHY??? Is LookQuaternion busted???
 
 	float MoveVec[3] = { dx, 0, dy };
 	quatrotatevector( MoveVec, LookQuaternion, MoveVec );
@@ -309,6 +309,7 @@ void LoadProbes( bool isRerun )
 			gh->vX = nx*4.;
 			gh->vY = ny*4.;
  			gh->vZ -= worldDeltaTime*16.; //gravity
+			gh->vZ = gh->vZ * .995;//terminal velocity
 		}
 /*			else
 		{
