@@ -18,13 +18,14 @@ int   gGodMode = 0;
 
 double GameTimer = 1000;
 double GameAttempt = 1;
-
+extern int pickables_in_inventory;
 float gTimeSinceOnGround;
 unsigned char gKeyMap[256];
 bool bPause = false;
 unsigned char gFocused;
 double worldDeltaTime;
 TCCEngine * g_tcce;
+int show_debugging = 0;
 void (*g_tcceupdate)() = 0;
 
 void NewTCC()
@@ -39,6 +40,7 @@ void pKeyDown(unsigned char key, int x, int y)
 {
 	if( key == 'p' ) bPause = !bPause;
 	if( key == 'g' ) gGodMode = !gGodMode;
+	if( key == '0' ) show_debugging = !show_debugging;
 	gKeyMap[key] = 1;
 }
 
@@ -794,19 +796,25 @@ void MyDraw()
 	glTranslatef( 0, 125, 0 );
 
 	char tt[1024];
-	sprintf( tt, "%1.2f %1.2f %1.2f\n", gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ );
-	DrawText( tt );
+	if( show_debugging )
+	{
+		sprintf( tt, "%1.2f %1.2f %1.2f\n", gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ );
+		DrawText( tt );
+	}
 
 	float pers = GLUT.miWidth * GLUT.miHeight / (gh->LastPass1Time/1. + gh->LastPass2Time/1. + gh->LastPass3Time) ;
-	sprintf( tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh->LastPass1Time/1000000., gh->LastPass2Time/1000000., gh->LastPass3Time/1000000., pers );
 	glTranslatef( 0, 25, 0 );
-	DrawText( tt );
+	if( show_debugging )
+	{
+		sprintf( tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh->LastPass1Time/1000000., gh->LastPass2Time/1000000., gh->LastPass3Time/1000000., pers );
+		DrawText( tt );
+	}
 
 	glTranslatef( 30, -150, 0 );
 	sprintf( tt, "%3.2f\n", GameTimer ); 
 	DrawText( tt );
 	glTranslatef( 300, 0, 0 );
-	sprintf( tt, "TRY %1.f\n", GameAttempt );
+	sprintf( tt, "TRY %1.f\nInven: %d", GameAttempt, pickables_in_inventory );
 	DrawText( tt );
 
 	PopFrom2D();
@@ -832,7 +840,7 @@ int main( int argc, char ** argv )
 
 	string mapFile;
 	vector<string> args;
-	unsigned int xSize = 640, ySize = 480;
+	unsigned int xSize = 720, ySize = 480;
 	
 	for (int i = 1; i < argc; i++)
 	{

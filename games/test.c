@@ -2,7 +2,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 4
+#define START_ROOM 0
 #define NR_ROOMS 9 //RunRoom is 0 indexed, this should be one greater.s
 
 int firstrun = 0;
@@ -53,9 +53,41 @@ void RunRoom8()
 
 	if( firstrun )
 	{
-		printf( "Hi!\n" );
-		GameTimer = 100;
+
+		//Make sure room 7 is set up for us. (And room 4)
+		firstrun = 1;
+		RunRoom7();
+		firstrun = 1;
+		RunRoom4();
+		PaintRange( 3, 28, 48, 6, 1, 2, DEADGOAL_BLOCK, 255 );
+		PaintRange( 5, 47, 43, 1, 1, 1, DEADGOAL_BLOCK, 255 );
+		PaintRange( 6, 33, 48, 1, 1, 2, GOAL_BLOCK, 0 );
+
+		//But, block the exit.
+		MakeJumpSection( 25, 7, 21, 3, 2, 3, -19, 24, 27, 0 );
+
+		//Place some goodies in here.
+		pickables_in_inventory = 0;
+		ClearPicableBlocks();
+		int x, y, z;
+		for( x = 0; x < 2; x ++ )
+		{
+			for( y = 0; y < 4; y ++ )
+			{
+				for( z = 0; z < 2; z ++ )
+				{
+					PlacePickableAt( x+6, y+29, z+48, -(x+y)*.5-z*.5 );
+				}
+			}
+		}
+
+		GameTimer = 200;
 		firstrun = 0;
+
+		ClearCell( 17, 48, 55 );
+		ClearCell( 16, 48, 55 );
+		ClearCell( 16, 48, 54 );
+		ClearCell( 17, 48, 54 );
 	}
 
 	if( capden < 0 )
@@ -210,6 +242,13 @@ void RunRoom0()
 		MakeEmptyBox    ( 1, 1, 60, 6, 6, 6, WALL_BLOCK, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );  //White box,
 		SetWarpSpaceArea( 1, 1, 60, 6, 6, 6, .1, .1, .1 );    //very big box.
 		ChangeCell( 0, 4, 4, 60, 1, DEFAULT_BRIGHT, 255, GOAL_BLOCK );
+
+		ChangeCell( 0, 2, 4, 62, 1, DEFAULT_BRIGHT, 255, 15 );
+		ChangeCell( 0, 4, 4, 62, 1, DEFAULT_BRIGHT, 255, 18 );
+		ChangeCell( 0, 3, 2, 61, 1, DEFAULT_BRIGHT, 255, 35 );
+		ChangeCell( 0, 5, 2, 63, 1, DEFAULT_BRIGHT, 255, 50 );
+		ChangeCell( 0, 3, 5, 64, 1, DEFAULT_BRIGHT, 255, 83 );
+		ChangeCell( 0, 5, 5, 63, 1, DEFAULT_BRIGHT, 255, 22 );
 	}
 
 	if( IsPlayerInRange( 4, 4, 61, 1, 1, 1 ) )
@@ -422,11 +461,11 @@ void RunRoom4()
 	{
 		GameTimer = 100;
 
-		SetWarpSpaceArea( 2, 34, 42, 12, 15, 20, .2, .2, .4 );    //very flat big box.
+		SetWarpSpaceArea( 2, 34, 42, 12, 15, 20, .18, .18, .4 );    //very flat big box.
 		SetWarpSpaceArea( 14, 34, 42, 8, 15, 20, .8, .8, .4 );    //very flat big box.
-		MakeEmptyBox( 3, 33, 43, 15, 15, 13, 2, 255, DEFAULT_BRIGHT, 1 ); //Main room.
+		MakeEmptyBox( 3, 33, 43, 15, 15, 16, 2, 255, DEFAULT_BRIGHT, 1 ); //Main room.
 		MakeEmptyBox( 3, 28, 47, 6, 5, 3, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Tucked away (For start point)
-		PaintRange( 2, 32, 43+12, 17, 17, 3, SPAAACE_CELL, DEFAULT_DENSITY ); //Space on ceiling.
+		PaintRange( 2, 32, 43+12+2, 17, 17, 3, SPAAACE_CELL, DEFAULT_DENSITY ); //Space on ceiling.
 
 		//Lava walls
 		PaintRange( 3, 35, 43, 1, 10, 2, 10, DEFAULT_DENSITY );

@@ -14,6 +14,8 @@
 extern double worldDeltaTime;
 int AddSizeStride;
 
+int pickables_in_inventory;
+
 
 
 void PopulateTCCE(TCCEngine * tce )
@@ -68,7 +70,7 @@ void PopulateTCCE(TCCEngine * tce )
 	IMPHELPVA( gOverallUpdateNo );
 
 	IMPHELPVA( gDaytime );
-
+	IMPHELPVA( pickables_in_inventory );
 	IMPHELPVA( gKeyMap );
 
 

@@ -162,8 +162,7 @@ int IsPlayerInRange( float x, float y, float z, float sx, float sy, float sz )
  
 
 #define MAX_PICKABLES 256
-int pickables_in_inventory;
-
+extern int pickables_in_inventory;
 //pickable block helper.
 struct PickableBlock
 {
