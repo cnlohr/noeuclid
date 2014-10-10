@@ -2,7 +2,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 4
+#define START_ROOM 0
 #define NR_ROOMS 9 //RunRoom is 0 indexed, this should be one greater.s
 
 int firstrun = 0;
@@ -416,7 +416,6 @@ void RunRoom3()
 		PaintRange( 3, 15, 47, 3, 2, 3, WHITE_BLOCK, 255 );
 
 		MakeEmptyBox( 1, 16, 40, 12, 12, 12, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Open area
-		PaintRange( 6, 21, 46, 2, 2, 1, 17, 255 ); //Random little platform
 		MakeEmptyBox( 3, 28, 47, 6, 5, 3, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Tucked away (For goal)
 		ClearRange( 4, 28, 48, 5, 2, 2 ); //Open wall between open area and goal.
 //		MakeJumpSection( 1, 16, 39, 12, 12, 3, 0, 0, 0 );
@@ -440,6 +439,19 @@ void RunRoom3()
 
 	int capden = 255 - TimeInRoom3 * 200;
 	float warp = ((TimeInRoom3*.1)>1)?1:((TimeInRoom3*.1)+.1);
+
+	int i;
+	//Make shifting platform.
+	for( i = 1; i < 13; i++ )
+	{
+		float swoove = swoovey( TimeInRoom3*.1, 3.0 )+.5;
+		swoove = (swoove * 13.0 - i)*.4;
+		float swd = 1.-swoove*swoove;
+		if( swd < 0 ) swd = 0;
+		if( swd > 1 ) swd = 1;
+		swd = pow( swd, .5);
+		PaintRange( i, 21, 46, 1, 2, 1, 17, swd * 255 ); //Random little platform
+	}
 
 	if( capden < 0 )
 	{
