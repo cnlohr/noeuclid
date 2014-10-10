@@ -18,6 +18,24 @@
 #define CLAMP( x, mi, ma ) ( ((x)<(mi))?(mi):( ((x)>(ma))?(ma):(x) ) )
 
 
+
+//Make a triangle wave.
+float swoovey( float f, float siny )
+{
+	if( f < 0 ) f *= -1;
+	f = fmodf( f, 1.0 );
+	float fs = sin( f * 3.14159 * 2 );
+//	if( f > .5 ) f = 1 - f;
+//	f = f * 4.0 - 1.0;
+//	if( f < 0 ) f = -pow( -f, siny );
+//	else f = pow( f, siny );
+//	return f;
+
+	if( fs < 0 ) fs = -pow( -fs, siny );
+	else fs = pow( fs, siny );
+	return fs;
+}
+
 typedef void (*ClickCellCBType)( int left, float x, float y, float z, float dist );
 ClickCellCBType ClickCellCB;
 

@@ -23,6 +23,8 @@ void PopulateTCCE(TCCEngine * tce )
 	IMPHELPFN( printf );
 	IMPHELPFN( sin );
 	IMPHELPFN( cos );
+	IMPHELPFN( fmodf );
+	IMPHELPFN( sqrtf );
 	IMPHELPFN( pow );
 	IMPHELPFN( rand );
 

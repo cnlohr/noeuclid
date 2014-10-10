@@ -53,6 +53,8 @@ void AlterAddInfo( int pos, float x, float y, float z, float a );
 void MarkAddDataForReload();
 
 #ifndef _TCCEXPORTS_H
+float fmodf( float v, float d );
+float sqrtf( float f );
 double sin( double f );
 double cos( double f );
 double pow( double base, double exp );

@@ -2,7 +2,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 0
+#define START_ROOM 4
 #define NR_ROOMS 9 //RunRoom is 0 indexed, this should be one greater.s
 
 int firstrun = 0;
@@ -269,7 +269,7 @@ void RunRoom1()
 		TimeInRoom1 = 0.0;
 
 		//Box off to the side
-		MakeEmptyBox( 2, 6, 50, 4, 4, 3, 7, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Chute
+		MakeEmptyBox( 2, 6, 50, 4, 4, 3, 7, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );
 
 
 		MakeEmptyBox( 2, 2, 48, 4, 4, 11, 4, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Chute
@@ -288,6 +288,14 @@ void RunRoom1()
 		//ChangeCell( 0, 4, 10, 52, 1, DEFAULT_BRIGHT, 255, GOAL_BLOCK );
 		PaintRange( 4, 10, 50, 1, 1, 3, GOAL_BLOCK, 255 );
 	}
+
+//	printf( "%f %f\n", triangle(TimeInRoom1, .9) );
+	//Make cute breathe
+	MakeEmptyBox( 2, 2, 48, 4, 4, 11, 4, swoovey(TimeInRoom1*.1, 1)*70+185, DEFAULT_BRIGHT, 1 ); //Chute
+	ClearCell( 4, 4, 60 );
+	ClearCell( 4, 4, 59 );
+	//Make hole in side.
+	ClearRange( 3, 6, 51, 3, 1, 2 );
 
 
 	int capden = 255 - TimeInRoom1 * 200;
@@ -385,7 +393,7 @@ void RunRoom3()
 	static int already_removed_stretch = 0;
 	static double TimeInRoom3;
 	TimeInRoom3 += worldDeltaTime;
-	gDaytime = gDaytime * .99 + 472 * .01;
+	gDaytime = gDaytime * .999 + 472 * .001;
 
 	if( IsPlayerInRange( 2, 17, 41, 10, 10, 1.1 ) && !already_removed_stretch )
 	{
@@ -461,8 +469,14 @@ void RunRoom4()
 	{
 		GameTimer = 100;
 
-		SetWarpSpaceArea( 2, 34, 42, 12, 15, 20, .18, .18, .4 );    //very flat big box.
-		SetWarpSpaceArea( 14, 34, 42, 8, 15, 20, .8, .8, .4 );    //very flat big box.
+		//Increasingly warped world.
+		for( x = 0; x < 14; x++ )
+		{
+			SetWarpSpaceArea( 2+x, 34, 42, 3, 15, 20, .8/(float)(14-x), .8/(float)(14-x), .4 );
+		}
+//		SetWarpSpaceArea( 2, 34, 42, 12, 15, 20, .18, .18, .4 );    //very flat big box.
+	//	SetWarpSpaceArea( 14, 34, 42, 8, 15, 20, .8, .8, .4 );    //very flat big box.
+
 		MakeEmptyBox( 3, 33, 43, 15, 15, 16, 2, 255, DEFAULT_BRIGHT, 1 ); //Main room.
 		MakeEmptyBox( 3, 28, 47, 6, 5, 3, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 ); //Tucked away (For start point)
 		PaintRange( 2, 32, 43+12+2, 17, 17, 3, SPAAACE_CELL, DEFAULT_DENSITY ); //Space on ceiling.
@@ -507,10 +521,10 @@ void RunRoom4()
 		PaintRange( 3, 28, 48, 6, 1, 2, DEADGOAL_BLOCK, 255-capden );
 	}
 
-	for( x = 0; x < 15; x++ )
-	for( y = 0; y < 15; y++ )
+	for( x = 0; x < 14; x++ )
+	for( y = 0; y < 14; y++ )
 	{
-		QuickCell( 0, 3+x, 33+y, 43+10, 1, DEFAULT_BRIGHT, (sin( x*2 + y + TimeInRoom4)*80 + 80), 2 );
+		QuickCell( 0, 4+x, 34+y, 43+10, 1, DEFAULT_BRIGHT, (sin( x*2 + y + TimeInRoom4)*80 + 80), 2 );
 	}
 	UpdateZone( 3, 33, 43+10, 15, 15, 3 );
 
