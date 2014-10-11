@@ -7,9 +7,6 @@
 #include <sys/time.h>
 #endif
 
-#ifdef GLEXT
-#include "../WindowsBuild/GLEXTHandler.h"
-#endif
 
 #include <stdlib.h>
 #ifdef WIN32
@@ -173,7 +170,7 @@ void GLUTCore::Init( int argc, char**argv, int iWidth, int iHeight, const char *
 	glutPassiveMotionFunc( mMD );
 	
 #ifdef GLEXT
-	SetupAllExtensions();
+//	SetupAllExtensions();
 #endif
 
 }

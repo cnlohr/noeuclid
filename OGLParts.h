@@ -1,6 +1,11 @@
 #ifndef _OGL_PARTS_H
 #define _OGL_PARTS_H
 
+#ifdef GLEXT
+#include <GL/glew.h>
+#endif
+
+
 #ifdef WIN32
 #include "winclude.h"
 #include <windows.h>
@@ -8,10 +13,6 @@
 
 #include <stdio.h>
 #include "GLUTCore.h"
-
-#ifdef GLEXT
-#include "../WindowsBuild/GLEXTHandler.h"
-#endif
 
 
 #include <vector>

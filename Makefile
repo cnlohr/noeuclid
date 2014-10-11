@@ -1,17 +1,25 @@
-all : noneuclid
+all : noeuclid
 
 #-DFAKEMAP means don't run any of the TCC stuff.
 CFLAGS:=-I. -g -O2 -DGL_GLEXT_PROTOTYPES  -Itcc  #-DFAKEMAP
 CXXFLAGS:=$(CFLAGS)
 LDFLAGS:= -lGL -lGLU -lglut -lz -g -lpthread tcc/libtcc-$(shell uname -m).a -ldl
 
-noneuclid : noneuclid.o OGLParts.o GLUTCore.o RTHelper.o Map.o tccexports.o tccengine.o os_generic.o linmath.o
+noeuclid : noeuclid.o OGLParts.o GLUTCore.o RTHelper.o Map.o tccexports.o tccengine.o os_generic.o linmath.o
 	g++ -o $@ $^ $(LDFLAGS)
 
 
-WINCFLAGS:= -m32 -I. -g -O2  -I../WindowsBuild/freeglut -I/usr/i586-mingw32msvc/include/GL -DGLEXT 
+WINCFLAGS:= -m32 -I. -g -O2 -Iwindows/glew -Iwindows/freeglut -I/usr/i586-mingw32msvc/include/GL -DGLEXT  -DGLEW_STATIC
 WINCPP:=i686-w64-mingw32-g++  #i586-mingw32msvc-g++
 WINC:=i686-w64-mingw32-gcc  #i586-mingw32msvc-gcc
+WINLDFLAGS:= \
+	windows/glew/glew-i586.a \
+	-lkernel32 -lm \
+	windows/libtcc.dll \
+	/usr/i586-mingw32msvc/lib/libopengl32.a \
+	/usr/i586-mingw32msvc/lib/libglu32.a \
+	./windows/freeglut-i686.dll \
+
 
 %.obj : %.cpp
 	$(WINCPP) -c -o $@ $^ $(WINCFLAGS)
@@ -19,9 +27,9 @@ WINC:=i686-w64-mingw32-gcc  #i586-mingw32msvc-gcc
 %.obj : %.c
 	$(WINC) -c -o $@ $^ $(WINCFLAGS) 
 
-noneuclid.exe : noneuclid.obj OGLParts.obj GLUTCore.obj RTHelper.obj Map.obj tccexports.obj tccengine.obj os_generic.obj ../WindowsBuild/GLEXTHandler.obj
-	$(WINCPP)  -o $@ $^ $(WINCFLAGS) 
+noeuclid.exe : noeuclid.obj OGLParts.obj GLUTCore.obj RTHelper.obj Map.obj tccexports.obj tccengine.obj os_generic.obj linmath.obj
+	$(WINCPP)  -o $@ $^ $(WINCFLAGS) $(WINLDFLAGS)
 
 
 clean :
-	rm -fr *.o tcc/*.o *~ noneuclid
+	rm -fr *.obj *.o tcc/*.o *~ noeuclid noeuclid.exe

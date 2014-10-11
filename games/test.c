@@ -2,7 +2,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 0
+#define START_ROOM 8
 #define NR_ROOMS 9 //RunRoom is 0 indexed, this should be one greater.s
 
 int firstrun = 0;
@@ -442,7 +442,7 @@ void RunRoom3()
 
 	int i;
 	//Make shifting platform.
-	for( i = 1; i < 13; i++ )
+	for( i = 2; i < 13; i++ )
 	{
 		float swoove = swoovey( TimeInRoom3*.1, 3.0 )+.5;
 		swoove = (swoove * 13.0 - i)*.4;
@@ -536,7 +536,7 @@ void RunRoom4()
 	for( x = 0; x < 14; x++ )
 	for( y = 0; y < 14; y++ )
 	{
-		QuickCell( 0, 4+x, 34+y, 43+10, 1, DEFAULT_BRIGHT, (sin( x*2 + y + TimeInRoom4)*80 + 80), 2 );
+		QuickCell( 0, 4+x, 34+y, 43+10, 1, DEFAULT_BRIGHT, (sin( x*2 + y + TimeInRoom4)*80 + 80), 9 );
 	}
 	UpdateZone( 3, 33, 43+10, 15, 15, 3 );
 

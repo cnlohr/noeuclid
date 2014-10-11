@@ -1,7 +1,7 @@
 #ifndef _SCRIPTHELPERS_H
 #define _SCRIPTHELPERS_H
 
-#include "noneuclidtcc.h"
+#include "noeuclidtcc.h"
 
 #include "Common.h"
 

@@ -250,7 +250,7 @@ void TraverseIn( )
 			ptr += vec3( lastvox.gba ) * 255.0;
 		}
 */
-		if( lastvox.a > 0 )
+		if( lastvox.a > 0.0 )
 		{
 			vec3 ra = texture2D( AdditionalInformationMap, vec2( lastvox.b+(0./255.), lastvox.a ) ).rgb;
 			vec3 rb = texture2D( AdditionalInformationMap, vec2( lastvox.b+(1./255.), lastvox.a ) ).rgb;
