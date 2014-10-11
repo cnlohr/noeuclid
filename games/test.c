@@ -780,7 +780,7 @@ void RunRoom7()
 
 		//Warp from top of first to top of second.
 		float farrot[] = { 1, 0, 0, 0, -1, 0, 0, 0, -1 };
-		MakeJumpSection( 2, 2, 41, 13, 13, 1, 0, -19, -63, farrot );
+		MakeJumpSection( 2, 2, 41, 13, 13, 1, 0, -19, -65 , farrot );
 
 		//Adn vice versa
 		float farrot2[] = { 1, 0, 0, 0, -1, 0, 0, 0, -1 };

@@ -475,9 +475,9 @@ void DoneProbes( bool bReRun )
 			//I haven't gotten around to this yet.
 
 			//Attempt to correct direction of speed.
-			gh->vX = gpRotFwd->NewDirection.r;
-			gh->vY = gpRotFwd->NewDirection.g;
-			gh->vZ = gpRotFwd->NewDirection.b;
+			gh->vX = gpTestVelocity->NewDirection.r;
+			gh->vY = gpTestVelocity->NewDirection.g;
+			gh->vZ = gpTestVelocity->NewDirection.b;
 
 			gh->ForceProbeReRun();
 			goto clend;
