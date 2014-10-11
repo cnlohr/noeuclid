@@ -230,6 +230,7 @@ CollisionProbe * gpN;
 vector< CollisionProbe * > probes;
 
 CollisionProbe * gpTest;
+CollisionProbe * gpTestVelocity;
 CollisionProbe * gpForward;
 CollisionProbe * gpRotFwd;
 CollisionProbe * gpRotUp;
@@ -369,6 +370,14 @@ void LoadProbes( bool isRerun )
 			gh->MapOffsetY,
 			gh->MapOffsetZ, 0 );
 		gpTest->Direction = RGBAf( gvx,gvy,gvz, sqrt(gvx*gvx+gvy*gvy+gvz*gvz) );
+
+		gpTestVelocity = gh->AddProbe();
+		gpTestVelocity->Position = RGBAf( gh->MapOffsetX,
+			gh->MapOffsetY,
+			gh->MapOffsetZ, 0 );
+		gpTestVelocity->Direction = RGBAf( gvx,gvy,gvz, sqrt(gvx*gvx+gvy*gvy+gvz*gvz) );
+		gpTestVelocity->AuxRotation = RGBAf( gh->vX, gh->vY, gh->vZ, 0 );
+
 	}
 
 
@@ -462,9 +471,13 @@ void DoneProbes( bool bReRun )
 			newx = gh->MapOffsetX = tp->TargetLocation.r;// - tp->Direction.r; //??? WHY not these but Z?
 			newy = gh->MapOffsetY = tp->TargetLocation.g;// - tp->Direction.g; //???
 			newz = gh->MapOffsetZ = tp->TargetLocation.b;// - tp->Direction.b;  //XXX WHY WHY WHY??? WHY?? (Read why below)
-
 			//XXX TODO TODO TODO!! There is a glitch.  We have to rotate the tp->Direction before adding it, otherwise really weird things will happen.
 			//I haven't gotten around to this yet.
+
+			//Attempt to correct direction of speed.
+			gh->vX = gpRotFwd->NewDirection.r;
+			gh->vY = gpRotFwd->NewDirection.g;
+			gh->vZ = gpRotFwd->NewDirection.b;
 
 			gh->ForceProbeReRun();
 			goto clend;
@@ -626,7 +639,6 @@ void DoneProbes( bool bReRun )
 	float Up[3];
 	float Fwd[3];
 */
-
 
 	//Re-rotate the camera based on the jump.
 	float orotmat[12];

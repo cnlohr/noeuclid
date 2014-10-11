@@ -2,7 +2,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 0
+#define START_ROOM 7
 #define NR_ROOMS 11 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
 
 int firstrun = 0;
@@ -270,6 +270,7 @@ void Update()
 
 //printf( "%f %f %f   %f %f %f\n", targetx, targety, targetz, gDirectionX, gDirectionY, gDirectionZ );
 	if( gMouseLastClickButton != -1 ) {
+		printf( "Click on: %f %f %f\n", gTargetHitX,gTargetHitY,gTargetHitZ );
 		if( gMouseLastClickButton == 0 )
 		{
 			//Left-mouse
@@ -780,6 +781,10 @@ void RunRoom7()
 		//Warp from top of first to top of second.
 		float farrot[] = { 1, 0, 0, 0, -1, 0, 0, 0, -1 };
 		MakeJumpSection( 2, 2, 41, 13, 13, 1, 0, -19, -63, farrot );
+
+		//Adn vice versa
+		float farrot2[] = { 1, 0, 0, 0, -1, 0, 0, 0, -1 };
+		MakeJumpSection( 2, 2, 25, 13, 13, 1, 0, -19, -65, farrot );
 
 
 		//Put a little mound of pickables over in the corner.
