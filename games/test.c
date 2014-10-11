@@ -2,7 +2,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 7
+#define START_ROOM 0
 #define NR_ROOMS 11 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
 
 int firstrun = 0;
