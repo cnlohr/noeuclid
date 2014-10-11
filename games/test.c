@@ -2,8 +2,8 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 8
-#define NR_ROOMS 9 //RunRoom is 0 indexed, this should be one greater.s
+#define START_ROOM 9
+#define NR_ROOMS 10 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
 
 int firstrun = 0;
 int lastroom = -1;
@@ -18,6 +18,8 @@ void RunRoom4();
 void RunRoom5();
 void RunRoom6();
 void RunRoom7();
+void RunRoom8();
+void RunRoom9();
 
 void Die()
 {
@@ -44,7 +46,7 @@ void stop( void * id )
 	printf( "Stop\n" );
 }
 
-void RunRoom8()
+void RunRoom9()
 {
 	static double TimeInRoom;
 	TimeInRoom += worldDeltaTime;
@@ -54,49 +56,42 @@ void RunRoom8()
 	if( firstrun )
 	{
 
+		TimeInRoom = 0;
 		//Make sure room 7 is set up for us. (And room 4)
 		firstrun = 1;
-		RunRoom7();
-		firstrun = 1;
-		RunRoom4();
-		PaintRange( 3, 28, 48, 6, 1, 2, DEADGOAL_BLOCK, 255 );
-		PaintRange( 5, 47, 43, 1, 1, 1, DEADGOAL_BLOCK, 255 );
-		PaintRange( 6, 33, 48, 1, 1, 2, GOAL_BLOCK, 0 );
+		RunRoom8();
 
-		//But, block the exit.
-		MakeJumpSection( 25, 7, 21, 3, 2, 3, -19, 24, 27, 0 );
-
-		//Place some goodies in here.
-		pickables_in_inventory = 0;
-		ClearPicableBlocks();
-		int x, y, z;
-		for( x = 0; x < 2; x ++ )
-		{
-			for( y = 0; y < 4; y ++ )
-			{
-				for( z = 0; z < 2; z ++ )
-				{
-					PlacePickableAt( x+6, y+29, z+48, -(x+y)*.5-z*.5 );
-				}
-			}
-		}
+		//Little tunnel off end.
 
 		GameTimer = 200;
 		firstrun = 0;
 
-		ClearCell( 17, 48, 55 );
-		ClearCell( 16, 48, 55 );
-		ClearCell( 16, 48, 54 );
-		ClearCell( 17, 48, 54 );
+//		gPositionX = 17.4;
+//		gPositionY = 46.8;
+//		gPositionZ = 55.1;
+
+
+		//Draw whatever tubes and all.
+		MakeEmptyBox    ( 2, 49, 46, 16, 16, 10, 3, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );
+		ClearRange( 16, 49, 54, 2, 1, 2 );
+
+
+
+//		PaintRange( 16, 48, 54, 2, 1, 2, GOAL_BLOCK, 255 );
 	}
 
 	if( capden < 0 )
 	{
-		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, 0 );
+		PaintRange( 16, 48, 54, 2, 1, 2, GOAL_BLOCK, 0 );
 	}
 	else
 	{
-		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, capden );
+		PaintRange( 16, 48, 54, 2, 1, 2, GOAL_BLOCK, capden );
+	}
+
+	if( IsPlayerInRange( 16, 46, 54, 2, 2, 2 ) )
+	{
+		room = 9;
 	}
 }
 
@@ -119,6 +114,7 @@ void UpdateRoom(int rid)
 	case 6: RunRoom6(); break;
 	case 7: RunRoom7(); break;
 	case 8: RunRoom8(); break;
+	case 9: RunRoom9(); break;
 	}
 }
 
@@ -212,6 +208,19 @@ void Update()
 		}
 	}
 
+
+	if( IsPlayerInRange( 2, 40, 63, 16, 16, 4 ) )
+	{
+		int lx = ((int)gPositionX) - 2;
+		int ly = ((int)gPositionY) - 40;
+		sprintf( gDialog, "OnTile %d\n", lx + ly * 16 );		
+	}
+		//Util: Make reference swatches.
+		for( i = 0; i < 256; i++ )
+		{
+			ChangeCell( 0, 2+(i%16), 40+(i/16), 63, 1, DEFAULT_BRIGHT, 255, i );
+		}
+
 /*
 	totaltime += worldDeltaTime;
 	sprintf( gDialog, "Update %f %f %f\n", gTargetHitX, gTargetHitY, gTargetHitZ );
@@ -237,6 +246,7 @@ void RunRoom0()
 {
 	if( firstrun )
 	{
+		int i;
 		GameTimer = 100;
 		firstrun = 0;
 		MakeEmptyBox    ( 1, 1, 60, 6, 6, 6, WALL_BLOCK, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );  //White box,
@@ -249,6 +259,13 @@ void RunRoom0()
 		ChangeCell( 0, 5, 2, 63, 1, DEFAULT_BRIGHT, 255, 50 );
 		ChangeCell( 0, 3, 5, 64, 1, DEFAULT_BRIGHT, 255, 83 );
 		ChangeCell( 0, 5, 5, 63, 1, DEFAULT_BRIGHT, 255, 22 );
+
+
+		//Util: Make reference swatches.
+		for( i = 0; i < 256; i++ )
+		{
+			ChangeCell( 0, 2+(i%16), 40+(i/16), 63, 1, DEFAULT_BRIGHT, 255, i );
+		}
 	}
 
 	if( IsPlayerInRange( 4, 4, 61, 1, 1, 1 ) )
@@ -738,6 +755,67 @@ void RunRoom7()
 }
 
 
+void RunRoom8()
+{
+	static double TimeInRoom;
+	TimeInRoom += worldDeltaTime;
+	int capden = 255 - TimeInRoom * 200;
+	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
+
+	if( firstrun )
+	{
+
+		//Make sure room 7 is set up for us. (And room 4)
+		firstrun = 1;
+		RunRoom7();
+		firstrun = 1;
+		RunRoom4();
+		PaintRange( 3, 28, 48, 6, 1, 2, DEADGOAL_BLOCK, 255 );
+		PaintRange( 5, 47, 43, 1, 1, 1, DEADGOAL_BLOCK, 255 );
+		PaintRange( 6, 33, 48, 1, 1, 2, GOAL_BLOCK, 0 );
+
+		//But, block the exit.
+		MakeJumpSection( 25, 7, 21, 3, 2, 3, -19, 24, 27, 0 );
+
+		//Place some goodies in here.
+		pickables_in_inventory = 0;
+		ClearPicableBlocks();
+		int x, y, z;
+		for( x = 0; x < 2; x ++ )
+		{
+			for( y = 0; y < 4; y ++ )
+			{
+				for( z = 0; z < 2; z ++ )
+				{
+					PlacePickableAt( x+6, y+29, z+48, -(x+y)*.5-z*.5 );
+				}
+			}
+		}
+
+		GameTimer = 200;
+		firstrun = 0;
+
+		ClearCell( 17, 48, 55 );
+		ClearCell( 16, 48, 55 );
+		ClearCell( 16, 48, 54 );
+		ClearCell( 17, 48, 54 );
+		PaintRange( 16, 48, 54, 2, 1, 2, GOAL_BLOCK, 255 );
+	}
+
+	if( capden < 0 )
+	{
+		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, 0 );
+	}
+	else
+	{
+		PaintRange( 24, 7, 21, 1, 1, 2, GOAL_BLOCK, capden );
+	}
+
+	if( IsPlayerInRange( 16, 46, 54, 2, 2, 2 ) )
+	{
+		room = 9;
+	}
+}
 
 void StartAtRoom( int rid )
 {
@@ -790,6 +868,11 @@ void StartAtRoom( int rid )
 		gPositionX = 23;
 		gPositionY = 7.5;
 		gPositionZ = 22;
+		break;
+	case 9:
+		gPositionX = 17.4;
+		gPositionY = 49.8;
+		gPositionZ = 55.1;
 		break;
 
 	}
