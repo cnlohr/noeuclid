@@ -2,8 +2,8 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 9
-#define NR_ROOMS 10 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
+#define START_ROOM 0
+#define NR_ROOMS 11 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
 
 int firstrun = 0;
 int lastroom = -1;
@@ -20,6 +20,7 @@ void RunRoom6();
 void RunRoom7();
 void RunRoom8();
 void RunRoom9();
+void RunRoom10();
 
 void Die()
 {
@@ -46,6 +47,30 @@ void stop( void * id )
 	printf( "Stop\n" );
 }
 
+void RunRoom10()
+{
+	static double TimeInRoom;
+	TimeInRoom += worldDeltaTime;
+	int capden = 255 - TimeInRoom * 200;
+	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
+	if( firstrun )
+	{
+		TimeInRoom = 0;
+		GameTimer = 200;
+		firstrun = 0;
+	}
+
+	if( capden < 0 )
+	{
+		PaintRange( 4, 66, 47, 2, 1, 3, GOAL_BLOCK, 0 );
+	}
+	else
+	{
+		PaintRange( 4, 66, 47, 2, 1, 3, GOAL_BLOCK, capden );
+	}
+
+}
+
 void RunRoom9()
 {
 	static double TimeInRoom;
@@ -53,13 +78,20 @@ void RunRoom9()
 	int capden = 255 - TimeInRoom * 200;
 	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
 
+	static double TimeTransition = 0;
+	static char lifemap[16*16];
+	static char newlife[16*16];
+	int x,y;
+
 	if( firstrun )
 	{
 
 		TimeInRoom = 0;
-		//Make sure room 7 is set up for us. (And room 4)
+		//Room 8's gotta be here.
 		firstrun = 1;
 		RunRoom8();
+		PaintRange( 15, 45, 53, 3, 3, 1, 9, 130 );
+
 
 		//Little tunnel off end.
 
@@ -70,15 +102,66 @@ void RunRoom9()
 //		gPositionY = 46.8;
 //		gPositionZ = 55.1;
 
+		int i = 1;
+		for( x = 0; x < 16; x++ )
+		for( y = 0; y < 16; y++ )
+		{
+			i = ( i * 2089 ) % 491;
+			if( ( (i % 7) > 2 ) )
+			{
+				newlife[x+y*16] = 1;
+			}
+		}
+
 
 		//Draw whatever tubes and all.
-		MakeEmptyBox    ( 2, 49, 46, 16, 16, 10, 3, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );
+		MakeEmptyBox( 2, 49, 46, 17, 17, 10, 3, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );
 		ClearRange( 16, 49, 54, 2, 1, 2 );
+		PaintRange( 2, 49, 46, 17, 16, 1, 10, 60 );
 
-
-
-//		PaintRange( 16, 48, 54, 2, 1, 2, GOAL_BLOCK, 255 );
+		PaintRange( 4, 66, 47, 2, 1, 3, GOAL_BLOCK, 255 );
 	}
+
+	//Fix life map up.
+	if( TimeTransition >= 1 )
+	{
+		memcpy( lifemap, newlife, sizeof( lifemap ) );
+		for( x = 0; x < 16; x++ )
+		{
+			for( y = 0; y < 16; y++ )
+			{
+				int alive = lifemap[x+y*16];
+				int qty = 
+					loopingarrayaccess( lifemap, 16, 16, x-1, y-1 ) +
+					loopingarrayaccess( lifemap, 16, 16, x-1, y ) +
+					loopingarrayaccess( lifemap, 16, 16, x-1, y+1 ) +
+					loopingarrayaccess( lifemap, 16, 16, x, y-1 ) +
+					loopingarrayaccess( lifemap, 16, 16, x, y ) +
+					loopingarrayaccess( lifemap, 16, 16, x, y+1 ) +
+					loopingarrayaccess( lifemap, 16, 16, x+1, y-1 ) +
+					loopingarrayaccess( lifemap, 16, 16, x+1, y ) +
+					loopingarrayaccess( lifemap, 16, 16, x+1, y+1 );
+
+				newlife[x+y*16] = alive;
+
+				if( qty == 3 || qty == 4 )
+					newlife[x+y*16] = 1;
+				else if( qty > 4 )
+					newlife[x+y*16] = 0;
+				else if( qty < 2 )
+					newlife[x+y*16] = 0;
+			}
+		}
+		TimeTransition -= 1;
+	}
+
+	for( x = 0; x < 16; x++ )
+	for( y = 0; y < 16; y++ )
+	{
+		double den = ((double)lifemap[x+y*16]) * (1.-TimeTransition)  + ((double)newlife[x+y*16] ) * TimeTransition;
+		ChangeCell( 0, 3+x, 50+y, 47, 1, DEFAULT_BRIGHT, den*255, 5 );
+	}
+	TimeTransition += worldDeltaTime;
 
 	if( capden < 0 )
 	{
@@ -89,9 +172,14 @@ void RunRoom9()
 		PaintRange( 16, 48, 54, 2, 1, 2, GOAL_BLOCK, capden );
 	}
 
-	if( IsPlayerInRange( 16, 46, 54, 2, 2, 2 ) )
+	if( IsPlayerInRange( 4, 65, 48, 2, 2, 2 ) )
 	{
-		room = 9;
+		room = 10;
+	}
+
+	if( gPositionZ < 47.8 )
+	{
+		Die();
 	}
 }
 
@@ -115,11 +203,13 @@ void UpdateRoom(int rid)
 	case 7: RunRoom7(); break;
 	case 8: RunRoom8(); break;
 	case 9: RunRoom9(); break;
+	case 10: RunRoom10(); break;
 	}
 }
 
 void Update()
 {
+	static int was_level_change_pressed;
 	int i;
 
 	if( gOverallUpdateNo == 0 )
@@ -161,7 +251,22 @@ void Update()
 		StartAtRoom( room );
 	}
 
-
+	if( gKeyMap['='] || gKeyMap['+'] )
+	{
+		if( !was_level_change_pressed )
+			room++;
+		was_level_change_pressed = 1;
+		StartAtRoom( room );
+	}
+	else if( gKeyMap['-'] || gKeyMap['_'] )
+	{
+		if( !was_level_change_pressed )
+			room--;
+		was_level_change_pressed = 1;
+		StartAtRoom( room );
+	}
+	else
+		was_level_change_pressed = 0;
 
 //printf( "%f %f %f   %f %f %f\n", targetx, targety, targetz, gDirectionX, gDirectionY, gDirectionZ );
 	if( gMouseLastClickButton != -1 ) {
@@ -764,6 +869,7 @@ void RunRoom8()
 
 	if( firstrun )
 	{
+		TimeInRoom = 0;
 
 		//Make sure room 7 is set up for us. (And room 4)
 		firstrun = 1;
@@ -874,7 +980,11 @@ void StartAtRoom( int rid )
 		gPositionY = 49.8;
 		gPositionZ = 55.1;
 		break;
-
+	case 10:
+		gPositionX = 5.1;
+		gPositionY = 65.2;
+		gPositionZ = 48;
+		break;
 	}
 }
 

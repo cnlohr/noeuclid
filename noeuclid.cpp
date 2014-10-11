@@ -882,7 +882,7 @@ int main( int argc, char ** argv )
 	GLUT.SetMouseDragFunct( MyMouseDrag );
 
 	GLUT.SetDrawFunct( MyDraw );
-	GLUT.Init( argc, (char**)argv, xSize, ySize, "Non-Euclidian Test" );
+	GLUT.Init( argc, (char**)argv, xSize, ySize, "No! Euclid!" );
 	glutWindowStatusFunc(ThisWindowStatus);
 
 	//For display purposes, we should depth test all of our surfaces.

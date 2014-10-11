@@ -18,7 +18,13 @@
 
 #define CLAMP( x, mi, ma ) ( ((x)<(mi))?(mi):( ((x)>(ma))?(ma):(x) ) )
 
-
+//Read an array with looping ends
+char loopingarrayaccess( char * map, int w, int h, int x, int y)
+{
+	x = ((x%w)+w)%w;
+	y = ((y%h)+h)%h;
+	return map[x+y*w];
+}
 
 //Make a triangle wave.
 float swoovey( float f, float siny )
