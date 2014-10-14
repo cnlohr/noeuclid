@@ -363,7 +363,7 @@ void RunRoom0()
 		ChangeCell( 0, 4, 4, 62, 1, DEFAULT_BRIGHT, 255, 18 );
 		ChangeCell( 0, 3, 2, 61, 1, DEFAULT_BRIGHT, 255, 35 );
 		ChangeCell( 0, 5, 2, 63, 1, DEFAULT_BRIGHT, 255, 50 );
-		ChangeCell( 0, 3, 5, 64, 1, DEFAULT_BRIGHT, 255, 83 );
+		ChangeCell( 0, 3, 5, 64, 1, DEFAULT_BRIGHT, 255, 81 );
 		ChangeCell( 0, 5, 5, 63, 1, DEFAULT_BRIGHT, 255, 22 );
 
 

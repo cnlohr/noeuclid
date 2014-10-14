@@ -1,3 +1,5 @@
+//Copyright 2011 <>< Charles Lohr - File may be licensed under the MIT/x11 license or the new BSD license.  You choose.
+
 #ifndef _MAP_H
 #define _MAP_H
 
