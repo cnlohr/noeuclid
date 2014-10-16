@@ -30,7 +30,7 @@
 
 
 //Initial start toom is 0	
-#define START_ROOM 0
+#define START_ROOM 10
 #define NR_ROOMS 11 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
 
 int firstrun = 0;
@@ -77,16 +77,51 @@ void stop( void * id )
 
 void RunRoom10()
 {
+	int x, y, z;
 	static double TimeInRoom;
 	TimeInRoom += worldDeltaTime;
 	int capden = 255 - TimeInRoom * 200;
 	float warp = ((TimeInRoom*.1)>1)?1:((TimeInRoom*.1)+.1);
 	if( firstrun )
 	{
+		RunRoom9();
+
 		TimeInRoom = 0;
 		GameTimer = 200;
 		firstrun = 0;
+
+		MakeEmptyBox( 2, 67, 46, 6, 10, 10, 4, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1 );
+		ClearRange( 4, 67, 47, 2, 1, 3 );
+		SetWarpSpaceArea( 2, 67, 46, 10, 10, 10, .3, .3, 1 );    //very big box.
+		SetWarpSpaceArea( 7, 67, 46+5, 2, 10, 1, .3, 1.5, .5 );    //very big box.
+		PaintRange( 3, 70, 46, 10, 3, 1, 10, DEFAULT_DENSITY );
+
 	}
+
+	for( z = 46; z < 57; z++ )
+	for( y = 67; y < 77; y++ )
+	{
+		if( (y + z)&1) continue;
+		QuickCell( 0, 2, y, z, 1, DEFAULT_BRIGHT, sin(TimeInRoom*10.0+z+y)*50.5+160, 5 );
+	}
+	UpdateZone( 1, 66, 46, 1, 10, 10 );
+
+	for( z = 46; z < 57; z++ )
+	for( x = 2; x < 12; x++ )
+	{
+		if( (x + z)&1) continue;
+		QuickCell( 0, x, 77, z, 1, DEFAULT_BRIGHT, sin(TimeInRoom*10.0+x+z)*50.5+160, 5 );
+	}
+	UpdateZone( 1, 76, 46, 10, 1, 10 );
+
+	for( y = 67; y < 77; y++ )
+	for( x = 2; x < 12; x++ )
+	{
+		if( (y + x)&1) continue;
+		QuickCell( 0, x, y, 56, 1, DEFAULT_BRIGHT, sin(TimeInRoom*10.0+x+y)*50.5+160, 5 );
+	}
+	UpdateZone( 2, 67, 56, 10, 10, 1 );
+
 
 	if( capden < 0 )
 	{
@@ -95,6 +130,11 @@ void RunRoom10()
 	else
 	{
 		PaintRange( 4, 66, 47, 2, 1, 3, GOAL_BLOCK, capden );
+	}
+
+	if( IsPlayerInRange( 3,70,46,6,3,2.1) )
+	{
+		Die();
 	}
 
 }
