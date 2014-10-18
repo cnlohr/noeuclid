@@ -70,6 +70,8 @@ void pKeyDown(unsigned char key, int x, int y)
 	if( key == 'p' ) bPause = !bPause;
 	if( key == 'g' ) gGodMode = !gGodMode;
 	if( key == '0' ) show_debugging = !show_debugging;
+	if( key == '8' ) { mouseSensitivity *= .75; if( mouseSensitivity < .1 ) mouseSensitivity = .1; }
+	if( key == '9' ) { mouseSensitivity *= 1.5; if( mouseSensitivity > 2.0 ) mouseSensitivity = 2.0; }
 	gKeyMap[key] = 1;
 }
 
