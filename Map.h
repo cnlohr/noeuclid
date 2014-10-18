@@ -7,7 +7,7 @@
 #include <math.h>
 #include <list>
 #include "Common.h"
-#include <OGLParts.h>
+#include "OGLParts.h"
 
 
 //MAP Contains "GLTextureData"

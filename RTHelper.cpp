@@ -192,7 +192,7 @@ void RTHelper::LoadAttributeMap()
 		vector< string > dats;
 		string stmp;
 		char c = 0;
-		for( int ipl = 0; c = tline[ipl]; ipl++ )
+		for( int ipl = 0; (c = tline[ipl]); ipl++ )
 		{
 			if( c == ' ' || c == '\t' )
 			{

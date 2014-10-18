@@ -68,7 +68,6 @@ void Map::SetCellInternal( unsigned x, unsigned y, unsigned z, unsigned thiscell
 	// = RGBA( thiscell, jump, jump, 0 ); //First is actual value, last is edge value
 //				TexCell( 1, x, y, z ) = RGBA( thiscell?x:0, 0., 0xF0, 0 );
 
-	unsigned char jump = thiscell?1:MAX_SEEKER;
 //	color = 0xF0;
 //	unsigned char thiscell = (z<3)?0xff:0;
 	TexCell( 0, x, y, z ).r = thiscell;
@@ -135,7 +134,6 @@ void Map::DefaultIt()
 
 void Map::FakeIt()
 {
-	unsigned x, y;
 	printf( "%p / Fakeit\n", this );
 
 
@@ -332,7 +330,7 @@ void Map::RecalculateAccelerationStructure( int ix, int iy, int iz, int sx, int 
 {
 //	printf( "Recalculate %d %d %d    %d %d %d\n", ix, iy, iz, sx, sy, sz );
 	//increasing X
-	int minval;
+//	int minval;
 
 	//OLD: 44.804s
 	//NEW: 3.306s
@@ -342,17 +340,16 @@ void Map::RecalculateAccelerationStructure( int ix, int iy, int iz, int sx, int 
 //	gettimeofday( &tv1, 0 );	
 
 	unsigned char inskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
-	unsigned char ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
+//	unsigned char ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
 	if (parent->LTTex != NULL)
 	{
 		for( int z = iz; z < sz; z++ )
 		for( int y = iy; y < sy; y++ )
 		for( int x = ix; x < sx; x++ )
 		{
-			RGBA & rr = TexCell( 1, x, y, z );
+			//RGBA & rr = TexCell( 1, x, y, z );
 			RGBA & rr2 = TexCell( 0, x, y, z );
 			unsigned char in = rr2.a;
-			unsigned char meta = rr.b;
 			inskips[x+y*GLH_SIZEX+z*GLH_SIZEX*GLH_SIZEY] = in!=0;
 			//XXX do skip processing here
 			for (unsigned int i = 0; i < 23;++i)
