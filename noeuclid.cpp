@@ -66,6 +66,7 @@ void NewTCC()
 
 void pKeyDown(unsigned char key, int x, int y)
 {
+	if( key == 27  ){ printf("Esc was pushed\n"); exit(0);} //esc as a quck exit.
 	if( key == 'p' ) bPause = !bPause;
 	if( key == 'g' ) gGodMode = !gGodMode;
 	if( key == '0' ) show_debugging = !show_debugging;
