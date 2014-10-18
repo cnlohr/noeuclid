@@ -1070,26 +1070,13 @@ void TextUtil::DrawFont( const char * todraw, float MaxWidth, float MaxHeight, T
 		}
 		else
 		{
-			float CenterU, CenterV, WidthU, WidthV;
-			float MaxX, MaxY, MinX, MinY;
-
 			if( verts.size() <= unsigned((chars+1)*8) )
 			{
 				verts.resize( (chars+1)*16 );
 				uvs.resize( (chars+1)*16 );
 			}
 
-			CenterU = float(int((*CurChar)%16))/16.0+1.0/32.0-(0.5/float(FontWidth));
-			CenterV = float(int((*CurChar)/16))/16.0+1.0/32.0;
-			WidthU = fFontWidths[*CurChar]/float(FontWidth)* 0.5;
-			WidthV = 1.0/16.0*0.5;
-
-			MinX = CurX;
 			CurX += fFontWidths[*CurChar];
-
-			MaxX = CurX;
-			MinY = Line*LineSpacing;
-			MaxY = Line*LineSpacing+(FontWidth/16);
 
 			chars++;
 		}

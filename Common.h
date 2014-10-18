@@ -55,7 +55,7 @@ string ZLibUncompress( const string & in );
 
 struct RGBAf
 {
-	RGBAf() : r(0), b(0), g(0), a(0) { }
+	RGBAf() : r(0), g(0), b(0), a(0) { }
 	RGBAf( float ri, float gi, float bi, float ai ): r(ri), g(gi), b(bi), a(ai) { }
 	float r, g, b, a;
 	void FromStringArray( string * arr );
@@ -63,7 +63,7 @@ struct RGBAf
 
 struct RGBA
 {
-	RGBA() : r(0), b(0), g(0), a(0) { }
+	RGBA() : r(0), g(0), b(0), a(0) { }
 	RGBA( unsigned char ri, unsigned char gi, unsigned char bi, unsigned char ai ): r(ri), g(gi), b(bi), a(ai) { }
 	unsigned char r, g, b, a;
 };

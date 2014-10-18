@@ -1,7 +1,7 @@
 all : noeuclid
 
 #-DFAKEMAP means don't run any of the TCC stuff.
-CFLAGS:=-I. -g -O2 -DGL_GLEXT_PROTOTYPES  -Itcc  #-DFAKEMAP
+CFLAGS:=-g -Wall -Wno-sign-compare -O2 -DGL_GLEXT_PROTOTYPES  -Itcc  #-DFAKEMAP
 CXXFLAGS:=$(CFLAGS)
 LDFLAGS:= -lGL -lGLU -lglut -lz -g -lpthread -ltcc -ldl
 

@@ -159,6 +159,7 @@ void OGDeleteSema( og_sema_t os )
 #include <pthread.h>
 #include <sys/time.h>
 #include <semaphore.h>
+#include <unistd.h>
 
 pthread_mutex_t g_RawMutexStart = PTHREAD_MUTEX_INITIALIZER;
 

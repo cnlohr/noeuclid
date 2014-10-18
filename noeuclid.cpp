@@ -228,13 +228,13 @@ void MyMouseDrag( int x, int y )
 
 
 		float qtmp2[4];
-		float euler2[] = { -dy*0.005, 0.0, 0.0 };
+		float euler2[] = { -dy*0.005f, 0.0, 0.0 };
 		quatfromeuler( qtmp2, euler2 );
 		quatrotateabout( LookQuaternion, LookQuaternion, qtmp2  );
 
 		quatrotateabout( LookQuaternion, LookQuaternion, invrot  );
 		float qtmp1[4];
-		float euler1[] = { 0.0, 0.0, dx*0.005 };
+		float euler1[] = { 0.0, 0.0, dx*0.005f };
 		quatfromeuler( qtmp1, euler1 );
 		quatrotateabout( LookQuaternion, LookQuaternion, qtmp1  );
 
@@ -271,7 +271,7 @@ float gPhyDTime;
 
 void LoadProbes( bool isRerun )
 {
-	double gvx, gvy, gvz; //Goal direction.
+	double gvx = 0, gvy = 0, gvz = 0; //Goal direction.
 	float dx = 0;
 	float dy = 0;
 	float dz = 0;
@@ -315,7 +315,7 @@ void LoadProbes( bool isRerun )
 	quatrotatevector( MoveVec, LookQuaternion, MoveVec );
 	float nx = MoveVec[0];
 	float ny = MoveVec[1];
-	float nz = MoveVec[2];
+	//float nz = MoveVec[2];
 
 //	printf( "%f %f %f\n", fwdx, fwdy, fwdz );
 
@@ -471,9 +471,6 @@ void DoneProbes( bool bReRun )
 	double newy = gh->MapOffsetY;
 	double newz = gh->MapOffsetZ;
 
-	double collidepushx = 0;
-	double collidepushy = 0;
-	double collidepushz = 0;
 	int iterations = 0;
 
 
@@ -682,7 +679,7 @@ void DoneProbes( bool bReRun )
 
 	float newquat[4];
 	quatfrommatrix( newquat, orotmat );
-	quatnormalize( LookQuaternion, newquat );
+	//quatnormalize( LookQuaternion, newquat );
 
 
 	//Attempt to re-right the player
@@ -694,7 +691,6 @@ void DoneProbes( bool bReRun )
 		float uptest[3] = { 0, 1, 0 }; // 0, camera "up", -into screen
 		float fwdtest[3] = { 0, 0, 1 }; // 0, camera "up", -into screen
 		float upout[3], fwdtestout[3], lefttestout[3];
-		float rerotaxis[3];
 		quatrotatevector(  upout, LookQuaternion, uptest );
 		quatrotatevector(  fwdtestout, LookQuaternion, fwdtest );
 		quatrotatevector(  lefttestout, LookQuaternion, lefttest );
@@ -881,13 +877,8 @@ int main( int argc, char ** argv )
 		gKeyMap[i] = 0;
 
 	string mapFile;
-	vector<string> args;
+	vector<string> args (argv + 1, argv + argc);
 	unsigned int xSize = 720, ySize = 480;
-	
-	for (int i = 1; i < argc; i++)
-	{
-		args.push_back(argv[i]);
-	}
 
 	for (int i = 0; i < (int)args.size()-1; i++)
 	{
