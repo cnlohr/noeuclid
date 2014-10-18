@@ -26,7 +26,7 @@
 */
 
 #include "tccengine.h"
-#include "tcc/libtcc.h"
+#include <libtcc.h>
 #include "os_generic.h"
 #include <string.h>
 #include <stdio.h>
@@ -92,7 +92,7 @@ int TCCECheck( TCCEngine * tce )
 
 
 #if __WORDSIZE == 64
- 	tcc_add_file(tce->state, "tcc/libtcc1-x86_64.a");
+// 	tcc_add_file(tce->state, "tcc/libtcc1-x86_64.a");
 #else
 //#error No TCC Defined for this architecture.
 #endif
@@ -118,6 +118,7 @@ int TCCECheck( TCCEngine * tce )
 
 	tce->stop = (TCELinkage)tcc_get_symbol(tce->state, "stop" );
 	tce->start = (TCELinkage)tcc_get_symbol(tce->state, "start" );
+	printf(" Start: %p\n", tce->start );
 	tce->start( tce->id );
 	tce->collision = (TCELinkage)tcc_get_symbol(tce->state, "collision" );
 
