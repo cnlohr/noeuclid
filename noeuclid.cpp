@@ -43,6 +43,7 @@ int cix = 0;
 int ciy = 0;
 int   gGodMode = 0;
 
+float mouseSensitivity = 0.1;
 double GameTimer = 1000;
 double GameAttempt = 1;
 extern int pickables_in_inventory;
@@ -125,6 +126,8 @@ void MyMouseDrag( int x, int y )
 	//Find the amount moved from last frame to this frame.
 	float dx = x - GLUT.miWidth/2;
 	float dy = y - GLUT.miHeight/2;
+	dx *= mouseSensitivity;
+	dy *= mouseSensitivity;
 	GLUT.miLastMouseX = x;
 	GLUT.miLastMouseY = y;
 
