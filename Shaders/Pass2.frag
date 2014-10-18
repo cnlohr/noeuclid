@@ -187,6 +187,7 @@ void main()
 	vec4 CoreData = texture2D( AttribMap, vec2( (4./128.), ID ) ); //For trees, etc.
 	vec4 TimeSettings = texture2D( AttribMap, vec2( (5./128.), ID ) );
 	vec4 Speckles = texture2D( AttribMap, vec2( (6./128.), ID ) );
+	vec4 ShaderEndingTerms = texture2D( AttribMap, vec2( (7./128.), ID ) );
 
 	vec3 noiseplace = NoiseSet.xyz * vec3( GlobalPos ) + TimeSettings.xyz * time;
 	float noise = pNoise3( noiseplace ) * NoiseMux.r + pNoise3( noiseplace * 2. ) * NoiseMux.g +
@@ -232,10 +233,14 @@ void main()
 
 //	Lighting = mix( Lighting, vec3(1.), BaseColor.a );
 
+	vec3 FinalColor = vec3( 0., 0., 0. );
+
+	FinalColor += OutColor * ShaderEndingTerms.b;
+
 	OutColor = min( OutColor, vec3(2.,2.,2.) );
 	OutColor *= Lighting;
 
-	gl_FragColor = vec4( OutColor, 1. );
+	FinalColor += ShaderEndingTerms.r * OutColor;
 
 	vec3 lightingDir = normalize(vec3(1,2,1));
 	// light 1
@@ -244,8 +249,11 @@ void main()
 		vec3(1,0.8,0.5) * clamp(dot(backPedal,lightingDir)*0.4,0.0,1.0),
 		0.5);
 	// light 2
-	gl_FragColor.rgb += vec3(0.2,0.3,0.4) * clamp(backPedal.y*0.4,0.0,1.0);
+	FinalColor += vec3(0.2,0.3,0.4) * clamp(backPedal.y*0.4,0.0,1.0) * ShaderEndingTerms.g;
 //	gl_FragColor.rgb = vec3(LightCell.b);
+
+
+	gl_FragColor = vec4( FinalColor, 1. );
 
 	return;
 

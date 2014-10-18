@@ -180,7 +180,9 @@ void RTHelper::LoadAttributeMap()
 		RGBAf CoreData;
 		RGBAf TimeSettings;
 		RGBAf Speckles;
-		float fdensity;
+		RGBAf ShaderEndingTerms( 1, 1, 0, 0);
+		float fdensity; //Thrown away atm.
+
 
 /*		sscanf( tline, "%s %d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
 			Description, &iTileID, &iMetaID, &fdensity,
@@ -229,6 +231,8 @@ void RTHelper::LoadAttributeMap()
 		TimeSettings.FromStringArray( &dats[24] );
 		if( dats.size() >= 32 )
 			Speckles.FromStringArray( &dats[28] );
+		if( dats.size() >= 36 )
+			ShaderEndingTerms.FromStringArray( &dats[32] );
 	
 
 //		printf( "Loading: %d / %d (%s) ... %f %f %f %f / SPEC: %f %f %f %f\n", iTileID, iMetaID, Description.c_str(),
@@ -248,11 +252,7 @@ void RTHelper::LoadAttributeMap()
 				LTTex[iTileID * 128 + iMetaID * 8 + 4] = CoreData;
 				LTTex[iTileID * 128 + iMetaID * 8 + 5] = TimeSettings;
 				LTTex[iTileID * 128 + iMetaID * 8 + 6] = Speckles;
-
-				LTTex[iTileID * 128 + iMetaID * 8 + 7].r = fdensity;
-				LTTex[iTileID * 128 + iMetaID * 8 + 7].g = fdensity;
-				LTTex[iTileID * 128 + iMetaID * 8 + 7].b = fdensity;
-				LTTex[iTileID * 128 + iMetaID * 8 + 7].a = fdensity;
+				LTTex[iTileID * 128 + iMetaID * 8 + 7] = ShaderEndingTerms;
 			}
 		}
 		else
@@ -264,11 +264,7 @@ void RTHelper::LoadAttributeMap()
 			LTTex[iTileID * 128 + iMetaID * 8 + 4] = CoreData;
 			LTTex[iTileID * 128 + iMetaID * 8 + 5] = TimeSettings;
 			LTTex[iTileID * 128 + iMetaID * 8 + 6] = Speckles;
-
-			LTTex[iTileID * 128 + iMetaID * 8 + 7].r = fdensity;
-			LTTex[iTileID * 128 + iMetaID * 8 + 7].g = fdensity;
-			LTTex[iTileID * 128 + iMetaID * 8 + 7].b = fdensity;
-			LTTex[iTileID * 128 + iMetaID * 8 + 7].a = fdensity;
+			LTTex[iTileID * 128 + iMetaID * 8 + 7] = ShaderEndingTerms;
 		}
 //		LTTex[iTile * 256 + iMetaID * 16 + 3] = ;
 	}
