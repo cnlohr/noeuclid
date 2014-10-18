@@ -18,7 +18,7 @@ Hotkeys:
 '+' -> Go up level.
 'r' -> Reload current.
 'l' -> Load ALL levels right now.
-
+'p' -> Pauses.
 
 
 
