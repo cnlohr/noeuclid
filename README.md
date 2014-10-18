@@ -19,6 +19,7 @@ Hotkeys:
 'r' -> Reload current.
 'l' -> Load ALL levels right now.
 'p' -> Pauses.
+'8' / '9' -> Chagne mouse sensitivity.
 
 
 
