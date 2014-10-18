@@ -17,6 +17,10 @@ Hotkeys:
 '-' -> Go down level.
 '+' -> Go up level.
 'r' -> Reload current.
+'l' -> Load ALL levels right now.
+
+
+
 
 There's a map of the 256 different available blocks above Room 4.  It will say what block you are standing on.
 
