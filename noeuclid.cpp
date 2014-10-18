@@ -679,7 +679,7 @@ void DoneProbes( bool bReRun )
 
 	float newquat[4];
 	quatfrommatrix( newquat, orotmat );
-	quatnormalize( LookQuaternion, newquat );
+	//quatnormalize( LookQuaternion, newquat );
 
 
 	//Attempt to re-right the player
