@@ -26,3 +26,7 @@ There's a map of the 256 different available blocks above Room 4.  It will say w
 
 You can add new blocks by modifying tileattributes.txt
 
+
+Building on Linux:
+Be sure to install: (Debian-style)
+  build-essential, zlib1g-dev, freeglut3-dev ... maybe more?
