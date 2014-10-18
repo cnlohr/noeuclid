@@ -236,7 +236,15 @@ void main()
 	OutColor *= Lighting;
 
 	gl_FragColor = vec4( OutColor, 1. );
-//	gl_FragColor.rgb = (backPedal+1.) *.5;
+
+	vec3 lightingDir = normalize(vec3(1,2,1));
+	// light 1
+	gl_FragColor.rgb = mix(
+		OutColor,
+		vec3(1,0.8,0.5) * clamp(dot(backPedal,lightingDir)*0.4,0.0,1.0),
+		0.5);
+	// light 2
+	gl_FragColor.rgb += vec3(0.2,0.3,0.4) * clamp(backPedal.y*0.4,0.0,1.0);
 //	gl_FragColor.rgb = vec3(LightCell.b);
 
 	return;
