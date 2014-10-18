@@ -13,6 +13,7 @@ WINCFLAGS:= -m32 -I. -g -O2 -Iwindows/glew -Iwindows/freeglut -I/usr/i586-mingw3
 WINCPP:=i686-w64-mingw32-g++  #i586-mingw32msvc-g++
 WINC:=i686-w64-mingw32-gcc  #i586-mingw32msvc-gcc
 WINLDFLAGS:= \
+	-g \
 	windows/glew/glew-i586.a \
 	-lkernel32 -lm \
 	windows/libtcc.dll \
@@ -27,9 +28,9 @@ WINLDFLAGS:= \
 %.obj : %.c
 	$(WINC) -c -o $@ $^ $(WINCFLAGS) 
 
-noeuclid.exe : noeuclid.obj OGLParts.obj GLUTCore.obj RTHelper.obj Map.obj tccexports.obj tccengine.obj os_generic.obj linmath.obj
+windows/noeuclid.exe : noeuclid.obj OGLParts.obj GLUTCore.obj RTHelper.obj Map.obj tccexports.obj tccengine.obj os_generic.obj linmath.obj
 	$(WINCPP)  -o $@ $^ $(WINCFLAGS) $(WINLDFLAGS)
 
 
 clean :
-	rm -fr *.obj *.o tcc/*.o *~ noeuclid noeuclid.exe
+	rm -fr *.obj *.o tcc/*.o *~ noeuclid windows/noeuclid.exe
