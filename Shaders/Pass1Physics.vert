@@ -10,6 +10,7 @@ void main()
 {
 	maxdist = gl_Vertex.z;
 
+	AuxRotation = gl_MultiTexCoord1.xyz;
 
 	if( gl_Color.a < 0. )
 	{
@@ -18,7 +19,6 @@ void main()
 		RayDirection = gl_Normal;
 		doPhysics = 1.;
 
-		AuxRotation = gl_MultiTexCoord1.xyz;
 	}
 	else
 	{

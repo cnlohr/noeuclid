@@ -4,10 +4,13 @@ varying vec3 InitialCamera;
 varying float maxdist;
 varying float doPhysics;
 
+varying vec3 AuxRotation;
+
 void main()
 {
 	maxdist = gl_Vertex.z;
 
+	AuxRotation = gl_MultiTexCoord1.xyz;
 
 	if( gl_Color.a < 0. )
 	{
