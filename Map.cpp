@@ -6,6 +6,7 @@
 
 Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false ),*/ m_bReloadFullTexture(false),doSubtrace(true), parent(p)
 {
+	printf( "Making map...\n" );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
@@ -13,6 +14,7 @@ Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
 	glGenTextures( 3, i3DTex );
+
 	for( unsigned i = 0; i < 3; i++ )
 	{
 		GLTextureData[i] = (RGBA*)malloc( GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ * 4 );
@@ -26,6 +28,8 @@ Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false
 		glBindTexture( GL_TEXTURE_3D, 0 );
 	}
 
+	printf( "Bound textures. Loading Fake/Default.  Fake: %d\n", fake );
+
 //	if (filename.rfind(".gz") != string::npos)
 //	{
 //		ZLibLoad(filename.c_str());
@@ -37,6 +41,8 @@ Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false
 		FakeIt();
 	else
 		DefaultIt();
+
+	printf( "Basis created. Recalculating structure.\n" );
 	RecalculateAccelerationStructure( 0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ );
 	m_bReloadFullTexture = true;
 
@@ -61,7 +67,7 @@ Map::~Map()
 
 void Map::SetCellInternal( unsigned x, unsigned y, unsigned z, unsigned thiscell, unsigned color )
 {
-
+//printf( "A %d %d %d\n", x, y, z  );
 //				unsigned char thiscell = (z+((rand()%5)*3) < heig)?0xff:0;
 //				unsigned char jump = thiscell?1:MAX_SEEKER;
 //				TexCell( 0, x, y, z ).r = thiscell;
@@ -70,17 +76,23 @@ void Map::SetCellInternal( unsigned x, unsigned y, unsigned z, unsigned thiscell
 
 //	color = 0xF0;
 //	unsigned char thiscell = (z<3)?0xff:0;
+
+	int lookupcolor = color;
+	if( lookupcolor > 15 ) lookupcolor = 15;
+
 	TexCell( 0, x, y, z ).r = thiscell;
 	TexCell( 0, x, y, z ).g = color;
-	TexCell( 0, x, y, z ).b = parent->LTTex[thiscell * 128 + color * 8 + 7].a*128.;
+	TexCell( 0, x, y, z ).b = parent->LTTex[thiscell * 128 + lookupcolor * 8 + 7].a*128.;
 	TexCell( 0, x, y, z ).a = thiscell;
 	TexCell( 1, x, y, z ) = RGBA( 0, 0, 0, 0 ); // (Largescale trace hit?, Jumpmap xy, 
 
 
 			RGBA & rr = TexCell( 1, x, y, z );
 			RGBA & rr2 = TexCell( 0, x, y, z );
+//printf( "B\n" );
 			unsigned char in = rr2.a;
 			unsigned char meta = rr.b;
+
 		/*	inskips[x+y*GLH_SIZEX+z*GLH_SIZEX*GLH_SIZEY] = in!=0;
 			//XXX do skip processing here
 			for (unsigned int i = 0; i < 23;++i)
@@ -89,7 +101,6 @@ void Map::SetCellInternal( unsigned x, unsigned y, unsigned z, unsigned thiscell
 */
 			if( meta > 15 ) meta = 15;
 			TexCell( 0, x, y, z ).b = parent->LTTex[in * 128 + meta * 8 + 7].a*128.;
-
 }
 
 void Map::DefaultIt()
@@ -106,6 +117,7 @@ void Map::DefaultIt()
 			for( unsigned z = 0; z < GLH_SIZEZ; z++ )
 				TexCell(2, x, y, z ) = RGBA( 127, 127, 127, 127 );
 
+	printf( "In Default.\n" );
 
 	//Walls
 	for( unsigned x = 0; x < GLH_SIZEX; x++ )
@@ -130,6 +142,7 @@ void Map::DefaultIt()
 			SetCellInternal( 1, y, z, 0xfd, 0xFF );
 			SetCellInternal( GLH_SIZEX-2, y, z, 0xFd, 254 );
 		}
+
 }
 
 void Map::FakeIt()
@@ -339,7 +352,7 @@ void Map::RecalculateAccelerationStructure( int ix, int iy, int iz, int sx, int 
 //	timeval tv1;
 //	gettimeofday( &tv1, 0 );	
 
-	unsigned char inskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
+	unsigned char * inskips = new unsigned char[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
 //	unsigned char ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
 	if (parent->LTTex != NULL)
 	{
@@ -365,6 +378,9 @@ void Map::RecalculateAccelerationStructure( int ix, int iy, int iz, int sx, int 
 		printf( "FATAL ERROR: LTTex was not populated.\n" );
 	}
 
+	if( iz < 1 ) iz = 1;
+	if( iy < 1 ) iy = 1;
+	if( ix < 1 ) ix = 1;
 
 	//Needs to be unsigned here, because we may % negative numbers.
 	if( doSubtrace )
@@ -394,6 +410,8 @@ void Map::RecalculateAccelerationStructure( int ix, int iy, int iz, int sx, int 
 	{
 		fprintf( stderr, "We are not doing thigns without subtracing anymore.\n" );
 	}
+
+	delete( inskips );
 
 }
 

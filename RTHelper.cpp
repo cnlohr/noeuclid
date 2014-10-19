@@ -66,26 +66,34 @@ RTHelper::RTHelper( bool fakemode ) : vX( 0 ), vY( 0 ), vZ( 0 ), ProbePlace(0)
 	AdditionalInformationPointer = 0;
 	AdditionalInformationMapData = new RGBAf[ADDSIZEX * ADDSIZEY];
 	ReloadAdditionalInformatioMapData();
+
+	printf( "Loaded addinfo pointers.\n");
 	AllocAddInfo( ADDSIZEX-1 ); //First one is a no-change.
 
+	printf( "Allocated Addinfo.\n" );
 	Pass1RFB.Setup();
 	PassPhysicsRFB.Setup();
 	Pass2RFB.Setup();
+
+	printf( "RB Setup. Loading Shaders.\n" );
 
 	Pass1Physics.LoadShader( "Shaders/Pass1Physics" );
 	Pass1.LoadShader( "Shaders/Pass1" );
 	Pass2.LoadShader( "Shaders/Pass2" );
 	Pass3.LoadShader( "Shaders/Pass3" );
 
+	printf( "Shaders loaded.\n" );
 	PassPhysicsOutputs[0].MakeDynamicTexture( PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32 );
 	PassPhysicsOutputs[1].MakeDynamicTexture( PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32 );
 	PassPhysicsOutputs[2].MakeDynamicTexture( PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32 );
 	PassPhysicsOutputs[3].MakeDynamicTexture( PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32 );
-
+	printf( "Loading attribute map.\n" );
 	LTTex = new RGBAf[256*8*16];
 	LoadAttributeMap();
 
+	printf( "Done loading attributes. Making map.\n ");
 	TMap = new Map( "test.dat", this, fakemode );
+	printf( "Done loading map.\n" );
 }
 
 RTHelper::~RTHelper()
@@ -149,19 +157,42 @@ void RTHelper::LoadAttributeMap()
 	printf( "Loading tileattributes.txt\n" );
 	for( unsigned iLine = 0; iLine < 256; iLine++ ) //actually cell type
 	{
+		//Default (set everything up)
+
 		for( unsigned iTile = 0; iTile < 16; iTile++ ) //actually meta's.
 		{
-			LTTex[iLine * 128 + iTile * 8 + 0].r = float(iLine%16)/16.;
-			LTTex[iLine * 128 + iTile * 8 + 0].g = float(iLine/16)/16.;
-			LTTex[iLine * 128 + iTile * 8 + 0].b = float(iTile)/16.;
+			LTTex[iLine * 128 + iTile * 8 + 0].r = 1.0;//float(iLine%16)/16.;
+			LTTex[iLine * 128 + iTile * 8 + 0].g = 1.0;//float(iLine/16)/16.;
+			LTTex[iLine * 128 + iTile * 8 + 0].b = 1.0;//float(iTile)/16.;
 			LTTex[iLine * 128 + iTile * 8 + 0].a = 1.0;
+
+			LTTex[iLine * 128 + iTile * 8 + 1].r = 1.0;
+			LTTex[iLine * 128 + iTile * 8 + 1].g = 1.0;
+			LTTex[iLine * 128 + iTile * 8 + 1].b = 1.0;
+			LTTex[iLine * 128 + iTile * 8 + 1].a = 1.0;
+
+			LTTex[iLine * 128 + iTile * 8 + 2].r = 0.0;
+			LTTex[iLine * 128 + iTile * 8 + 2].g = 0.0;
+			LTTex[iLine * 128 + iTile * 8 + 2].b = 0.0;
+			LTTex[iLine * 128 + iTile * 8 + 2].a = 0.0;
+
+			LTTex[iLine * 128 + iTile * 8 + 3].r = 0.0;
+			LTTex[iLine * 128 + iTile * 8 + 3].g = 0.0;
+			LTTex[iLine * 128 + iTile * 8 + 3].b = 0.0;
+			LTTex[iLine * 128 + iTile * 8 + 3].a = 0.0;
+
+			LTTex[iLine * 128 + iTile * 8 + 4].r = 1.0;
+			LTTex[iLine * 128 + iTile * 8 + 4].g = 1.0;
+			LTTex[iLine * 128 + iTile * 8 + 4].b = 0.1;
+			LTTex[iLine * 128 + iTile * 8 + 4].a = 1.0;
 
 			LTTex[iLine * 128 + iTile * 8 + 7].r = 1.0;
 			LTTex[iLine * 128 + iTile * 8 + 7].g = 1.0;
-			LTTex[iLine * 128 + iTile * 8 + 7].b = 1.0;
+			LTTex[iLine * 128 + iTile * 8 + 7].b = 0.0;
 			LTTex[iLine * 128 + iTile * 8 + 7].a = 1.0;
 		}
 	}
+
 
 	char tline[1024];
 	int lineNo = 0;
@@ -181,16 +212,8 @@ void RTHelper::LoadAttributeMap()
 		RGBAf TimeSettings;
 		RGBAf Speckles;
 		RGBAf ShaderEndingTerms( 1, 1, 0, 0);
-		float fdensity; //Thrown away atm.
+		float fdensity; 
 
-
-/*		sscanf( tline, "%s %d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
-			Description, &iTileID, &iMetaID, &fdensity,
-			&BaseColor.r, &BaseColor.g, &BaseColor.b, &BaseColor.a, &NoiseColor.r, &NoiseColor.g, &NoiseColor.b, &NoiseColor.a,
-			&NoiseSet.r, &NoiseSet.g, &NoiseSet.b, &NoiseSet.a, &NoiseMux.r, &NoiseMux.g, &NoiseMux.b, &NoiseMux.a,
-			&CoreData.r, &CoreData.g, &CoreData.b, &CoreData.a, &TimeSettings.r, &TimeSettings.g, &TimeSettings.b, &TimeSettings.a,
-			&Speckles.r, &Speckles.g, &Speckles.b, &Speckles.a );
-			*/
 		vector< string > dats;
 		string stmp;
 		char c = 0;
@@ -234,6 +257,7 @@ void RTHelper::LoadAttributeMap()
 		if( dats.size() >= 36 )
 			ShaderEndingTerms.FromStringArray( &dats[32] );
 	
+		ShaderEndingTerms.a = fdensity; //Overwrite the last term.
 
 //		printf( "Loading: %d / %d (%s) ... %f %f %f %f / SPEC: %f %f %f %f\n", iTileID, iMetaID, Description.c_str(),
 //			BaseColor.r, BaseColor.g, BaseColor.b, BaseColor.a,
@@ -269,6 +293,8 @@ void RTHelper::LoadAttributeMap()
 //		LTTex[iTile * 256 + iMetaID * 16 + 3] = ;
 	}
 
+	printf( "Tile attributes loaded.\n" );
+
 //	for( unsigned i = 0; i < 512; i++ )
 //	{
 //		printf( "%f %f %f %f\n", LTTex[i].r, LTTex[i].g, LTTex[i].b, LTTex[i].a );
@@ -277,6 +303,7 @@ void RTHelper::LoadAttributeMap()
 	glFinish();
 	glFlush();
 	fclose( f );
+	printf( "Done with tile attributes.\n" );
 
 }
 

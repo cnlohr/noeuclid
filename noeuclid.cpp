@@ -25,6 +25,10 @@
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+
+#ifdef WIN32
+#include <GL/glew.h>
+#endif
 #include "OGLParts.h"
 #include "GLUTCore.h"
 #include <stdio.h>
@@ -34,6 +38,7 @@
 #include "tccexports.h"
 #include "linmath.h"
 #include <unistd.h>
+
 
 int frame = 0;
 
@@ -87,7 +92,7 @@ double Pitch = 90.;
 double Yaw = 0.;
 double Roll = 0.0;
 */
-float LookQuaternion[4];
+float LookQuaternion[4] = { 0, 0, 0, 1.0f }; 
 
 float gPositionX;
 float gPositionY;
@@ -685,6 +690,10 @@ void DoneProbes( bool bReRun )
 
 	//TODO: If we are in a situation where we're stuck on our side, don't exceute this line of code.
 	quatnormalize( LookQuaternion, newquat );
+//	printf( "%f %f %f %f  / %f %f %f %f\n", LookQuaternion[0], LookQuaternion[1], LookQuaternion[2], LookQuaternion[3], 
+		newquat[0], newquat[1], newquat[2], newquat[3] );
+
+
 
 
 	//Attempt to re-right the player
@@ -921,6 +930,10 @@ int main( int argc, char ** argv )
 
 	GLUT.SetDrawFunct( MyDraw );
 	GLUT.Init( argc, (char**)argv, xSize, ySize, "No! Euclid!" );
+#ifdef WIN32
+	printf( "Initializing GLEW.\n ");
+	printf( "glewInit() = %d\n", glewInit() );
+#endif
 	glutWindowStatusFunc(ThisWindowStatus);
 
 	//For display purposes, we should depth test all of our surfaces.

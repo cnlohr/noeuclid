@@ -9,7 +9,7 @@ noeuclid : noeuclid.o OGLParts.o GLUTCore.o RTHelper.o Map.o tccexports.o tcceng
 	g++ -o $@ $^ $(LDFLAGS)
 
 
-WINCFLAGS:= -m32 -I. -g -O2 -Iwindows/glew -Iwindows/freeglut -I/usr/i586-mingw32msvc/include/GL -DGLEXT  -DGLEW_STATIC
+WINCFLAGS:= -m32 -I. -g -O2 -Iwindows -Iwindows/glew -Iwindows/freeglut -I/usr/i586-mingw32msvc/include/GL  -DGLEW_STATIC  -DGLEXT
 WINCPP:=i686-w64-mingw32-g++  #i586-mingw32msvc-g++
 WINC:=i686-w64-mingw32-gcc  #i586-mingw32msvc-gcc
 WINLDFLAGS:= \
@@ -20,6 +20,8 @@ WINLDFLAGS:= \
 	/usr/i586-mingw32msvc/lib/libopengl32.a \
 	/usr/i586-mingw32msvc/lib/libglu32.a \
 	./windows/freeglut-i686.dll \
+	./windows/libtcc1.a \
+
 
 
 %.obj : %.cpp
