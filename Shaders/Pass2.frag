@@ -208,42 +208,20 @@ void main()
 	vec3 Lighting = Sunamt+Moonamt;
 
 //Lighting  (tricky - need to find the next cell away from where we are to get lighting info)
-/*	vec3 nrmmax = abs(Normal.xyz);
-	vec3 nrmady;
-	vec3 s = sign( Normal.xyz );
-	if( nrmmax.x > nrmmax.y && nrmmax.x > nrmmax.z )
-		nrmady = vec3( 1., 0., 0. ) * s;
-	else if( nrmmax.y > nrmmax.z )
-		nrmady = vec3( 0., 1., 0. ) * s;
-	else
-		nrmady = vec3( 0., 0., 1. ) * s;
-*/
 	//the idea is to use the normal to step back to the previous block to get the light info
 	vec3 backPedal = normalize(Normal.xyz);
-//	vec4 LightCell = texture3D( AddTex, floor( ptr +.5 + nrmady*.4 )*msize + CameraOffset );
 	vec4 LightCell = texture3D( GeoTex, floor( ptr + backPedal )*msize + CameraOffset );
-//	vec4 LightCell = texture3D( AddTex, floor( ptr )*msize  + CameraOffset );
 
 	float skylight = pow( floor(mod(LightCell.g*16.,16.))/16., 2. );
 	float blocklight = pow( mod( LightCell.g*255., 16. )/16., 2.) ;
-//gl_FragColor = blocklight;
-//return;
+
 	Lighting = Lighting * skylight*0.8 + blocklight*.4;
 
-//	Lighting = mix( Lighting, vec3(1.), BaseColor.a );
 
 	OutColor = min( OutColor, vec3(2.,2.,2.) );
 	OutColor *= Lighting;
 
 	gl_FragColor = vec4( OutColor, 1. );
-
-	vec3 lightingDir = normalize(vec3(1,2,1));
-	vec3 lightingCol = vec3(1,0.9,0.7);
-	// light 1
-	gl_FragColor.rgb *= 1 + 0.6 * lightingCol * clamp(dot(backPedal,lightingDir),0.0,1.0);
-	// light 2
-	gl_FragColor.rgb += vec3(0.2,0.3,0.4) * clamp(backPedal.y*0.4,0.0,1.0);
-//	gl_FragColor.rgb = vec3(LightCell.b);
 
 	return;
 

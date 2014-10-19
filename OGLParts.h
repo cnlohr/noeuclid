@@ -5,22 +5,19 @@
 #include <GL/glew.h>
 #endif
 
-
-#ifdef WIN32
-#include "winclude.h"
-#include <windows.h>
-#endif
-
-#include <stdio.h>
-#include "GLUTCore.h"
+#include <cstdio>
 
 
 #include <vector>
 #include <string>
 #include <stdlib.h>
 #include <string.h>
-using namespace std;
+#include <GL/glut.h>
+#include <GL/freeglut_ext.h>
 
+
+using std::vector;
+using std::string;
 ///Texture type for use with CPPGPGPU.
 enum TextureType
 {
@@ -31,6 +28,8 @@ enum TextureType
 	TTRGBA32,
 	TTUNDEFINED
 };
+
+
 
 ///Basic element for turning shaders on and off
 /** This class helps aide in the loading and use of shaders.  It allows loading of files
@@ -307,9 +306,9 @@ void SetupForDataRun();
 void PopFromDataRun();
 
 ///Setup Matricies for 2D Rasterization
-EXPORT void SetupFor2D();
+void SetupFor2D();
 ///Go back into 3D mode
-EXPORT void PopFrom2D();
+void PopFrom2D();
 
 ///Strip data from the render/frame buffer into a vertex buffer object. 
 void StripDataFromBuffer( int ix, int iy, int iwidth, int iheight, TextureType tt, char * buffer );

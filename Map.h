@@ -52,11 +52,6 @@ public:
 	void TackMultiChange( int x, int y, int z, int sx, int sy, int sz ) { CellUpdate cu; cu.x = x; cu.y = y; cu.z = z; cu.sx = sx; cu.sy = sy; cu.sz = sz; ListUpdates.push_back( cu ); }
 
 
-//	void PushUpdate( const DisplayUpdateChunk & u );
-//	list< DisplayUpdateChunk > DisplayUpdatesInternal;
-//	list< DisplayUpdateChunk > DisplayUpdates;
-
-
 	inline RGBA & TexCell( unsigned i, int x, int y, int z )
 	{
 		x = ((unsigned long)x)%GLH_SIZEX;
@@ -72,13 +67,7 @@ private:
 	void UpdateCellSpecific( int x, int y, int z, int sx, int sy, int sz );
 
 	void SetCellInternal( unsigned x, unsigned y, unsigned z, unsigned cell, unsigned color );
-
-/*
-	void BlockUpdate( const DisplayUpdateChunk & c );
-	void BlockUpdatePart2( const DisplayUpdateChunk & c );
-	DisplayUpdateChunk MakeDUC( int x, int y, int z, int sx, int sy, int sz );
-*/
-
+        
 	//Comp 0("GeoTex"): 
 		//Red Channel:   Block Type < not ????
 		//Green Channel: Metadata / Cell Type? Or something like that?

@@ -1,11 +1,11 @@
 all : noeuclid
 
 #-DFAKEMAP means don't run any of the TCC stuff.
-CFLAGS:=-g -Wall -Wno-sign-compare -O2 -DGL_GLEXT_PROTOTYPES  -Itcc  #-DFAKEMAP
+CFLAGS:=-std=c++11 -g -Wall -Wno-sign-compare -O2 -DGL_GLEXT_PROTOTYPES  -Itcc -Wno-unused-variable #-DFAKEMAP
 CXXFLAGS:=$(CFLAGS)
 LDFLAGS:= -lGL -lGLU -lglut -lz -g -lpthread -ltcc  -ldl
 
-noeuclid : noeuclid.o OGLParts.o GLUTCore.o RTHelper.o Map.o tccexports.o tccengine.o os_generic.o linmath.o
+noeuclid : noeuclid.o OGLParts.o RTHelper.o Map.o Common.o GameMap.o
 	g++ -o $@ $^ $(LDFLAGS)
 
 
