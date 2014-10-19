@@ -632,7 +632,7 @@ void DoneProbes( bool bReRun )
 			}
 			if( dotz > 0 )
 			{
-				gh->vZ = gh->vZ * (1.-dotz*press* VCFM);
+				gh->vZ = gh->vZ * (1.-dotz*press) * VCFM;
 			}
 		}
 		//Next, push the MapOffset back
