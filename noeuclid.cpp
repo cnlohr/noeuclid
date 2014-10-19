@@ -266,21 +266,11 @@ double Roll = 0.0;
  */
 float LookQuaternion[4] = { 0, 0, 0, 1.0f };
 
-float gPositionX;
-float gPositionY;
-float gPositionZ;
-float gDirectionX;
-float gDirectionY;
-float gDirectionZ;
-float gTargetNormalX;
-float gTargetNormalY;
-float gTargetNormalZ;
-float gTargetCompressionX;
-float gTargetCompressionY;
-float gTargetCompressionZ;
-float gTargetHitX;
-float gTargetHitY;
-float gTargetHitZ;
+Vec3f gPosition;
+Vec3f gDirection;
+Vec3f gTargetNormal;
+Vec3f gTargetCompression;
+Vec3f gTargetHit;
 float gTargetActualDistance;
 float gTargetProjDistance;
 float gTargetPerceivedDistance;
@@ -385,10 +375,8 @@ float gPhyDTime;
 //static
 
 void LoadProbes(bool isRerun) {
-    double gvx = 0, gvy = 0, gvz = 0; //Goal direction.
-    float dx = 0;
-    float dy = 0;
-    float dz = 0;
+    Vec3f gv; //Goal direction.
+    Vec3f d = {0,0,0};
 
     if (!isRerun) {
         //		if( gKeyMap['r'] ) gOverallUpdateNo = 0;
@@ -401,13 +389,13 @@ void LoadProbes(bool isRerun) {
             gh->TMap->m_bReloadFullTexture = true;
 
         }
-        if (gKeyMap['a']) dx -= 1.;
-        if (gKeyMap['d']) dx += 1.;
-        if (gKeyMap['s']) dy += 1.;
-        if (gKeyMap['w']) dy -= 1.;
-        if (gKeyMap[']']) dz += 1.;
-        if (gKeyMap['[']) dz -= 1.;
-        if (gKeyMap[' '] && gTimeSinceOnGround < 0.1) gh->vZ = 10; // && gh->gTimeSinceOnGround < 0.1
+        if (gKeyMap['a']) d.x -= 1.;
+        if (gKeyMap['d']) d.x += 1.;
+        if (gKeyMap['s']) d.y += 1.;
+        if (gKeyMap['w']) d.y -= 1.;
+        if (gKeyMap[']']) d.z += 1.;
+        if (gKeyMap['[']) d.z -= 1.;
+        if (gKeyMap[' '] && gTimeSinceOnGround < 0.1) gh->v.z = 10; // && gh->gTimeSinceOnGround < 0.1
         gTimeSinceOnGround += worldDeltaTime;
 
         /*
@@ -417,27 +405,20 @@ void LoadProbes(bool isRerun) {
          */
     }
 
-    float ForwardVec[3] = {0, 0, -1};
-    quatrotatevector(ForwardVec, LookQuaternion, ForwardVec);
-    float fwdx = ForwardVec[0];
-    float fwdy = ForwardVec[1];
-    float fwdz = -ForwardVec[2]; //??? WHY? WHY WHY??? Is LookQuaternion busted???
+    Vec3f ForwardVec = {0, 0, -1};
+    ForwardVec = quatrotatevector(LookQuaternion, ForwardVec);
+    ForwardVec.z = -ForwardVec.z; //??? WHY? WHY WHY??? Is LookQuaternion busted???
 
-    float MoveVec[3] = {dx, 0, dy};
-    quatrotatevector(MoveVec, LookQuaternion, MoveVec);
-    float nx = MoveVec[0];
-    float ny = MoveVec[1];
-    //float nz = MoveVec[2];
+    Vec3f MoveVec = {d.x, 0, d.y};
+    MoveVec = quatrotatevector(LookQuaternion, MoveVec);
+    float nx = MoveVec.x;
+    float ny = MoveVec.y;
 
     //	printf( "%f %f %f\n", fwdx, fwdy, fwdz );
 
     if (gGodMode) {
-        gh->vX = nx * 4.;
-        gh->vY = ny * 4.;
-        gh->vZ = dz * 4.;
-        gh->MapOffsetX += gh->vX*worldDeltaTime;
-        gh->MapOffsetY += gh->vY*worldDeltaTime;
-        gh->MapOffsetZ += gh->vZ*worldDeltaTime;
+        gh->v = {nx * 4.f,ny * 4.f,d.z * 4.f};
+        gh->MapOffset += gh->v*worldDeltaTime;
     } else {
         if (!isRerun) {
             float xymag = sqrt(nx * nx + ny * ny);
@@ -446,10 +427,10 @@ void LoadProbes(bool isRerun) {
                 ny /= xymag;
             }
 
-            gh->vX = nx * 4.;
-            gh->vY = ny * 4.;
-            gh->vZ -= worldDeltaTime * 16.; //gravity
-            gh->vZ = gh->vZ * .995; //terminal velocity
+            gh->v.x = nx * 4.;
+            gh->v.y = ny * 4.;
+            gh->v.z -= worldDeltaTime * 16.; //gravity
+            gh->v.z *= .995; //terminal velocity
         }
         /*			else
                         {
@@ -464,9 +445,7 @@ void LoadProbes(bool isRerun) {
 
 
     if (!isRerun) {
-        gvx = gh->vX*worldDeltaTime;
-        gvy = gh->vY*worldDeltaTime;
-        gvz = gh->vZ*worldDeltaTime;
+        gv = gh->v*worldDeltaTime;
     } else {
         printf("GVRerun\n");
     }
@@ -481,43 +460,37 @@ void LoadProbes(bool isRerun) {
 
         //Stack is the number of radial rays.
         float sigma = (i / ((float) stacks * 2 - 1)* 3.14159);
-        float dz = cos(sigma);
+        d.z = cos(sigma);
         float mz = sin(sigma);
         stack++;
         for (j = 0; j < stack; j++) {
             float theta = (j / (float) stack) * 3.14159 * 2.0;
-            float dx = mz * cos(theta);
-            float dy = mz * sin(theta);
+            d.x = mz * cos(theta);
+            d.y = mz * sin(theta);
             CollisionProbe * p;
             probes.push_back(p = gh->AddProbe());
-            p->Position = RGBAf(gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ, 0);
-            p->Direction = RGBAf(dx + gvx, dy + gvy, dz + gvz, 10000);
+            p->Position = RGBAf(gh->MapOffset);
+            p->Direction = RGBAf(d+gv, 10000);
         }
     }
 
 
     {
         gpTest = gh->AddProbe();
-        gpTest->Position = RGBAf(gh->MapOffsetX,
-                gh->MapOffsetY,
-                gh->MapOffsetZ, 0);
-        gpTest->Direction = RGBAf(gvx, gvy, gvz, sqrt(gvx * gvx + gvy * gvy + gvz * gvz));
+        gpTest->Position = RGBAf(gh->MapOffset);
+        gpTest->Direction = RGBAf(gv, gv.len());
 
         gpTestVelocity = gh->AddProbe();
-        gpTestVelocity->Position = RGBAf(gh->MapOffsetX,
-                gh->MapOffsetY,
-                gh->MapOffsetZ, 0);
-        gpTestVelocity->Direction = RGBAf(gvx, gvy, gvz, sqrt(gvx * gvx + gvy * gvy + gvz * gvz));
-        gpTestVelocity->AuxRotation = RGBAf(gh->vX, gh->vY, gh->vZ, 0);
+        gpTestVelocity->Position = RGBAf(gh->MapOffset, 0);
+        gpTestVelocity->Direction = RGBAf(gv, gv.len());
+        gpTestVelocity->AuxRotation = RGBAf(gh->v, 0);
 
     }
 
 
     gpForward = gh->AddProbe();
-    gpForward->Position = RGBAf(gh->MapOffsetX,
-            gh->MapOffsetY,
-            gh->MapOffsetZ, 0);
-    gpForward->Direction = RGBAf(fwdx, fwdy, fwdz, 10000);
+    gpForward->Position = RGBAf(gh->MapOffset, 0);
+    gpForward->Direction = RGBAf(ForwardVec, 10000);
 
 
     //	Yaw
@@ -537,17 +510,13 @@ void LoadProbes(bool isRerun) {
     //	UpRot[2] *= -1;
 
     gpRotFwd = gh->AddProbe();
-    gpRotFwd->Position = RGBAf(gh->MapOffsetX,
-            gh->MapOffsetY,
-            gh->MapOffsetZ, 0);
-    gpRotFwd->Direction = RGBAf(gvx, gvy, gvz, sqrt(gvx * gvx + gvy * gvy + gvz * gvz));
+    gpRotFwd->Position = RGBAf(gh->MapOffset, 0);
+    gpRotFwd->Direction = RGBAf(gv, gv.len());
     gpRotFwd->AuxRotation = RGBAf(FrontRot[0], FrontRot[1], FrontRot[2], 0);
 
     gpRotUp = gh->AddProbe();
-    gpRotUp->Position = RGBAf(gh->MapOffsetX,
-            gh->MapOffsetY,
-            gh->MapOffsetZ, 0);
-    gpRotUp->Direction = RGBAf(gvx, gvy, gvz, sqrt(gvx * gvx + gvy * gvy + gvz * gvz));
+    gpRotUp->Position = RGBAf(gh->MapOffset, 0);
+    gpRotUp->Direction = RGBAf(gv, gv.len());
     gpRotUp->AuxRotation = RGBAf(UpRot[0], UpRot[1], UpRot[2], 0);
 
 
@@ -556,7 +525,7 @@ void LoadProbes(bool isRerun) {
 void DoneProbes(bool bReRun) {
     //#define CFM  .4
     //#define CFMXY .5
-#define CFM .2
+    double CFM = .2;
 #define VCFM 1.0
 #define COLLIDESIZE 0.5
     //Ratio of XY to Z
@@ -569,9 +538,7 @@ void DoneProbes(bool bReRun) {
 
     int i;
 
-    double newx = gh->MapOffsetX;
-    double newy = gh->MapOffsetY;
-    double newz = gh->MapOffsetZ;
+    Vec3f newp = gh->MapOffset;
 
     int iterations = 0;
 
@@ -580,31 +547,24 @@ void DoneProbes(bool bReRun) {
 
 
     if (tp->Direction.r * tp->Direction.r + tp->Direction.g * tp->Direction.g + tp->Direction.b * tp->Direction.b > 0.0 && !bReRun) {
-        double dfx = tp->TargetLocation.r - newx;
-        double dfy = tp->TargetLocation.g - newy;
-        double dfz = tp->TargetLocation.b - newz;
+        Vec3f df = tp->TargetLocation.vec() - newp;
 
-        double dtdiffx = sqrt(dfx * dfx + dfy * dfy + dfz * dfz);
+        double dtdiffx = df.len();
 
-        newx = tp->TargetLocation.r;
-        newy = tp->TargetLocation.g;
-        newz = tp->TargetLocation.b;
+        newp = tp->TargetLocation.vec();
 
         double dirdiffx = sqrt(tp->Direction.r * tp->Direction.r + tp->Direction.g * tp->Direction.g + tp->Direction.b * tp->Direction.b);
 
         //Check to see if it's a jump, if so, consider re-running probes.
         if (dtdiffx > dirdiffx * 1.5 + 1.0) {
-            printf("Jump %f %f %f -> %f %f %f\n", gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ, tp->TargetLocation.r, tp->TargetLocation.g, tp->TargetLocation.b);
-            newx = gh->MapOffsetX = tp->TargetLocation.r; // - tp->Direction.r; //??? WHY not these but Z?
-            newy = gh->MapOffsetY = tp->TargetLocation.g; // - tp->Direction.g; //???
-            newz = gh->MapOffsetZ = tp->TargetLocation.b; // - tp->Direction.b;  //XXX WHY WHY WHY??? WHY?? (Read why below)
+            printf("Jump %f %f %f -> %f %f %f\n", gh->MapOffset.x, gh->MapOffset.y, gh->MapOffset.z, tp->TargetLocation.r, tp->TargetLocation.g, tp->TargetLocation.b);
+            newp = gh->MapOffset = tp->TargetLocation.vec(); // - tp->Direction.r; //??? WHY not these but Z?
+            //XXX WHY WHY WHY??? WHY?? (Read why below)
             //XXX TODO TODO TODO!! There is a glitch.  We have to rotate the tp->Direction before adding it, otherwise really weird things will happen.
             //I haven't gotten around to this yet.
 
             //Attempt to correct direction of speed.
-            gh->vX = gpTestVelocity->NewDirection.r;
-            gh->vY = gpTestVelocity->NewDirection.g;
-            gh->vZ = gpTestVelocity->NewDirection.b;
+            gh->v = gpTestVelocity->NewDirection.vec();
 
             gh->ForceProbeReRun();
             goto clend;
@@ -623,19 +583,13 @@ void DoneProbes(bool bReRun) {
 
             //We have a collision, need to "push" back.
 
-            double sfnx = tp->Normal.r;
-            double sfny = tp->Normal.g;
-            double sfnz = tp->Normal.b;
+            Vec3f sfn = tp->Normal.vec();
 
             //Actual hit xyz
-            double tx = tp->TargetLocation.r;
-            double ty = tp->TargetLocation.g;
-            double tz = tp->TargetLocation.b;
-            double ndx = tx - newx; //tp->Direction.r;		//Direction of ray.
-            double ndy = ty - newy; //tp->Direction.g;
-            double ndz = tz - newz; //tp->Direction.b;
+            Vec3f t = tp->TargetLocation.vec();
+            Vec3f nd = t - newp; //tp->Direction.r;		//Direction of ray.
 
-            double nddiff = sqrt(ndx * ndx + ndy * ndy + ndz * ndz);
+            double nddiff = nd.len();
             if (nddiff < 0.00001 || std::isnan(nddiff)) {
                 //fprintf( stderr, "Error: fault with tp direction.\n" );
                 continue; //Don't know why this could happen.
@@ -649,26 +603,23 @@ void DoneProbes(bool bReRun) {
 
 
 
-            ndx /= nddiff;
-            ndy /= nddiff;
-            ndz /= nddiff;
-            double iawx = tp->InAreaWarp.r; //Space compression
-            double iawy = tp->InAreaWarp.g; //Space compression
-            double iawz = tp->InAreaWarp.b; //Space compression
+            nd /= nddiff;
+            Vec3f iaw = tp->InAreaWarp.vec(); //Space compression
 
 
             double newcalcd = 0.0;
             //newcalcd = tp->TargetLocation.a;
-            double newcollisionx = (tx - newx) / iawx;
-            double newcollisiony = (ty - newy) / iawy;
-            double newcollisionz = (tz - newz) / iawz;
+            Vec3f newcollision = t - newp;
+            newcollision.x /= iaw.x;
+            newcollision.y /= iaw.y;
+            newcollision.z /= iaw.z;
 
             //Tricky: newcollision can actually go inverted if the thing would be fast enough to get embedded.  Flip it back around.
-            newcollisionx = fabs(newcollisionx) * ((ndx > 0) ? 1 : -1);
-            newcollisiony = fabs(newcollisiony) * ((ndy > 0) ? 1 : -1);
-            newcollisionz = fabs(newcollisionz) * ((ndz > 0) ? 1 : -1);
+            newcollision.x = fabs(newcollision.x) * ((nd.x > 0) ? 1 : -1);
+            newcollision.y = fabs(newcollision.y) * ((nd.y > 0) ? 1 : -1);
+            newcollision.z = fabs(newcollision.z) * ((nd.z > 0) ? 1 : -1);
 
-            newcalcd = sqrt(newcollisionx * newcollisionx * COLLIDESIZERATIO + newcollisiony * newcollisiony * COLLIDESIZERATIO + newcollisionz * newcollisionz / COLLIDESIZERATIO);
+            newcalcd = sqrt(newcollision.x * newcollision.x * COLLIDESIZERATIO + newcollision.y * newcollision.y * COLLIDESIZERATIO + newcollision.z * newcollision.z / COLLIDESIZERATIO);
             //		printf( "%f-%f %f-%f %f-%f ---\n", newcollisionx,newcollisiony,newcollisionz );
 
             if (newcalcd > COLLIDESIZE) continue;
@@ -697,25 +648,19 @@ void DoneProbes(bool bReRun) {
 
             //First of all, nerf any motion toward the collision.
             {
-                double nsx = gh->vX; //Direction of travel.
-                double nsy = gh->vY;
-                double nsz = gh->vZ;
-                double nsdiff = sqrt(nsx * nsx + nsy * nsy + nsz * nsz);
-                nsx /= nsdiff;
-                nsy /= nsdiff;
-                nsz /= nsdiff;
+                Vec3f ns = gh->v;
+                ns /= ns.len();
 
-                double dotx = ndx * nsx;
-                double doty = ndy * nsy;
-                double dotz = ndz * nsz;
-                if (dotx > 0) {
-                    gh->vX = gh->vX * (1. - dotx * press) * VCFM;
+
+                Vec3f dot = nd.dot(ns);
+                if (dot.x > 0) {
+                    gh->v.x *= (1. - dot.x * press) * VCFM;
                 }
-                if (doty > 0) {
-                    gh->vY = gh->vY * (1. - doty * press) * VCFM;
+                if (dot.y > 0) {
+                    gh->v.y *= (1. - dot.y * press) * VCFM;
                 }
-                if (dotz > 0) {
-                    gh->vZ = gh->vZ * (1. - dotz * press * VCFM);
+                if (dot.z > 0) {
+                    gh->v.z *= (1. - dot.z * press * VCFM);
                 }
             }
             //Next, push the MapOffset back
@@ -725,23 +670,21 @@ void DoneProbes(bool bReRun) {
             //(tx, ty, tz)  represents target ray hit.
             //press = distance of compression.
 
-            double nidx = newcollisionx * press * CFM * iawx;
-            double nidy = newcollisiony * press * CFM * iawy;
-            double nidz = newcollisionz * press * CFM * iawz;
+            Vec3f nid = newcollision * press;
+            nid = nid * CFM;
+            nid = nid.dot(iaw);
 
-            if (sqrt(nidx * nidx + nidy * nidy) < MINSIDE) {
-                nidx = nidy = 0;
+            if (sqrt(nid.x * nid.x + nid.y * nid.y) < MINSIDE) {
+                nid.x = nid.y = 0;
             }
 
-            newx -= nidx * fabs(sfnx);
-            newy -= nidy * fabs(sfny);
-            newz -= nidz * fabs(sfnz);
+            newp.x -= nid.x * fabs(sfn.x);
+            newp.y -= nid.y * fabs(sfn.y);
+            newp.z -= nid.z * fabs(sfn.z);
         }
 
     if (!gGodMode) {
-        gh->MapOffsetX = newx;
-        gh->MapOffsetY = newy;
-        gh->MapOffsetZ = newz;
+        gh->MapOffset = newp;
     }
 
 
@@ -812,21 +755,11 @@ void DoneProbes(bool bReRun) {
 clend:
     probes.clear();
 
-    gPositionX = newx;
-    gPositionY = newy;
-    gPositionZ = newz;
-    gDirectionX = gpForward->Direction.r;
-    gDirectionY = gpForward->Direction.g;
-    gDirectionZ = gpForward->Direction.b;
-    gTargetNormalX = gpForward->Normal.r;
-    gTargetNormalY = gpForward->Normal.g;
-    gTargetNormalZ = gpForward->Normal.b;
-    gTargetCompressionX = gpForward->InAreaWarp.r;
-    gTargetCompressionY = gpForward->InAreaWarp.g;
-    gTargetCompressionZ = gpForward->InAreaWarp.b;
-    gTargetHitX = gpForward->TargetLocation.r;
-    gTargetHitY = gpForward->TargetLocation.g;
-    gTargetHitZ = gpForward->TargetLocation.b;
+    gPosition = newp;
+    gDirection = gpForward->Direction.vec();
+    gTargetNormal = gpForward->Normal.vec();
+    gTargetCompression = gpForward->InAreaWarp.vec();
+    gTargetHit = gpForward->TargetLocation.vec();
     gTargetActualDistance = gpForward->Normal.a;
     gTargetProjDistance = gpForward->InAreaWarp.a;
     gTargetPerceivedDistance = gpForward->TargetLocation.a;
@@ -838,18 +771,16 @@ clend:
     //printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );
 
     if (!gGodMode) {
-        gh->MapOffsetX = gPositionX;
-        gh->MapOffsetY = gPositionY;
-        gh->MapOffsetZ = gPositionZ;
+        gh->MapOffset = gPosition;
     }
 
 
-    while (gh->MapOffsetX < 0) gh->MapOffsetX += GLH_SIZEX;
-    while (gh->MapOffsetY < 0) gh->MapOffsetY += GLH_SIZEY;
-    while (gh->MapOffsetZ < 0) gh->MapOffsetZ += GLH_SIZEZ;
-    while (gh->MapOffsetX > GLH_SIZEX) gh->MapOffsetX -= GLH_SIZEX;
-    while (gh->MapOffsetY > GLH_SIZEY) gh->MapOffsetY -= GLH_SIZEY;
-    while (gh->MapOffsetZ > GLH_SIZEZ) gh->MapOffsetZ -= GLH_SIZEZ;
+    while (gh->MapOffset.x < 0) gh->MapOffset.x += GLH_SIZEX;
+    while (gh->MapOffset.y < 0) gh->MapOffset.y += GLH_SIZEY;
+    while (gh->MapOffset.z < 0) gh->MapOffset.z += GLH_SIZEZ;
+    while (gh->MapOffset.x > GLH_SIZEX) gh->MapOffset.x -= GLH_SIZEX;
+    while (gh->MapOffset.y > GLH_SIZEY) gh->MapOffset.y -= GLH_SIZEY;
+    while (gh->MapOffset.z > GLH_SIZEZ) gh->MapOffset.z -= GLH_SIZEZ;
 
     //	printf( "%7.1f %7.1f %7.1f  /  %7.1f %7.1f %7.1f (%f %f %f)\n", NewYaw, NewPitch, NewRoll, Yaw, Pitch, Roll, gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ );
 
@@ -916,7 +847,7 @@ void draw() {
 
     char tt[1024];
     if (show_debugging) {
-        sprintf(tt, "%1.2f %1.2f %1.2f\n", gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ);
+        sprintf(tt, "%1.2f %1.2f %1.2f\n", gh->MapOffset.x, gh->MapOffset.y, gh->MapOffset.z);
         DrawText(tt);
     }
 
@@ -977,9 +908,7 @@ int main(int argc, char ** argv) {
 
     gh = new RTHelper(0);
 
-    gh->MapOffsetX = GLH_SIZEX / 2;
-    gh->MapOffsetY = GLH_SIZEY / 2;
-    gh->MapOffsetZ = 5;
+    gh->MapOffset = {GLH_SIZEX / 2,GLH_SIZEY / 2,5};
 
     glutKeyboardFunc(pKeyDown);
     glutKeyboardUpFunc(pKeyUp);

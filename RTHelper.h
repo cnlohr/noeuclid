@@ -82,11 +82,9 @@ public:
 
 	//Attributes
 	RGBAf * LTTex;
-	float MapOffsetX;
-	float MapOffsetY;
-	float MapOffsetZ;
+	Vec3f MapOffset;
 
-	float vX, vY, vZ; //velocities of player
+	Vec3f v; //velocities of player
 
 	float LastPass1Time;
 	float LastPass2Time;

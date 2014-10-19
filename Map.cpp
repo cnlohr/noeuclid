@@ -44,23 +44,26 @@ Map::~Map() {
 }
 
 void Map::SetCellInternal(unsigned x, unsigned y, unsigned z, unsigned thiscell, unsigned color) {
+    SetCellInternal({x,y,z},thiscell,color);
+}
+
+void Map::SetCellInternal(Vec3iu p, unsigned thiscell, unsigned color) {
     int lookupcolor = color;
     if (lookupcolor > 15) lookupcolor = 15;
 
-    TexCell(0, x, y, z).r = thiscell;
-    TexCell(0, x, y, z).g = color;
-    TexCell(0, x, y, z).b = parent->LTTex[thiscell * 128 + lookupcolor * 8 + 7].a * 128.;
-    TexCell(0, x, y, z).a = thiscell;
-    TexCell(1, x, y, z) = {0, 0, 0, 0}; // (Largescale trace hit?, Jumpmap xy, 
+    TexCell(0, p).r = thiscell;
+    TexCell(0, p).g = color;
+    TexCell(0, p).b = parent->LTTex[thiscell * 128 + lookupcolor * 8 + 7].a * 128.;
+    TexCell(0, p).a = thiscell;
+    TexCell(1, p) = {0, 0, 0, 0}; // (Largescale trace hit?, Jumpmap xy, 
 
 
-    RGBA & rr = TexCell(1, x, y, z);
-    RGBA & rr2 = TexCell(0, x, y, z);
+    RGBA & rr = TexCell(1, p);
+    RGBA & rr2 = TexCell(0, p);
     unsigned char in = rr2.a;
     unsigned char meta = rr.b;
     if (meta > 15) meta = 15;
-    TexCell(0, x, y, z).b = parent->LTTex[in * 128 + meta * 8 + 7].a * 128.;
-
+    TexCell(0, p).b = parent->LTTex[in * 128 + meta * 8 + 7].a * 128.;
 }
 
 void Map::DefaultIt() {
@@ -256,9 +259,7 @@ void Map::FakeIt() {
 
     //for( int i = 0; i < 10; i++ )
     //	SetCellInternal( rand()%5 + 20, rand()%5+40, 1, 10, 254 );
-    parent->MapOffsetX = 0;
-    parent->MapOffsetY = 0;
-    parent->MapOffsetZ = 20;
+    parent->MapOffset = {0,0,20};
 
     m_bTriggerFullRecalculate = true;
 }
@@ -322,7 +323,7 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
 
                     unsigned char cc = (in || in1 || in2 || in3 || in4 || in5 || in6 || in7) ? 0xFF : 0;
 
-                    TexCell(1, x, y, z).r = cc;
+                    TexCell(1, Vec3iu{x, y, z}).r = cc;
                     //ouskips[x+y*GLH_SIZEX+z*GLH_SIZEX*GLH_SIZEY] = (cc)?1:MAX_SEEKER;
 
                 }
@@ -333,8 +334,8 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
 
 }
 
-void Map::UpdateCellSpecific(int x, int y, int z, int sx, int sy, int sz) {
-    RecalculateAccelerationStructure(x - 1, y - 1, z - 1, x + 1 + sx, y + 1 + sy, z + 1 + sz);
+void Map::UpdateCellSpecific(Vec3i p, Vec3i s) {
+    RecalculateAccelerationStructure(p.x - 1, p.y - 1, p.z - 1, p.x + 1 + s.x, p.y + 1 + s.y, p.z + 1 + s.z);
 }
 
 void Map::Draw() {
@@ -344,21 +345,19 @@ void Map::Draw() {
     while (!ListUpdates.empty()) {
         CellUpdate f = ListUpdates.front();
         ListUpdates.pop_front();
-        if (f.sx * f.sy * f.sz == 0) continue;
-        UpdateCellSpecific(f.x, f.y, f.z, f.sx, f.sy, f.sz);
+        if (f.s.x * f.s.y * f.s.z == 0) continue;
+        UpdateCellSpecific(f.p, f.s);
         liu.push_back(f);
     }
 
     glActiveTexture(GL_TEXTURE0);
     for (unsigned i = 0; i < 3; i++) {
         glBindTexture(GL_TEXTURE_3D, i3DTex[i]);
-        for (list< CellUpdate >::iterator li = liu.begin(); li != liu.end(); li++) {
-            int sx = li->sx + 2;
-            int sy = li->sy + 2;
-            int sz = li->sz + 2;
-            int ix = li->x;
-            int iy = li->y;
-            int iz = li->z; //any update can effect us and the cell to our upper left.
+        for (CellUpdate& cu : liu) {
+            int sx = cu.s.x + 2;
+            int sy = cu.s.y + 2;
+            int sz = cu.s.z + 2;
+            //any update can effect us and the cell to our upper left.
             RGBA buffer[sx * sy * sz];
 
             int lx, ly, lz;
@@ -367,9 +366,9 @@ void Map::Draw() {
             for (lz = 0; lz < sz; lz++)
                 for (ly = 0; ly < sy; ly++)
                     for (lx = 0; lx < sx; lx++)
-                        buffer[lz * stridea + ly * strideb + lx] = TexCell(i, ix + lx - 1, iy + ly - 1, iz + lz - 1);
+                        buffer[lz * stridea + ly * strideb + lx] = TexCell( i, cu.p.x+lx-1, cu.p.y+ly-1, cu.p.z+lz-1 );
 
-            glTexSubImage3D(GL_TEXTURE_3D, 0, ix - 1, iy - 1, iz - 1, sx, sy, sz, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+            glTexSubImage3D(GL_TEXTURE_3D, 0, cu.p.x - 1, cu.p.y - 1, cu.p.z - 1, sx, sy, sz, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         }
         glFinish();
     }

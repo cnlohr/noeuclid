@@ -152,6 +152,23 @@ void quatgetreciprocal(float * qout, const float * qin) {
     quatscale(qout, qout, m);
 }
 
+Vec3f quatrotatevector(const float * quat, Vec3f v) {
+    float tquat[4];
+    float vquat[4];
+    float qrecp[4];
+
+    vquat[0] = (v.len2() < 0.001) ? 1 : 0; //XXX IS THIS RIGHT? IT LOOKS WRONG!!!
+    vquat[1] = v.x;
+    vquat[2] = v.y;
+    vquat[3] = v.z;
+
+    quatrotateabout(tquat, quat, vquat);
+    quatgetreciprocal(qrecp, quat);
+    quatrotateabout(vquat, tquat, qrecp);
+
+    return {vquat[1],vquat[2],vquat[3]};
+}
+
 void quatrotatevector(float * vec3out, const float * quat, const float * vec3in) {
     float tquat[4];
     float vquat[4];

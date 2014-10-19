@@ -29,6 +29,7 @@
 #define _SCRIPTHELPERS_H
 
 #include "Common.h"
+#include <algorithm>
 
 #define PICKABLE_CELL 114
 #define DEFAULT_BRIGHT 190
@@ -45,10 +46,10 @@
 
 //Read an array with looping ends
 
-void ChangeCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-void QuickCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-void QuickCell1GBAOnly(int x, int y, int z, unsigned char g, unsigned char b, unsigned char a);
-void UpdateZone(int x, int y, int z, int sx, int sy, int sz);
+void ChangeCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void QuickCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void QuickCell1GBAOnly(Vec3i p, unsigned char g, unsigned char b, unsigned char a);
+void UpdateZone(Vec3i p, Vec3i s);
 int AllocAddInfo(int nradds);
 void AlterAddInfo(int pos, float x, float y, float z, float a);
 void MarkAddDataForReload();
@@ -60,21 +61,11 @@ extern float gRenderMixval;
 extern float gRenderDensityLimit;
 extern float gRenderDensityMux;
 
-extern float gPositionX;
-extern float gPositionY;
-extern float gPositionZ;
-extern float gDirectionX;
-extern float gDirectionY;
-extern float gDirectionZ;
-extern float gTargetNormalX;
-extern float gTargetNormalY;
-extern float gTargetNormalZ;
-extern float gTargetCompressionX;
-extern float gTargetCompressionY;
-extern float gTargetCompressionZ;
-extern float gTargetHitX;
-extern float gTargetHitY;
-extern float gTargetHitZ;
+extern Vec3f gPosition;
+extern Vec3f gDirection;
+extern Vec3f gTargetNormal;
+extern Vec3f gTargetCompression;
+extern Vec3f gTargetHit;
 extern float gTargetActualDistance;
 extern float gTargetProjDistance;
 extern float gTargetPerceivedDistance;
@@ -101,7 +92,7 @@ char loopingarrayaccess(char * map, int w, int h, int x, int y) {
 
 float swoovey(float f, float siny) {
     if (f < 0) f *= -1;
-    f = fmodf(f, 1.0);
+    f = fmod(f, 1.0);
     float fs = sin(f * 3.14159 * 2);
     //	if( f > .5 ) f = 1 - f;
     //	f = f * 4.0 - 1.0;
@@ -114,63 +105,63 @@ float swoovey(float f, float siny) {
     return fs;
 }
 
-typedef void (*ClickCellCBType)(int left, float x, float y, float z, float dist);
+typedef void (*ClickCellCBType)(bool left, Vec3f pos, float dist);
 ClickCellCBType ClickCellCB;
 
 //File for useful scripts.
 
 //Defines outside extents.
 
-void ClearCell(short x, short y, short z) {
-    ChangeCell(0, x, y, z, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
+void ClearCell(Vec3i p) {
+    ChangeCell(0, p, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
 }
 
-void ClearRange(short x, short y, short z, short sx, short sy, short sz) {
+void ClearRange(Vec3i p, Vec3i s) {
     int i, j, k;
-    for (i = x; i < x + sx; i++)
-        for (j = y; j < y + sy; j++)
-            for (k = z; k < z + sz; k++) {
-                QuickCell(0, i, j, k, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
+    for (i = p.x; i < p.x + s.x; i++)
+        for (j = p.y; j < p.y + s.y; j++)
+            for (k = p.z; k < p.z + s.z; k++) {
+                QuickCell(0, {i, j, k}, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
             }
-    UpdateZone(x, y, z, sx + 1, sy + 1, sz + 1);
+    UpdateZone(p, s + Vec3i{1,1,1});
 }
 
-void PaintRange(short x, short y, short z, short sx, short sy, short sz, int cell, int density) {
+void PaintRange(Vec3i p, Vec3i s, int cell, int density) {
     int i, j, k;
-    for (i = x; i < x + sx; i++)
-        for (j = y; j < y + sy; j++)
-            for (k = z; k < z + sz; k++) {
-                QuickCell(0, i, j, k, 1, DEFAULT_BRIGHT, density, cell);
+    for (i = p.x; i < p.x + s.x; i++)
+        for (j = p.y; j < p.y + s.y; j++)
+            for (k = p.z; k < p.z + s.z; k++) {
+                QuickCell(0, {i, j, k}, 1, DEFAULT_BRIGHT, density, cell);
             }
-    UpdateZone(x, y, z, sx + 1, sy + 1, sz + 1);
+    UpdateZone(p, s + Vec3i{1,1,1});
 }
 
-void MakeEmptyBox(short x, short y, short z, short sx, short sy, short sz, short cell, short defden, short bright, int force_empty) {
+void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int force_empty) {
 
     //Will cause an update over our whole area.
     if (force_empty)
-        ClearRange(x, y, z, sx, sy, sz);
+        ClearRange(p, s);
     else
-        UpdateZone(x, y, z, sx + 1, sy + 1, sz + 1);
+        UpdateZone(p, s + Vec3i{1,1,1});
 
 
     short j, k;
-    for (j = x; j <= x + sx; j++)
-        for (k = y; k <= y + sy; k++) {
-            QuickCell(0, j, k, z, 1, bright, defden, cell);
-            QuickCell(0, j, k, z + sz, 1, bright, defden, cell);
+    for (j = p.x; j <= p.x + s.x; j++)
+        for (k = p.y; k <= p.y + s.y; k++) {
+            QuickCell(0, {j, k, p.z}, 1, bright, defden, cell);
+            QuickCell(0, {j, k, p.z + s.z}, 1, bright, defden, cell);
         }
 
-    for (j = z; j <= z + sz; j++)
-        for (k = x; k <= x + sx; k++) {
-            QuickCell(0, k, y, j, 1, bright, defden, cell);
-            QuickCell(0, k, y + sy, j, 1, bright, defden, cell);
+    for (j = p.z; j <= p.z + s.z; j++)
+        for (k = p.x; k <= p.x + s.x; k++) {
+            QuickCell(0, {k, p.y, j}, 1, bright, defden, cell);
+            QuickCell(0, {k, p.y + s.y, j}, 1, bright, defden, cell);
         }
 
-    for (j = z; j <= z + sz; j++)
-        for (k = y; k <= y + sy; k++) {
-            QuickCell(0, x, k, j, 1, bright, defden, cell);
-            QuickCell(0, x + sx, k, j, 1, bright, defden, cell);
+    for (j = p.z; j <= p.z + s.z; j++)
+        for (k = p.y; k <= p.y + s.y; k++) {
+            QuickCell(0, {p.x, k, j}, 1, bright, defden, cell);
+            QuickCell(0, {p.x + s.x, k, j}, 1, bright, defden, cell);
         }
 
 }
@@ -193,47 +184,45 @@ void MakeJumpSection(short x, short y, short z, short sx, short sy, short sz, in
     for (i = x; i <= x + sx; i++)
         for (j = y; j <= y + sy; j++)
             for (k = z; k <= z + sz; k++) {
-                QuickCell1GBAOnly(i, j, k, 0, newalloc % AddSizeStride, newalloc / AddSizeStride);
+                QuickCell1GBAOnly({i, j, k}, 0, newalloc % AddSizeStride, newalloc / AddSizeStride);
             }
-    UpdateZone(x, y, z, sx + 1, sy + 1, sz + 1);
+    UpdateZone({x, y, z}, {sx + 1, sy + 1, sz + 1});
     MarkAddDataForReload();
 }
 
-void SetWarpSpaceArea(short x, short y, short z, short sx, short sy, short sz, float xcomp, float ycomp, float zcomp) {
+void SetWarpSpaceArea(Vec3i p, Vec3i s, Vec3f comp) {
     //0..255, 0..255, 0..255, 0..255
     //Bit compression = xyz/w
 
-    float maxcomp = (xcomp > ycomp) ? ((xcomp > zcomp) ? xcomp : zcomp) : ((ycomp > zcomp) ? ycomp : zcomp);
+    float maxcomp = std::max(comp.x,std::max(comp.y,comp.z));
     if (maxcomp < 1.0) maxcomp = 1.0;
-    float cxc = xcomp / maxcomp;
-    float cyc = ycomp / maxcomp;
-    float czc = zcomp / maxcomp;
+    Vec3f cc = comp; cc/=maxcomp;
     float wterm = 1. / maxcomp;
-    cxc = CLAMP(cxc, 0, 1);
-    cyc = CLAMP(cyc, 0, 1);
-    czc = CLAMP(czc, 0, 1);
+    cc.x = CLAMP(cc.x, 0, 1);
+    cc.y = CLAMP(cc.y, 0, 1);
+    cc.z = CLAMP(cc.z, 0, 1);
     wterm = CLAMP(wterm, 0, 1);
 
-    unsigned char xt = cxc * 255;
-    unsigned char yt = cyc * 255;
-    unsigned char zt = czc * 255;
+    unsigned char xt = cc.x * 255;
+    unsigned char yt = cc.y * 255;
+    unsigned char zt = cc.z * 255;
     unsigned char wt = wterm * 255;
 
     //	float xyzpres = sqrt( xcomp*xcomp + ycomp*ycomp + zcomp*zcomp );
 
     short i, j, k;
-    for (i = x; i <= x + sx; i++)
-        for (j = y; j <= y + sy; j++)
-            for (k = z; k <= z + sz; k++) {
-                QuickCell(2, i, j, k, xt, yt, zt, wt);
+    for (i = p.x; i <= p.x + s.x; i++)
+        for (j = p.y; j <= p.y + s.y; j++)
+            for (k = p.z; k <= p.z + s.z; k++) {
+                QuickCell(2, {i, j, k}, xt, yt, zt, wt);
             }
-    UpdateZone(x, y, z, sx + 1, sy + 1, sz + 1);
+    UpdateZone(p, s + Vec3i{1,1,1});
 }
 
-int IsPlayerInRange(float x, float y, float z, float sx, float sy, float sz) {
-    if (gPositionX >= x && gPositionX <= x + sx &&
-            gPositionY >= y && gPositionY <= y + sy &&
-            gPositionZ >= z && gPositionZ <= z + sz) return 1;
+int IsPlayerInRange(Vec3f p, Vec3f s) {
+    if (gPosition.x >= p.x && gPosition.x <= p.x + s.x &&
+            gPosition.y >= p.y && gPosition.y<= p.y + s.y &&
+            gPosition.z >= p.z && gPosition.z <= p.z + s.z) return 1;
     return 0;
 }
 
@@ -243,7 +232,7 @@ extern int pickables_in_inventory;
 //pickable block helper.
 
 struct PickableBlock {
-    int x, y, z;
+    Vec3i p;
     float phasing; //If +1 or 0, block is truly here.  If -1, phasing out.  Note: 0 = do not re-update.
     float density; //between 0 and 1.
     char in_use;
@@ -253,11 +242,12 @@ struct PickableBlock {
 //Returns -1 if no block.
 //Returns -2 if block tween incomplete.
 
-int GetPickableAt(int x, int y, int z) {
+int GetPickableAt(Vec3i p) {
     int i;
     for (i = 0; i < MAX_PICKABLES; i++) {
         struct PickableBlock * pb = &PBlocks[i];
-        if (pb->in_use && pb->x == x && pb->y == y && pb->z == z) {
+        if(pb->in_use) printf("%d %d %d\n",pb->p.x,pb->p.y,pb->p.z);
+        if (pb->in_use && pb->p == p) {
             return (pb->density > .99) ? i : -2;
         }
     }
@@ -274,7 +264,7 @@ void DissolvePickable(int pid) {
 //Otherwise returns which pickable!
 //initial_density should be 0 unless you want to shorten (+) or lengthen (-) tween.
 
-int PlacePickableAt(int x, int y, int z, float initial_density) {
+int PlacePickableAt(Vec3i p, float initial_density) {
     int i;
 
     for (i = 0; i < MAX_PICKABLES; i++) {
@@ -287,9 +277,7 @@ int PlacePickableAt(int x, int y, int z, float initial_density) {
         return -2;
 
     struct PickableBlock * pb = &PBlocks[i];
-    pb->x = x;
-    pb->y = y;
-    pb->z = z;
+    pb->p = p;
     pb->phasing = 1;
     pb->in_use = 1;
     pb->density = initial_density;
@@ -300,7 +288,7 @@ void ClearPicableBlocks() {
     int i;
     for (i = 0; i < MAX_PICKABLES; i++) {
         struct PickableBlock * pb = &PBlocks[i];
-        pb->x = pb->y = pb->z = 0;
+        pb->p = Vec3i{0,0,0};
         pb->phasing = 0;
         pb->density = 0;
         pb->in_use = 0;
@@ -331,32 +319,31 @@ void UpdatePickableBlocks() {
         float drawden = (pb->density < 0) ? 0.0 : ((pb->density > 1.0) ? 1.0 : pb->density);
 
         if (drawden > .01) {
-            PaintRange(pb->x, pb->y, pb->z, 1, 1, 1, PICKABLE_CELL, drawden * 200);
+            PaintRange(pb->p, {1, 1, 1}, PICKABLE_CELL, drawden * 200);
         } else {
-            ClearCell(pb->x, pb->y, pb->z);
+            ClearCell(pb->p);
         }
 
     }
 }
 
-void PickableClick(int left, float x, float y, float z, float dist) {
+void PickableClick(bool left, Vec3f p, float dist) {
     if (dist > 4) return;
-    int lx = x;
-    int ly = y;
-    int lz = z;
     if (left) {
         if (pickables_in_inventory > 0) {
-            PlacePickableAt(lx, ly, lz, 0.0);
+            PlacePickableAt({(int)p.x,(int)p.y,(int)p.z}, 0.0);
             pickables_in_inventory--;
         } else {
             printf("No blocks.\n");
         }
     } else {
-        int r = GetPickableAt(lx, ly, lz);
+        int r = GetPickableAt({(int)p.x,(int)p.y,(int)p.z});
 
         if (r >= 0) {
             pickables_in_inventory++;
             PBlocks[r].phasing = -1;
+        } else {
+            printf("No pickable at (%d,%d,%d)",(int)p.x,(int)p.y,(int)p.z);
         }
 
     }
@@ -368,17 +355,17 @@ void PickableClick(int left, float x, float y, float z, float dist) {
 #define MAX_DEATH_BLOCKS 8192
 
 struct DeathBlock {
-    int x, y, z;
+    Vec3i p;
     int in_use;
 } DeathBlocks[MAX_DEATH_BLOCKS];
 
-void AddDeathBlock(int x, int y, int z) {
+void AddDeathBlock(Vec3i p) {
     int i;
 
     //Don't add multiple.
     for (i = 0; i < MAX_DEATH_BLOCKS; i++) {
         struct DeathBlock * db = &DeathBlocks[i];
-        if (db->x == x && db->y == y && db->z == z) {
+        if (db->p == p) {
             return;
         }
     }
@@ -387,9 +374,7 @@ void AddDeathBlock(int x, int y, int z) {
         struct DeathBlock * db = &DeathBlocks[i];
         if (db->in_use == 0) {
             db->in_use = 1;
-            db->x = x;
-            db->y = y;
-            db->z = z;
+            db->p = p;
             break;
         }
     }
@@ -397,45 +382,49 @@ void AddDeathBlock(int x, int y, int z) {
 #include "RTHelper.h"
 extern RTHelper * gh;
 
-int IsOnDeathBlock(int x, int y, int z) {
+int IsOnDeathBlock(Vec3i p) {
     int i;
     for (i = 0; i < MAX_DEATH_BLOCKS; i++) {
         struct DeathBlock * db = &DeathBlocks[i];
-        if (db->x == x && db->y == y && (db->z == z || db->z == z - 1)) {
+        if (db->p.x == p.x && db->p.y == p.y && (db->p.z == p.z || db->p.z == p.z - 1)) {
             return 1;
         }
     }
     return 0;
 }
 
-void ChangeCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-    QuickCell(t,x,y,z,r,g,b,a);
-    gh->TMap->TackChange(x, y, z);
+void ChangeCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    QuickCell(t,p,r,g,b,a);
+    gh->TMap->TackChange(p);
 }
 
-void QuickCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-    gh->TMap->TexCell(t, x, y, z).r = r;
-    gh->TMap->TexCell(t, x, y, z).g = g;
-    gh->TMap->TexCell(t, x, y, z).b = b;
-    gh->TMap->TexCell(t, x, y, z).a = a;
+void QuickCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    gh->TMap->TexCell(t, p).r = r;
+    gh->TMap->TexCell(t, p).g = g;
+    gh->TMap->TexCell(t, p).b = b;
+    gh->TMap->TexCell(t, p).a = a;
 }
 
-void QuickCell1GBAOnly(int x, int y, int z, unsigned char g, unsigned char b, unsigned char a) {
-    gh->TMap->TexCell(1, x, y, z).g = g;
-    gh->TMap->TexCell(1, x, y, z).b = b;
-    gh->TMap->TexCell(1, x, y, z).a = a;
+void QuickCell1GBAOnly(Vec3i p, unsigned char g, unsigned char b, unsigned char a) {
+    gh->TMap->TexCell(1, p).g = g;
+    gh->TMap->TexCell(1, p).b = b;
+    gh->TMap->TexCell(1, p).a = a;
 }
 
-void UpdateZone(int x, int y, int z, int sx, int sy, int sz) {
-    gh->TMap->TackMultiChange(x, y, z, sx, sy, sz);
+void UpdateZone(Vec3i p, Vec3i s) {
+    gh->TMap->TackMultiChange(p, s);
 }
 
 int AllocAddInfo(int nr) {
     return gh->AllocAddInfo(nr);
 }
 
+/*void AlterAddInfo(int pos, Vec3f p, float a) {
+    gh->AdditionalInformationMapData[pos] = RGBAf(p, a);
+}*/
+
 void AlterAddInfo(int pos, float x, float y, float z, float a) {
-    gh->AdditionalInformationMapData[pos] = RGBAf(x, y, z, a);
+    gh->AdditionalInformationMapData[pos] = RGBAf(x,y,z, a);
 }
 
 void MarkAddDataForReload() {

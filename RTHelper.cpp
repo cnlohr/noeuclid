@@ -46,7 +46,7 @@ public:
 };
 extern GLUT glut;
 
-RTHelper::RTHelper(bool fakemode) : vX(0), vY(0), vZ(0), ProbePlace(0) {
+RTHelper::RTHelper(bool fakemode) : v({0,0,0}), ProbePlace(0) {
     printf("Populate Complete.\n");
 
     lastWidth = 0;
@@ -361,7 +361,7 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
 
     glPushMatrix();
     glScalef(1., 1., -1.);
-    glTranslatef(-MapOffsetX, -MapOffsetY, -MapOffsetZ);
+    glTranslatef(-MapOffset.x, -MapOffset.y, -MapOffset.z);
 
     timeval tva, tvb;
     gettimeofday(&tva, 0);
@@ -424,7 +424,7 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
     UpdatePositionAndRotation();
 
     glScalef(1., 1., -1.);
-    glTranslatef(-MapOffsetX, -MapOffsetY, -MapOffsetZ);
+    glTranslatef(-MapOffset.x, -MapOffset.y, -MapOffset.z);
     glColor4f(1., 1., 1., 1.);
 
     //Pass 1: Core ray tracer
