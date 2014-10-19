@@ -691,7 +691,7 @@ void DoneProbes( bool bReRun )
 	//TODO: If we are in a situation where we're stuck on our side, don't exceute this line of code.
 	quatnormalize( LookQuaternion, newquat );
 //	printf( "%f %f %f %f  / %f %f %f %f\n", LookQuaternion[0], LookQuaternion[1], LookQuaternion[2], LookQuaternion[3], 
-		newquat[0], newquat[1], newquat[2], newquat[3] );
+//		newquat[0], newquat[1], newquat[2], newquat[3] );
 
 
 
