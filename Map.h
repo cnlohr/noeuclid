@@ -16,20 +16,6 @@
 using namespace std;
 class RTHelper;
 
-/*
-class DisplayUpdateChunk
-{
-public:
-        int x;
-        int y;
-        int z;
-        int sx;
-        int sy;
-        int sz;
-
-        RGBA * UpdatedData[2];
-};*/
-
 struct CellUpdate {
     Vec3i p; Vec3i s;
 };

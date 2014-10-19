@@ -9,26 +9,34 @@
 #include "GameMap.h"
 #include <cstring>
 #include <functional>
-#define START_ROOM 7
+#define START_ROOM 9
 #define NR_ROOMS 11 //RunRoom is 0 indexed, this should be one greater than the highest numbered room.
 int firstrun = 0;
 int lastroom = -1;
 int room = START_ROOM;
 
-void StartAtRoom(int rid);
-
-void Die() {
-    StartAtRoom(room);
-    GameAttempt++;
-}
 
 class Room {
 public:
 
-    Room(Vec3f start) : start(start) {
+    Room(double maxTime, Vec3f start, Vec3f exitr1, Vec3f exitr2) :
+        maxTime(maxTime), start(start), exitr1(exitr1), exitr2(exitr2) {
     };
-    Vec3f start;
-    double timeIn = 0;
+    double timeIn = 0, maxTime;
+    Vec3f start, exitr1, exitr2;
+    
+    void begin() {
+        gPosition = start;
+        GameTimer = maxTime;
+        init();
+    }
+    
+    void update() {
+        run();
+        if (IsPlayerInRange(exitr1, exitr2)) {
+            room++;
+        }
+    }
 
     virtual void run() {
         printf("ERROR: no room\n");
@@ -41,6 +49,11 @@ public:
 
 extern vector<Room*> rooms;
 
+void Die() {
+    rooms[room]->begin();
+    GameAttempt++;
+}
+
 void GameMap::collision(struct CollisionProbe * ddat) {
     ///XXX TODO: pointers for where we're aimed should come in here.
     //printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
@@ -49,11 +62,10 @@ void GameMap::collision(struct CollisionProbe * ddat) {
 class Room0 : public Room {
 public:
 
-    Room0() : Room({3, 3, 64}) {
+    Room0() : Room(100,{3, 3, 64}, {4, 4, 61}, {1, 1, 1}) {
     }
 
     void init() {
-        GameTimer = 100;
         MakeEmptyBox({1, 1, 60}, {6, 6, 6}, WALL_BLOCK, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1); //White box,
         SetWarpSpaceArea({1, 1, 60}, {6, 6, 6}, {.1, .1, .1}); //very big box.
         ChangeCell(0, {4, 4, 60}, 1, DEFAULT_BRIGHT, 255, GOAL_BLOCK);
@@ -73,21 +85,16 @@ public:
     }
 
     void run() {
-        if (IsPlayerInRange({4, 4, 61}, {1, 1, 1})) {
-            room = 1;
-        }
     }
 };
 
 class Room1 : public Room {
 public:
 
-    Room1() : Room({4.28, 4.27, 59.13}) {
+    Room1() : Room(100, {4.28, 4.27, 59.13},{3, 9, 51},{3, 1, 2}) {
     }
 
     void init() {
-        GameTimer = 100;
-
         //Box off to the side
         MakeEmptyBox({2, 6, 50}, {4, 4, 3}, 7, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1);
 
@@ -125,23 +132,18 @@ public:
         } else {
             ChangeCell(0, {4, 4, 60}, 1, DEFAULT_BRIGHT, capden, GOAL_BLOCK);
         }
-
-        if (IsPlayerInRange({3, 9, 51},{3, 1, 2})) {
-            room = 2;
-        }
     }
 };
 
 class Room2 : public Room {
 public:
 
-    Room2() : Room({4.5, 7.92, 51.92}) {
+    Room2() : Room(100, {4.5, 7.92, 51.92},{3, 15.1, 48}, {3, 1, 2}) {
     }
-    int StageInRoom2;
+    int stage;
 
     void init() {
-        GameTimer = 100;
-        StageInRoom2 = 0;
+        stage = 0;
 
         MakeEmptyBox({2, 11, 47}, {4, 4, 10}, SPAAACE_CELL, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1); //Open area
         SetWarpSpaceArea({2, 11, 46}, {4, 4, 3}, {.3, .3, .3}); //very big box
@@ -163,19 +165,19 @@ public:
         }
 
         //Force user to look around to get out.
-        switch (StageInRoom2) {
+        switch (stage) {
             case 0:
-                if (gDirection.y > .7 && IsPlayerInRange({3, 12, 48}, {3, 3, 3})) StageInRoom2 = 1;
+                if (gDirection.y > .7 && IsPlayerInRange({3, 12, 48}, {3, 3, 3})) stage = 1;
                 break;
             case 1:
-                if (gDirection.y < -.7) StageInRoom2 = 2;
+                if (gDirection.y < -.7) stage = 2;
                 break;
             case 2:
-                if (gDirection.y > .7) StageInRoom2 = 3;
+                if (gDirection.y > .7) stage = 3;
                 break;
             case 3:
                 PaintRange({3, 11, 47}, {3, 1, 8}, SPAAACE_CELL, 255);
-                if (gDirection.y < -.7) StageInRoom2 = 4;
+                if (gDirection.y < -.7) stage = 4;
                 break;
             case 4:
                 //Open hole in front of room.
@@ -183,14 +185,8 @@ public:
                 ClearRange({4, 15, 48}, {1, 1, 1});
                 PaintRange({4, 16, 48}, {1, 1, 1}, GOAL_BLOCK, 255);
                 SetWarpSpaceArea({3, 15, 47}, {4, 4, 3}, {.3, .3, .3});
-                if (gDirection.y < -.7) StageInRoom2 = 4;
                 break;
 
-        }
-        //printf( "%f %f %f %d\n", gDirectionX, gDirectionY, gDirectionZ, StageInRoom2 );
-
-        if (IsPlayerInRange({3, 15.1, 48}, {3, 1, 2})) {
-            room = 3;
         }
     }
 };
@@ -198,12 +194,11 @@ public:
 class Room3 : public Room {
 public:
 
-    Room3() : Room({4.5, 15.29, 48.44}) {
+    Room3() : Room(100, {4.5, 15.29, 48.44},{6, 32, 48}, {1, 1, 2}) {
     }
     int already_setup_jumpspace, already_removed_stretch = 0;
 
     void init() {
-        GameTimer = 100;
         already_removed_stretch = 0;
         already_setup_jumpspace = 0;
         SetWarpSpaceArea({1, 15, 40}, {12, 12, 12}, {.3, .3, .3});
@@ -212,8 +207,6 @@ public:
         MakeEmptyBox({1, 16, 40}, {12, 12, 12}, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1); //Open area
         MakeEmptyBox({3, 28, 47}, {6, 5, 3}, 2, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1); //Tucked away (For goal)
         ClearRange({4, 28, 48}, {5, 2, 2}); //Open wall between open area and goal.
-        //		MakeJumpSection( 1, 16, 39, 12, 12, 3, 0, 0, 0 );
-        //		MakeJumpSection( 1, 16, 51, 12, 12, 3, 0, 0, 0 );
         PaintRange({12, 17, 40}, {1, 1, 1}, GOAL_BLOCK, 255);
 
         PaintRange({6, 33, 47}, {1, 1, 3}, GOAL_BLOCK, 255);
@@ -236,8 +229,8 @@ public:
         if (IsPlayerInRange({12, 17, 41}, {1, 1, 2}) && already_setup_jumpspace == 0) {
             ClearRange({1, 16, 37}, {1, 1, 4});
             ClearRange({1, 16, 48}, {1, 1, 4});
-            MakeJumpSection(1, 16, 39, 12, 12, 3, 0, 0, 7, 0);
-            MakeJumpSection(1, 16, 51, 12, 12, 3, 0, 0, -7, 0);
+            MakeJumpSection({1, 16, 39}, {12, 12, 3}, 0, 0, 7, 0);
+            MakeJumpSection({1, 16, 51}, {12, 12, 3}, 0, 0, -7, 0);
             printf("Jumpspace\n");
             already_setup_jumpspace = 1;
         }
@@ -262,22 +255,16 @@ public:
         } else {
             PaintRange({4, 16, 48}, {1, 1, 1}, GOAL_BLOCK, capden);
         }
-
-        if (IsPlayerInRange({6, 32, 48}, {1, 1, 2})) {
-            room = 4;
-        }
     }
 };
 
 class Room4 : public Room {
 public:
 
-    Room4() : Room({6.5, 31.5, 49}) {
+    Room4() : Room(100,{6.5, 31.5, 49},{5, 47, 43}, {1, 1, 2}) {
     }
 
     void init() {
-        GameTimer = 100;
-
         //Increasingly warped world.
         for (int x = 0; x < 14; x++) {
             SetWarpSpaceArea({2 + x, 34, 42}, {3, 15, 20}, {.8f / (14 - x), .8f / (14 - x), .4f});
@@ -324,18 +311,13 @@ public:
                 QuickCell(0, {4 + x, 34 + y, 43 + 10}, 1, DEFAULT_BRIGHT, (sin(x * 2 + y + timeIn)*80 + 80), 9);
             }
         UpdateZone({3, 33, 43 + 10},{ 15, 15, 3});
-
-        if (IsPlayerInRange({5, 47, 43}, {1, 1, 2})) {
-            room = 5;
-        }
-
     }
 };
 
 class Room5 : public Room {
 public:
 
-    Room5() : Room({5.5, 47.5, 42}) {
+    Room5() : Room(15, {5.5, 47.5, 42},{5, 31, 31}, {1, 1, 2}) {
     }
 
     void init() {
@@ -350,8 +332,6 @@ public:
 
         //Target in floor.
         PaintRange({5, 30, 31}, {1, 1, 2}, GOAL_BLOCK, 255);
-
-        GameTimer = 15;
     }
 
     void run() {
@@ -362,17 +342,13 @@ public:
         } else {
             PaintRange({5, 47, 43}, {1, 1, 1}, GOAL_BLOCK, capden);
         }
-
-        if (IsPlayerInRange({5, 31, 31}, {1, 1, 2})) {
-            room = 6;
-        }
     }
 };
 
 class Room6 : public Room {
 public:
 
-    Room6() : Room({5.5, 30.5, 32}) {
+    Room6() : Room(30, {5.5, 30.5, 32},{5, 15, 31}, {1, 2, 2}) {
     }
 
     void init() {
@@ -387,9 +363,7 @@ public:
 
         //Hide warp zone next to door.
         float farrot[] = {1, 0, 0, 0, 0, 1, 0, 1, 0};
-        MakeJumpSection(7, 29, 31, 2, 1, 3, -2, 4, -15, farrot);
-
-        GameTimer = 30;
+        MakeJumpSection({7, 29, 31}, {2, 1, 3}, -2, 4, -15, farrot);
     }
 
     void run() {
@@ -404,17 +378,13 @@ public:
         if (IsPlayerInRange({3, 18, 30}, {5, 7, 4})) {
             Die();
         }
-
-        if (IsPlayerInRange({5, 15, 31}, {1, 2, 2})) {
-            room = 7;
-        }
     }
 };
 
 class Room7 : public Room {
 public:
 
-    Room7() : Room({5.5, 16.5, 32}) {
+    Room7() : Room(150, {5.5, 16.5, 32},{23, 7, 21}, {1, 1, 2}) {
     }
 
     void init() {
@@ -426,10 +396,10 @@ public:
 
         //Warp from top of first to top of second.
         float farrot[] = {1, 0, 0, 0, -1, 0, 0, 0, -1};
-        MakeJumpSection(2, 2, 41, 13, 13, 1, 0, -19, -65, farrot);
+        MakeJumpSection({2, 2, 41}, {13, 13, 1}, 0, -19, -65, farrot);
 
         //Adn vice versa
-        MakeJumpSection(2, 2, 25, 13, 13, 1, 0, -19, -65, farrot);
+        MakeJumpSection({2, 2, 25}, {13, 13, 1}, 0, -19, -65, farrot);
 
 
         //Put a little mound of pickables over in the corner.
@@ -474,11 +444,6 @@ public:
                     AddDeathBlock({4 + x, 4 + y, 20});
                 }
             }
-
-
-        GameTimer = 150;
-
-
         //Goal
         PaintRange({24, 7, 21}, {1, 1, 2}, GOAL_BLOCK, 255);
 
@@ -496,17 +461,13 @@ public:
         if (IsPlayerInRange({13, 1, 18}, {7, 15, 3})) {
             Die();
         }
-
-        if (IsPlayerInRange({23, 7, 21}, {1, 1, 2})) {
-            room = 8;
-        }
     }
 };
 
 class Room8 : public Room {
 public:
 
-    Room8() : Room({23, 7.5, 22}) {
+    Room8() : Room(200,{23, 7.5, 22},{16, 46, 54}, {2, 2, 2}) {
     };
 
     void init() {
@@ -519,7 +480,7 @@ public:
         PaintRange({6, 33, 48}, {1, 1, 2}, GOAL_BLOCK, 0);
 
         //But, block the exit.
-        MakeJumpSection(25, 7, 21, 3, 2, 3, -19, 24, 27, 0);
+        MakeJumpSection({25, 7, 21}, {3, 2, 3}, -19, 24, 27, 0);
 
         //Place some goodies in here.
         pickables_in_inventory = 0;
@@ -532,8 +493,6 @@ public:
                 }
             }
         }
-
-        GameTimer = 200;
 
         ClearCell({17, 48, 55});
         ClearCell({16, 48, 55});
@@ -560,17 +519,13 @@ public:
                 1, 1, 2
             }, GOAL_BLOCK, capden);
         }
-
-        if (IsPlayerInRange({16, 46, 54}, {2, 2, 2})) {
-            room = 9;
-        }
     }
 };
 
 class Room9 : public Room {
 public:
 
-    Room9() : Room({17.4, 49.8, 55.1}) {
+    Room9() : Room(200, {17.4, 49.8, 55.1},{4, 65, 48}, {2, 2, 2}) {
     }
 
 
@@ -588,9 +543,6 @@ public:
 
 
         //Little tunnel off end.
-
-        GameTimer = 200;
-
         //		gPositionX = 17.4;
         //		gPositionY = 46.8;
         //		gPositionZ = 55.1;
@@ -670,11 +622,6 @@ public:
         } else {
             PaintRange({16, 48, 54}, {2, 1, 2}, GOAL_BLOCK, capden);
         }
-
-        if (IsPlayerInRange({4, 65, 48}, {2, 2, 2})) {
-            room = 10;
-        }
-
         if (gPosition.z < 47.8) {
             Die();
         }
@@ -684,13 +631,11 @@ public:
 class Room10 : public Room {
 public:
 
-    Room10() : Room({5.1, 65.2, 48}) {
+    Room10() : Room(200, {5.1, 65.2, 48},{0,0,0},{-1,-1,-1}) {
     }
 
     void init() {
         rooms[9]->init();
-
-        GameTimer = 200;
 
         MakeEmptyBox({2, 67, 46}, {6, 10, 10}, 4, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1);
         ClearRange({4, 67, 47}, {2, 1, 3});
@@ -766,13 +711,6 @@ vector<Room*> rooms{
     new Room10()
 };
 
-void StartAtRoom(int rid) {
-    firstrun = 1;
-    room = rid;
-    if (rid == 0) GameAttempt = 1;
-    gPosition = rooms[rid]->start;
-}
-
 GameMap::GameMap() {
 }
 
@@ -784,11 +722,12 @@ void GameMap::Update() {
     int i;
 
     if (gOverallUpdateNo == 0) {
-        StartAtRoom(START_ROOM);
+        room = START_ROOM;
+        rooms[room]->begin();
     }
 
     if (room != lastroom) {
-        firstrun = 1;
+        rooms[room]->init();
         lastroom = room;
     }
 
@@ -798,21 +737,14 @@ void GameMap::Update() {
         Die();
     }
 
-    if (firstrun == 1) {
-        printf("initing %d\n", room);
-        rooms[room]->init();
-        firstrun = 0;
-    }
     rooms[room]->timeIn += worldDeltaTime;
-    rooms[room]->run();
+    rooms[room]->update();
 
     sprintf(gDialog, "Room: %d\n", room);
 
     if (gKeyMap['l'] || gKeyMap['L']) {
         for (i = 0; i < NR_ROOMS; i++) {
-            StartAtRoom(i);
             rooms[i]->init();
-            rooms[i]->run();
         }
     }
 
@@ -820,19 +752,18 @@ void GameMap::Update() {
 
     //Press 'r' to reset room.
     if (gKeyMap['r'] || gKeyMap['R']) {
-        StartAtRoom(room);
+        rooms[room]->begin();
     }
 
     if (gKeyMap['='] || gKeyMap['+']) {
         if (!was_level_change_pressed)
             room++;
         was_level_change_pressed = 1;
-        StartAtRoom(room);
+        rooms[room]->begin();
     } else if (gKeyMap['-'] || gKeyMap['_']) {
         if (!was_level_change_pressed)
             room--;
-        was_level_change_pressed = 1;
-        StartAtRoom(room);
+        rooms[room]->begin();
     } else
         was_level_change_pressed = 0;
 
@@ -877,10 +808,5 @@ void GameMap::Update() {
     for (i = 0; i < 256; i++) {
         ChangeCell(0,{2 + (i % 16), 40 + (i / 16), 63}, 1, DEFAULT_BRIGHT, 255, i);
     }
-
-    /*
-            totaltime += worldDeltaTime;
-            sprintf( gDialog, "Update %f %f %f\n", gTargetHitX, gTargetHitY, gTargetHitZ );
-     */
 
 }

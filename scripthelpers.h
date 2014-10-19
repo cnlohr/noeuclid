@@ -166,7 +166,7 @@ void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int 
 
 }
 
-void MakeJumpSection(short x, short y, short z, short sx, short sy, short sz, int xofs, int yofs, int zofs, float * farray) {
+void MakeJumpSection(Vec3i p, Vec3i s, int xofs, int yofs, int zofs, float * farray) {
     int newalloc = AllocAddInfo(4);
 
     if (farray) {
@@ -181,12 +181,12 @@ void MakeJumpSection(short x, short y, short z, short sx, short sy, short sz, in
     AlterAddInfo(newalloc + 3, xofs, yofs, zofs, 0);
 
     short i, j, k;
-    for (i = x; i <= x + sx; i++)
-        for (j = y; j <= y + sy; j++)
-            for (k = z; k <= z + sz; k++) {
+    for (i = p.x; i <= p.x + s.x; i++)
+        for (j = p.y; j <= p.y + s.y; j++)
+            for (k = p.z; k <= p.z + s.z; k++) {
                 QuickCell1GBAOnly({i, j, k}, 0, newalloc % AddSizeStride, newalloc / AddSizeStride);
             }
-    UpdateZone({x, y, z}, {sx + 1, sy + 1, sz + 1});
+    UpdateZone(p, s + Vec3i{1,1,1});
     MarkAddDataForReload();
 }
 
