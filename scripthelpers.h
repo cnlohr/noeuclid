@@ -182,10 +182,10 @@ void SetWarpSpaceArea( short x, short y, short z, short sx, short sy, short sz, 
 	float cyc = ycomp / maxcomp;
 	float czc = zcomp / maxcomp;
 	float wterm = 1./maxcomp;
-	CLAMP( cxc, 0, 1 );
-	CLAMP( cyc, 0, 1 );
-	CLAMP( czc, 0, 1 );
-	CLAMP( wterm, 0, 1 );
+	cxc = CLAMP( cxc, 0, 1 );
+	cyc = CLAMP( cyc, 0, 1 );
+	czc = CLAMP( czc, 0, 1 );
+	wterm = CLAMP( wterm, 0, 1 );
 
 	unsigned char xt = cxc * 255;
 	unsigned char yt = cyc * 255;
