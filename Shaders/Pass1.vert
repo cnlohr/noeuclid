@@ -21,7 +21,7 @@ void main()
 	else
 	{
 		InitialCamera = -(( gl_ModelViewMatrixInverse * vec4(0.0,0.0,0.0,-1.0) )).xyz;
-		RayDirection = vec3( ( gl_Vertex  ).x, ( gl_Vertex  ).y, -2.0 );
+		RayDirection = vec3( ( gl_Vertex  ).x, ( gl_Vertex  ).y, -1.0 );
 		RayDirection = -( ( gl_ModelViewMatrixInverse * vec4(-RayDirection,0.0) ) ).xyz;
 		doPhysics = 0.0;
 	}
