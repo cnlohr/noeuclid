@@ -191,48 +191,90 @@ void quatrotatevector(float * vec3out, const float * quat, const float * vec3in)
 
 //From: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 //From: http://www.cg.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche52.html
-
-void quatfrommatrix(float * q, float * mat4) {
-#define M4F(x,y) mat4[y*4+x]
-#define SIGNx(x) (((x)<0)?-1:1)
-    q[0] = (M4F(0, 0) + M4F(1, 1) + M4F(2, 2) + 1.0f) / 4.0f;
-    q[1] = (M4F(0, 0) - M4F(1, 1) - M4F(2, 2) + 1.0f) / 4.0f;
-    q[2] = (-M4F(0, 0) + M4F(1, 1) - M4F(2, 2) + 1.0f) / 4.0f;
-    q[3] = (-M4F(0, 0) - M4F(1, 1) + M4F(2, 2) + 1.0f) / 4.0f;
-    if (q[0] < 0.0f) q[0] = 0.0f;
-    if (q[1] < 0.0f) q[1] = 0.0f;
-    if (q[2] < 0.0f) q[2] = 0.0f;
-    if (q[3] < 0.0f) q[3] = 0.0f;
+#define SIGN(x) (x<0?-1:1)
+/*std::vector<float> quatfrommatrix(Vec3f r1, Vec3f r2, Vec3f r3) {
+   
+    std::vector<float> q(4);
+    q[0] = ( r1.x + r2.y + r3.z + 1.0f) / 4.0f;
+    q[1] = ( r1.x - r2.y - r3.z + 1.0f) / 4.0f;
+    q[2] = (-r1.x + r2.y - r3.z + 1.0f) / 4.0f;
+    q[3] = (-r1.x - r2.y + r3.z + 1.0f) / 4.0f;
+    if(q[0] < 0.0f) q[0] = 0.0f;
+    if(q[1] < 0.0f) q[1] = 0.0f;
+    if(q[2] < 0.0f) q[2] = 0.0f;
+    if(q[3] < 0.0f) q[3] = 0.0f;
     q[0] = sqrt(q[0]);
     q[1] = sqrt(q[1]);
     q[2] = sqrt(q[2]);
     q[3] = sqrt(q[3]);
-    if (q[0] >= q[1] && q[0] >= q[2] && q[0] >= q[3]) {
+    if(q[0] >= q[1] && q[0] >= q[2] && q[0] >= q[3]) {
         q[0] *= +1.0f;
-        q[1] *= SIGNx(M4F(2, 1) - M4F(1, 2));
-        q[2] *= SIGNx(M4F(0, 2) - M4F(2, 0));
-        q[3] *= SIGNx(M4F(1, 0) - M4F(0, 1));
-    } else if (q[1] >= q[0] && q[1] >= q[2] && q[1] >= q[3]) {
-        q[0] *= SIGNx(M4F(2, 1) - M4F(1, 2));
+        q[1] *= SIGN(r2.z - r3.y);
+        q[2] *= SIGN(r3.x - r1.z);
+        q[3] *= SIGN(r1.y - r2.x);
+    } else if(q[1] >= q[0] && q[1] >= q[2] && q[1] >= q[3]) {
+        q[0] *= SIGN(r2.z - r3.y);
         q[1] *= +1.0f;
-        q[2] *= SIGNx(M4F(1, 0) + M4F(0, 1));
-        q[3] *= SIGNx(M4F(0, 2) + M4F(2, 0));
-    } else if (q[2] >= q[0] && q[2] >= q[1] && q[2] >= q[3]) {
-        q[0] *= SIGNx(M4F(0, 2) - M4F(2, 0));
-        q[1] *= SIGNx(M4F(1, 0) + M4F(0, 1));
+        q[2] *= SIGN(r1.y + r2.x);
+        q[3] *= SIGN(r3.x + r1.z);
+    } else if(q[2] >= q[0] && q[2] >= q[1] && q[2] >= q[3]) {
+        q[0] *= SIGN(r3.x - r1.z);
+        q[1] *= SIGN(r1.y + r2.x);
         q[2] *= +1.0f;
-        q[3] *= SIGNx(M4F(2, 1) + M4F(1, 2));
-    } else if (q[3] >= q[0] && q[3] >= q[1] && q[3] >= q[2]) {
-        q[0] *= SIGNx(M4F(1, 0) - M4F(0, 1));
-        q[1] *= SIGNx(M4F(2, 0) + M4F(0, 2));
-        q[2] *= SIGNx(M4F(2, 1) + M4F(1, 2));
+        q[3] *= SIGN(r2.z + r3.y);
+    } else if(q[3] >= q[0] && q[3] >= q[1] && q[3] >= q[2]) {
+        q[0] *= SIGN(r1.y - r2.x);
+        q[1] *= SIGN(r1.z + r3.x);
+        q[2] *= SIGN(r2.z + r3.y);
         q[3] *= +1.0f;
     } else {
-        //printf("coding error\n");
-        q[0] = 1;
-        q[1] = 0;
-        q[2] = 0;
-        q[3] = 0;
+        printf("coding error\n");
     }
-    quatnormalize(q, q);
+    quatnormalize(q,q);
+    return q;
+}*/
+
+void quatfrommatrix( float * q, float * mat4 )
+{
+#define M4F(x,y) mat4[y*4+x]
+	q[0] = ( M4F(0,0) + M4F(1,1) + M4F(2,2) + 1.0f) / 4.0f;
+	q[1] = ( M4F(0,0) - M4F(1,1) - M4F(2,2) + 1.0f) / 4.0f;
+	q[2] = (-M4F(0,0) + M4F(1,1) - M4F(2,2) + 1.0f) / 4.0f;
+	q[3] = (-M4F(0,0) - M4F(1,1) + M4F(2,2) + 1.0f) / 4.0f;
+	if(q[0] < 0.0f) q[0] = 0.0f;
+	if(q[1] < 0.0f) q[1] = 0.0f;
+	if(q[2] < 0.0f) q[2] = 0.0f;
+	if(q[3] < 0.0f) q[3] = 0.0f;
+	q[0] = sqrt(q[0]);
+	q[1] = sqrt(q[1]);
+	q[2] = sqrt(q[2]);
+	q[3] = sqrt(q[3]);
+	if(q[0] >= q[1] && q[0] >= q[2] && q[0] >= q[3]) {
+		q[0] *= +1.0f;
+		q[1] *= SIGN(M4F(2,1) - M4F(1,2));
+		q[2] *= SIGN(M4F(0,2) - M4F(2,0));
+		q[3] *= SIGN(M4F(1,0) - M4F(0,1));
+	} else if(q[1] >= q[0] && q[1] >= q[2] && q[1] >= q[3]) {
+		q[0] *= SIGN(M4F(2,1) - M4F(1,2));
+		q[1] *= +1.0f;
+		q[2] *= SIGN(M4F(1,0) + M4F(0,1));
+		q[3] *= SIGN(M4F(0,2) + M4F(2,0));
+	} else if(q[2] >= q[0] && q[2] >= q[1] && q[2] >= q[3]) {
+		q[0] *= SIGN(M4F(0,2) - M4F(2,0));
+		q[1] *= SIGN(M4F(1,0) + M4F(0,1));
+		q[2] *= +1.0f;
+		q[3] *= SIGN(M4F(2,1) + M4F(1,2));
+	} else if(q[3] >= q[0] && q[3] >= q[1] && q[3] >= q[2]) {
+		q[0] *= SIGN(M4F(1,0) - M4F(0,1));
+		q[1] *= SIGN(M4F(2,0) + M4F(0,2));
+		q[2] *= SIGN(M4F(2,1) + M4F(1,2));
+		q[3] *= +1.0f;
+	} else {
+		//printf("coding error\n");
+		q[0] = 1;
+		q[1] = 0;
+		q[2] = 0;
+		q[3] = 0;
+	}
+	quatnormalize( q, q );
 }

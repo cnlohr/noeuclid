@@ -44,12 +44,12 @@
 
 #define MAX_SEEKER 1
 
-#define SIGN(x) ((x>0)?1:((x<0)?-1:0))
 
 
 #include <string>
 #include <cmath>
 #include <cstdlib>
+#include <vector>
 
 using std::string;
 string ZLibUncompress(const string & in);
@@ -60,20 +60,24 @@ template<class T> class Vec3 {
 public:
     T x, y, z;
 
-    const Vec3<T> operator+(const Vec3& b) {
+    const Vec3<T> operator+(const Vec3& b) const {
         return Vec3{x + b.x, y + b.y, z + b.z};
     }
     
-    const Vec3<T> operator-(const Vec3& b) {
+    const Vec3<T> operator-(const Vec3& b) const{
         return Vec3{x - b.x, y - b.y, z - b.z};
     }
 
-    const bool operator==(const Vec3& b) {
+    const bool operator==(const Vec3& b) const {
         return x == b.x && y == b.y && z == b.z;
     }
 
-    const Vec3<T> operator*(const T s) {
+    const Vec3<T> operator*(const T s) const {
         return Vec3{x*s, y*s, z * s};
+    }
+    
+    const Vec3<T> operator/(const T s) const{
+        return Vec3{x/s, y/s, z/s};
     }
 
     const void operator/=(const T s) {
@@ -95,9 +99,17 @@ public:
     T len2() {
         return x * x + y * y + z * z;
     }
+    
+    const Vec3<T> norm() {
+        return this/len();
+    }
 
     const Vec3<T> dot(const Vec3& b) {
         return Vec3{x * b.x, y * b.y, z * b.z};
+    }
+    
+    const Vec3<T> cross(const Vec3& b) {
+        return Vec3{y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x};
     }
 };
 typedef Vec3<short> Vec3s;
@@ -193,8 +205,7 @@ Vec3f quatrotatevector(const float * quat, Vec3f v);
 //From: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 //From: http://www.cg.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche52.html
 
-void quatfrommatrix(float * q, float * mat4);
-
-
+std::vector<float> quatfrommatrix(Vec3f r1, Vec3f r2, Vec3f r3);
+void quatfrommatrix( float * q, float * mat4 );
 #endif
 
