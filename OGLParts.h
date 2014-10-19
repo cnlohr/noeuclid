@@ -12,9 +12,10 @@
 #include <string>
 #include <stdlib.h>
 #include <string.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <GL/glut.h>
-#include <GL/freeglut_ext.h>
-
+#include <GL/glext.h>
 
 using std::vector;
 using std::string;

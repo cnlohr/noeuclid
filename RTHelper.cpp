@@ -39,7 +39,12 @@ float gRenderDensityMux = 1.0;
 #define NOISESIZE 16
 #define PHYSICS_PIXEL( x )  float((x%PHYSICS_SIZE)+0.1)/PHYSICS_SIZE, float((PHYSICS_SIZE-(x/PHYSICS_SIZE)) - 0.1)/PHYSICS_SIZE
 
-class GLUT { public :int miWidth; int miHeight; }; extern GLUT glut;
+class GLUT {
+public:
+    int miWidth;
+    int miHeight;
+};
+extern GLUT glut;
 
 RTHelper::RTHelper(bool fakemode) : vX(0), vY(0), vZ(0), ProbePlace(0) {
     printf("Populate Complete.\n");
@@ -57,26 +62,34 @@ RTHelper::RTHelper(bool fakemode) : vX(0), vY(0), vZ(0), ProbePlace(0) {
     AdditionalInformationPointer = 0;
     AdditionalInformationMapData = new RGBAf[ADDSIZEX * ADDSIZEY];
     ReloadAdditionalInformatioMapData();
+
+    printf("Loaded addinfo pointers.\n");
     AllocAddInfo(ADDSIZEX - 1); //First one is a no-change.
 
+    printf("Allocated Addinfo.\n");
     Pass1RFB.Setup();
     PassPhysicsRFB.Setup();
     Pass2RFB.Setup();
+
+    printf("RB Setup. Loading Shaders.\n");
 
     Pass1Physics.LoadShader("Shaders/Pass1Physics");
     Pass1.LoadShader("Shaders/Pass1");
     Pass2.LoadShader("Shaders/Pass2");
     Pass3.LoadShader("Shaders/Pass3");
 
+    printf("Shaders loaded.\n");
     PassPhysicsOutputs[0].MakeDynamicTexture(PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32);
     PassPhysicsOutputs[1].MakeDynamicTexture(PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32);
     PassPhysicsOutputs[2].MakeDynamicTexture(PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32);
     PassPhysicsOutputs[3].MakeDynamicTexture(PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32);
-
+    printf("Loading attribute map.\n");
     LTTex = new RGBAf[256 * 8 * 16];
     LoadAttributeMap();
 
+    printf("Done loading attributes. Making map.\n ");
     TMap = new Map("test.dat", this, fakemode);
+    printf("Done loading map.\n");
 }
 
 RTHelper::~RTHelper() {
@@ -133,14 +146,35 @@ void RTHelper::LoadAttributeMap() {
     {
         for (unsigned iTile = 0; iTile < 16; iTile++) //actually meta's.
         {
-            LTTex[iLine * 128 + iTile * 8 + 0].r = float(iLine % 16) / 16.;
-            LTTex[iLine * 128 + iTile * 8 + 0].g = float(iLine / 16) / 16.;
-            LTTex[iLine * 128 + iTile * 8 + 0].b = float(iTile) / 16.;
+            LTTex[iLine * 128 + iTile * 8 + 0].r = 1.0; //float(iLine % 16) / 16.;
+            LTTex[iLine * 128 + iTile * 8 + 0].g = 1.0; ///float(iLine / 16) / 16.;
+            LTTex[iLine * 128 + iTile * 8 + 0].b = 1.0; //float(iTile) / 16.;
             LTTex[iLine * 128 + iTile * 8 + 0].a = 1.0;
+
+            LTTex[iLine * 128 + iTile * 8 + 1].r = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 1].g = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 1].b = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 1].a = 1.0;
+
+            LTTex[iLine * 128 + iTile * 8 + 2].r = 0.0;
+            LTTex[iLine * 128 + iTile * 8 + 2].g = 0.0;
+            LTTex[iLine * 128 + iTile * 8 + 2].b = 0.0;
+            LTTex[iLine * 128 + iTile * 8 + 2].a = 0.0;
+
+            LTTex[iLine * 128 + iTile * 8 + 3].r = 0.0;
+            LTTex[iLine * 128 + iTile * 8 + 3].g = 0.0;
+            LTTex[iLine * 128 + iTile * 8 + 3].b = 0.0;
+            LTTex[iLine * 128 + iTile * 8 + 3].a = 0.0;
+
+            LTTex[iLine * 128 + iTile * 8 + 4].r = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 4].g = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 4].b = 0.1;
+            LTTex[iLine * 128 + iTile * 8 + 4].a = 1.0;
+
 
             LTTex[iLine * 128 + iTile * 8 + 7].r = 1.0;
             LTTex[iLine * 128 + iTile * 8 + 7].g = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 7].b = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 7].b = 0.0;
             LTTex[iLine * 128 + iTile * 8 + 7].a = 1.0;
         }
     }
@@ -161,6 +195,7 @@ void RTHelper::LoadAttributeMap() {
         RGBAf CoreData;
         RGBAf TimeSettings;
         RGBAf Speckles;
+        RGBAf ShaderEndingTerms = {1, 1, 0, 0};
         float fdensity;
 
         /*		sscanf( tline, "%s %d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
@@ -205,6 +240,9 @@ void RTHelper::LoadAttributeMap() {
         TimeSettings.FromStringArray(&dats[24]);
         if (dats.size() >= 32)
             Speckles.FromStringArray(&dats[28]);
+        if (dats.size() >= 36)
+            ShaderEndingTerms.FromStringArray(&dats[32]);
+        ShaderEndingTerms.a = fdensity;
 
 
         //		printf( "Loading: %d / %d (%s) ... %f %f %f %f / SPEC: %f %f %f %f\n", iTileID, iMetaID, Description.c_str(),
@@ -222,11 +260,7 @@ void RTHelper::LoadAttributeMap() {
                 LTTex[iTileID * 128 + iMetaID * 8 + 4] = CoreData;
                 LTTex[iTileID * 128 + iMetaID * 8 + 5] = TimeSettings;
                 LTTex[iTileID * 128 + iMetaID * 8 + 6] = Speckles;
-
-                LTTex[iTileID * 128 + iMetaID * 8 + 7].r = fdensity;
-                LTTex[iTileID * 128 + iMetaID * 8 + 7].g = fdensity;
-                LTTex[iTileID * 128 + iMetaID * 8 + 7].b = fdensity;
-                LTTex[iTileID * 128 + iMetaID * 8 + 7].a = fdensity;
+                LTTex[iTileID * 128 + iMetaID * 8 + 7] = ShaderEndingTerms;
             }
         } else {
             LTTex[iTileID * 128 + iMetaID * 8 + 0] = BaseColor;
@@ -236,17 +270,18 @@ void RTHelper::LoadAttributeMap() {
             LTTex[iTileID * 128 + iMetaID * 8 + 4] = CoreData;
             LTTex[iTileID * 128 + iMetaID * 8 + 5] = TimeSettings;
             LTTex[iTileID * 128 + iMetaID * 8 + 6] = Speckles;
-
-            LTTex[iTileID * 128 + iMetaID * 8 + 7].r = fdensity;
-            LTTex[iTileID * 128 + iMetaID * 8 + 7].g = fdensity;
-            LTTex[iTileID * 128 + iMetaID * 8 + 7].b = fdensity;
-            LTTex[iTileID * 128 + iMetaID * 8 + 7].a = fdensity;
+            LTTex[iTileID * 128 + iMetaID * 8 + 7] = ShaderEndingTerms;
         }
     }
+
+    printf("Tile attributes loaded.\n");
+
     AttributeMap.LoadTexture((char*) LTTex, 128, 256, TTRGBA32, false);
     glFinish();
     glFlush();
     fclose(f);
+
+    printf("Done with tile attributes.\n");
 
 }
 
@@ -441,9 +476,9 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
     NoiseMap.DeactivateTexture(3);
     AttributeMap.DeactivateTexture(4);
 
-    glActiveTextureARB(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_3D, 0);
-    glActiveTextureARB(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, 0);
     glDisable(GL_TEXTURE_3D);
 

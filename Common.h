@@ -49,6 +49,7 @@
 
 #include <string>
 #include <cmath>
+#include <cstdlib>
 
 using std::string;
 string ZLibUncompress(const string & in);
@@ -71,12 +72,6 @@ struct RGBAf {
 };
 
 struct RGBA {
-
-    RGBA() : r(0), g(0), b(0), a(0) {
-    }
-
-    RGBA(unsigned char ri, unsigned char gi, unsigned char bi, unsigned char ai) : r(ri), g(gi), b(bi), a(ai) {
-    }
     unsigned char r, g, b, a;
 };
 

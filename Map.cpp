@@ -5,6 +5,7 @@
 #include <sys/time.h>
 
 Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false ),*/ m_bReloadFullTexture(false), doSubtrace(true), parent(p) {
+    printf("Making map...\n");
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -15,7 +16,7 @@ Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false
     for (unsigned i = 0; i < 3; i++) {
         GLTextureData[i] = (RGBA*) malloc(GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ * 4);
         glBindTexture(GL_TEXTURE_3D, i3DTex[i]);
-        glTexImage3DEXT(GL_TEXTURE_3D, 0, GL_RGBA8, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ, 0, GL_RGBA, GL_UNSIGNED_BYTE, GLTextureData[i]);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ, 0, GL_RGBA, GL_UNSIGNED_BYTE, GLTextureData[i]);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -23,10 +24,15 @@ Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
         glBindTexture(GL_TEXTURE_3D, 0);
     }
+
+    printf("Bound textures. Loading Fake/Default.  Fake: %d\n", fake);
+
     if (fake)
         FakeIt();
     else
         DefaultIt();
+
+    printf("Basis created. Recalculating structure.\n");
     RecalculateAccelerationStructure(0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ);
     m_bReloadFullTexture = true;
 
@@ -38,11 +44,14 @@ Map::~Map() {
 }
 
 void Map::SetCellInternal(unsigned x, unsigned y, unsigned z, unsigned thiscell, unsigned color) {
+    int lookupcolor = color;
+    if (lookupcolor > 15) lookupcolor = 15;
+
     TexCell(0, x, y, z).r = thiscell;
     TexCell(0, x, y, z).g = color;
-    TexCell(0, x, y, z).b = parent->LTTex[thiscell * 128 + color * 8 + 7].a * 128.;
+    TexCell(0, x, y, z).b = parent->LTTex[thiscell * 128 + lookupcolor * 8 + 7].a * 128.;
     TexCell(0, x, y, z).a = thiscell;
-    TexCell(1, x, y, z) = RGBA(0, 0, 0, 0); // (Largescale trace hit?, Jumpmap xy, 
+    TexCell(1, x, y, z) = {0, 0, 0, 0}; // (Largescale trace hit?, Jumpmap xy, 
 
 
     RGBA & rr = TexCell(1, x, y, z);
@@ -65,9 +74,9 @@ void Map::DefaultIt() {
     for (unsigned x = 0; x < GLH_SIZEX; x++)
         for (unsigned y = 0; y < GLH_SIZEY; y++)
             for (unsigned z = 0; z < GLH_SIZEZ; z++)
-                TexCell(2, x, y, z) = RGBA(127, 127, 127, 127);
+                TexCell(2, x, y, z) = {127, 127, 127, 127};
 
-
+    printf("In Default.\n");
     //Walls
     for (unsigned x = 0; x < GLH_SIZEX; x++) {
         for (unsigned y = 0; y < GLH_SIZEY; y++) {
@@ -102,7 +111,7 @@ void Map::FakeIt() {
     for (unsigned x = 0; x < GLH_SIZEX; x++)
         for (unsigned y = 0; y < GLH_SIZEY; y++)
             for (unsigned z = 0; z < GLH_SIZEZ; z++)
-                TexCell(2, x, y, z) = RGBA(127, 127, 127, 127);
+                TexCell(2, x, y, z) = RGBA{127, 127, 127, 127};
 
 
     for (unsigned x = 0; x < GLH_SIZEX; x++) {
@@ -157,7 +166,7 @@ void Map::FakeIt() {
     for (unsigned z = 0; z < 4; z++) {
         for (unsigned x = 0; x < 6; x++)
             for (unsigned y = 0; y < 6; y++) {
-                TexCell(1, x + 10, y + 10, z) = RGBA(0, 0, addpos % ADDSIZEX, addpos / ADDSIZEX);
+                TexCell(1, x + 10, y + 10, z) = {0, 0, (unsigned char) (addpos % ADDSIZEX), (unsigned char) (addpos / ADDSIZEX)};
             }
     }
     parent->MarkAddInfoForReload();
@@ -201,11 +210,11 @@ void Map::FakeIt() {
             RGBA cond;
 
             if (y == 10) {
-                cond = RGBA(127, 30, 30, 30);
+                cond = {127, 30, 30, 30};
             } else if (y == 20) {
-                cond = RGBA(20, 127, 127, 127);
+                cond = {20, 127, 127, 127};
             } else if (y == 30) {
-                cond = RGBA(255, 30, 30, 30);
+                cond = {255, 30, 30, 30};
             }
 
             if (x > 20) //Do not set the low-end of any of the squares. (Except Z)
@@ -232,7 +241,7 @@ void Map::FakeIt() {
         for (int x = 20; x < 25; x++)
             for (int z = 2; z < 4; z++) {
                 if (y != 40 && x != 20 && z < 4)
-                    TexCell(2, x, y, z) = RGBA(9, 9, 9, 100);
+                    TexCell(2, x, y, z) = {9, 9, 9, 100};
                 if (y == 42 && (x == 20 || x == 24)) {
                 } else if (y == 40 || y == 44 || x == 20 || x == 24 || z == 3)
                     SetCellInternal(x, y, z, 4, 254);
@@ -241,8 +250,8 @@ void Map::FakeIt() {
 
     for (int y = 42; y < 44; y++)
         for (int z = 2; z < 4; z++) {
-            TexCell(2, 20, y, z) = RGBA(9, 9, 9, 20);
-            TexCell(2, 25, y, z) = RGBA(9, 9, 9, 20);
+            TexCell(2, 20, y, z) = {9, 9, 9, 20};
+            TexCell(2, 25, y, z) = {9, 9, 9, 20};
         }
 
     //for( int i = 0; i < 10; i++ )
@@ -269,7 +278,7 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     //	timeval tv1;
     //	gettimeofday( &tv1, 0 );	
 
-    unsigned char inskips[GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ];
+    unsigned char * inskips = new unsigned char[GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ];
     //	unsigned char ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
     if (parent->LTTex != NULL) {
         for (int z = iz; z < sz; z++)
@@ -290,6 +299,10 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     } else {
         printf("FATAL ERROR: LTTex was not populated.\n");
     }
+
+    if (iz < 1) iz = 1;
+    if (iy < 1) iy = 1;
+    if (ix < 1) ix = 1;
 
 
     //Needs to be unsigned here, because we may % negative numbers.
@@ -316,6 +329,7 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     } else {
         fprintf(stderr, "We are not doing thigns without subtracing anymore.\n");
     }
+    delete( inskips);
 
 }
 
@@ -335,7 +349,7 @@ void Map::Draw() {
         liu.push_back(f);
     }
 
-    glActiveTextureARB(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     for (unsigned i = 0; i < 3; i++) {
         glBindTexture(GL_TEXTURE_3D, i3DTex[i]);
         for (list< CellUpdate >::iterator li = liu.begin(); li != liu.end(); li++) {
@@ -355,7 +369,7 @@ void Map::Draw() {
                     for (lx = 0; lx < sx; lx++)
                         buffer[lz * stridea + ly * strideb + lx] = TexCell(i, ix + lx - 1, iy + ly - 1, iz + lz - 1);
 
-            glTexSubImage3DEXT(GL_TEXTURE_3D, 0, ix - 1, iy - 1, iz - 1, sx, sy, sz, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+            glTexSubImage3D(GL_TEXTURE_3D, 0, ix - 1, iy - 1, iz - 1, sx, sy, sz, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         }
         glFinish();
     }
@@ -364,10 +378,10 @@ void Map::Draw() {
 
     if (m_bReloadFullTexture) {
         printf("Reloading texture...\n");
-        glActiveTextureARB(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE0);
         for (unsigned i = 0; i < 3; i++) {
             glBindTexture(GL_TEXTURE_3D, i3DTex[i]);
-            glTexSubImage3DEXT(GL_TEXTURE_3D, 0, 0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ, GL_RGBA, GL_UNSIGNED_BYTE, GLTextureData[i]);
+            glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ, GL_RGBA, GL_UNSIGNED_BYTE, GLTextureData[i]);
             glFinish();
         }
         glBindTexture(GL_TEXTURE_3D, 0);
@@ -378,10 +392,10 @@ void Map::Draw() {
 
     glEnable(GL_TEXTURE_3D);
 
-    glActiveTextureARB(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, i3DTex[0]);
-    glActiveTextureARB(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_3D, i3DTex[1]);
-    glActiveTextureARB(GL_TEXTURE2);
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_3D, i3DTex[2]);
 }

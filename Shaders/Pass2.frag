@@ -187,6 +187,7 @@ void main()
 	vec4 CoreData = texture2D( AttribMap, vec2( (4./128.), ID ) ); //For trees, etc.
 	vec4 TimeSettings = texture2D( AttribMap, vec2( (5./128.), ID ) );
 	vec4 Speckles = texture2D( AttribMap, vec2( (6./128.), ID ) );
+	vec4 ShaderEndingTerms = texture2D( AttribMap, vec2( (7./128.), ID ) );
 
 	vec3 noiseplace = NoiseSet.xyz * vec3( GlobalPos ) + TimeSettings.xyz * time;
 	float noise = pNoise3( noiseplace ) * NoiseMux.r + pNoise3( noiseplace * 2. ) * NoiseMux.g +
@@ -208,20 +209,51 @@ void main()
 	vec3 Lighting = Sunamt+Moonamt;
 
 //Lighting  (tricky - need to find the next cell away from where we are to get lighting info)
+/*	vec3 nrmmax = abs(Normal.xyz);
+	vec3 nrmady;
+	vec3 s = sign( Normal.xyz );
+	if( nrmmax.x > nrmmax.y && nrmmax.x > nrmmax.z )
+		nrmady = vec3( 1., 0., 0. ) * s;
+	else if( nrmmax.y > nrmmax.z )
+		nrmady = vec3( 0., 1., 0. ) * s;
+	else
+		nrmady = vec3( 0., 0., 1. ) * s;
+*/
 	//the idea is to use the normal to step back to the previous block to get the light info
 	vec3 backPedal = normalize(Normal.xyz);
+//	vec4 LightCell = texture3D( AddTex, floor( ptr +.5 + nrmady*.4 )*msize + CameraOffset );
 	vec4 LightCell = texture3D( GeoTex, floor( ptr + backPedal )*msize + CameraOffset );
+//	vec4 LightCell = texture3D( AddTex, floor( ptr )*msize  + CameraOffset );
 
 	float skylight = pow( floor(mod(LightCell.g*16.,16.))/16., 2. );
 	float blocklight = pow( mod( LightCell.g*255., 16. )/16., 2.) ;
-
+//gl_FragColor = blocklight;
+//return;
 	Lighting = Lighting * skylight*0.8 + blocklight*.4;
 
+//	Lighting = mix( Lighting, vec3(1.), BaseColor.a );
+
+	vec3 FinalColor = vec3( 0., 0., 0. );
+
+	FinalColor += OutColor * ShaderEndingTerms.b;
 
 	OutColor = min( OutColor, vec3(2.,2.,2.) );
 	OutColor *= Lighting;
 
-	gl_FragColor = vec4( OutColor, 1. );
+	FinalColor += ShaderEndingTerms.r * OutColor;
+
+	vec3 lightingDir = normalize(vec3(1,2,1));
+	// light 1
+	gl_FragColor.rgb = mix(
+		OutColor,
+		vec3(1,0.8,0.5) * clamp(dot(backPedal,lightingDir)*0.4,0.0,1.0),
+		0.5);
+	// light 2
+	FinalColor += vec3(0.2,0.3,0.4) * clamp(backPedal.y*0.4,0.0,1.0) * ShaderEndingTerms.g;
+//	gl_FragColor.rgb = vec3(LightCell.b);
+
+
+	gl_FragColor = vec4( FinalColor, 1. );
 
 	return;
 
@@ -353,4 +385,3 @@ float pNoise3( vec3 PLoc )
 		mix( mix( MixB.x, MixB.y, FnMix.x ), mix( MixB.z, MixB.w, FnMix.x ), FnMix.y ),
 		FnMix.z );
 }
-

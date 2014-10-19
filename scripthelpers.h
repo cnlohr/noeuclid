@@ -41,16 +41,16 @@
 #define DEFAULT_EMPTY_BLOCK 0
 #define SPAAACE_CELL 255
 
-#define CLAMP( x, mi, ma ) (x = x < mi ? mi:( x>ma ? ma:x ) )
+#define CLAMP( x, mi, ma ) (x < mi ? mi:( x>ma ? ma:x ) )
 
 //Read an array with looping ends
 
-void ChangeCell( int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a );
-void QuickCell( int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a );
-void QuickCell1GBAOnly( int x, int y, int z, unsigned char g, unsigned char b, unsigned char a );
-void UpdateZone( int x, int y, int z, int sx, int sy, int sz );
-int AllocAddInfo( int nradds );
-void AlterAddInfo( int pos, float x, float y, float z, float a );
+void ChangeCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void QuickCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void QuickCell1GBAOnly(int x, int y, int z, unsigned char g, unsigned char b, unsigned char a);
+void UpdateZone(int x, int y, int z, int sx, int sy, int sz);
+int AllocAddInfo(int nradds);
+void AlterAddInfo(int pos, float x, float y, float z, float a);
 void MarkAddDataForReload();
 extern double worldDeltaTime;
 
@@ -209,10 +209,10 @@ void SetWarpSpaceArea(short x, short y, short z, short sx, short sy, short sz, f
     float cyc = ycomp / maxcomp;
     float czc = zcomp / maxcomp;
     float wterm = 1. / maxcomp;
-    CLAMP(cxc, 0, 1);
-    CLAMP(cyc, 0, 1);
-    CLAMP(czc, 0, 1);
-    CLAMP(wterm, 0, 1);
+    cxc = CLAMP(cxc, 0, 1);
+    cyc = CLAMP(cyc, 0, 1);
+    czc = CLAMP(czc, 0, 1);
+    wterm = CLAMP(wterm, 0, 1);
 
     unsigned char xt = cxc * 255;
     unsigned char yt = cyc * 255;
@@ -408,43 +408,38 @@ int IsOnDeathBlock(int x, int y, int z) {
     return 0;
 }
 
-void ChangeCell( int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a )
-{
-	gh->TMap->TexCell(t, x, y, z ) = RGBA( r,g,b,a );
-	gh->TMap->TackChange( x, y, z );
+void ChangeCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    QuickCell(t,x,y,z,r,g,b,a);
+    gh->TMap->TackChange(x, y, z);
 }
 
-void QuickCell( int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a )
-{
-	gh->TMap->TexCell(t, x, y, z ) = RGBA( r,g,b,a );
+void QuickCell(int t, int x, int y, int z, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
+    gh->TMap->TexCell(t, x, y, z).r = r;
+    gh->TMap->TexCell(t, x, y, z).g = g;
+    gh->TMap->TexCell(t, x, y, z).b = b;
+    gh->TMap->TexCell(t, x, y, z).a = a;
 }
 
-void QuickCell1GBAOnly( int x, int y, int z, unsigned char g, unsigned char b, unsigned char a )
-{
-	gh->TMap->TexCell(1, x, y, z ).g = g;
-	gh->TMap->TexCell(1, x, y, z ).b = b;
-	gh->TMap->TexCell(1, x, y, z ).a = a;
+void QuickCell1GBAOnly(int x, int y, int z, unsigned char g, unsigned char b, unsigned char a) {
+    gh->TMap->TexCell(1, x, y, z).g = g;
+    gh->TMap->TexCell(1, x, y, z).b = b;
+    gh->TMap->TexCell(1, x, y, z).a = a;
 }
 
-
-void UpdateZone( int x, int y, int z, int sx, int sy, int sz )
-{
-	gh->TMap->TackMultiChange( x,y,z, sx, sy, sz );
+void UpdateZone(int x, int y, int z, int sx, int sy, int sz) {
+    gh->TMap->TackMultiChange(x, y, z, sx, sy, sz);
 }
 
-int AllocAddInfo( int nr )
-{
-	return gh->AllocAddInfo( nr );
+int AllocAddInfo(int nr) {
+    return gh->AllocAddInfo(nr);
 }
 
-void AlterAddInfo( int pos, float x, float y, float z, float a )
-{
-	gh->AdditionalInformationMapData[pos] = RGBAf( x, y, z, a );
+void AlterAddInfo(int pos, float x, float y, float z, float a) {
+    gh->AdditionalInformationMapData[pos] = RGBAf(x, y, z, a);
 }
 
-void MarkAddDataForReload()
-{
-	gh->MarkAddInfoForReload();
+void MarkAddDataForReload() {
+    gh->MarkAddInfoForReload();
 }
 
 

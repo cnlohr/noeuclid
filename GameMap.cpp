@@ -54,7 +54,6 @@ void RunRoom10() {
     static double TimeInRoom;
     TimeInRoom += worldDeltaTime;
     int capden = 255 - TimeInRoom * 200;
-    float warp = ((TimeInRoom * .1) > 1) ? 1 : ((TimeInRoom * .1) + .1);
     if (firstrun) {
         RunRoom9();
 
@@ -108,7 +107,6 @@ void RunRoom9() {
     static double TimeInRoom;
     TimeInRoom += worldDeltaTime;
     int capden = 255 - TimeInRoom * 200;
-    float warp = ((TimeInRoom * .1) > 1) ? 1 : ((TimeInRoom * .1) + .1);
 
     static double TimeTransition = 0;
     static char lifemap[16 * 16];
@@ -302,7 +300,6 @@ void RunRoom1() {
 
 
     int capden = 255 - TimeInRoom1 * 200;
-    float warp = ((TimeInRoom1 * .1) > 1) ? 1 : ((TimeInRoom1 * .1) + .1);
 
     if (capden < 0) {
         ChangeCell(0, 4, 4, 60, 0, DEFAULT_BRIGHT, 0, GOAL_BLOCK);
@@ -337,7 +334,6 @@ void RunRoom2() {
 
 
     int capden = 255 - TimeInRoom2 * 200;
-    float warp = ((TimeInRoom2 * .1) > 1) ? 1 : ((TimeInRoom2 * .1) + .1);
 
     if (capden < 0) {
         PaintRange(4, 10, 51, 1, 1, 2, GOAL_BLOCK, 0);
@@ -426,7 +422,6 @@ void RunRoom3() {
     }
 
     int capden = 255 - TimeInRoom3 * 200;
-    float warp = ((TimeInRoom3 * .1) > 1) ? 1 : ((TimeInRoom3 * .1) + .1);
 
     int i;
     //Make shifting platform.
@@ -497,7 +492,6 @@ void RunRoom4() {
     }
 
     int capden = 255 - TimeInRoom4 * 200;
-    float warp = ((TimeInRoom4 * .1) > 1) ? 1 : ((TimeInRoom4 * .1) + .1);
 
     //Open Room 3 goal to room 4.
     if (capden < 0) {
@@ -524,7 +518,6 @@ void RunRoom5() {
     static double TimeInRoom5;
     TimeInRoom5 += worldDeltaTime;
     int capden = 255 - TimeInRoom5 * 200;
-    float warp = ((TimeInRoom5 * .1) > 1) ? 1 : ((TimeInRoom5 * .1) + .1);
 
     if (firstrun) {
         MakeEmptyBox(3, 45, 30, 4, 4, 13, 13, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1); //Start tube
@@ -561,7 +554,6 @@ void RunRoom6() {
     static double TimeInRoom;
     TimeInRoom += worldDeltaTime;
     int capden = 255 - TimeInRoom * 200;
-    float warp = ((TimeInRoom * .1) > 1) ? 1 : ((TimeInRoom * .1) + .1);
 
     if (firstrun) {
         MakeEmptyBox(3, 15, 30, 5, 15, 4, 1, DEFAULT_DENSITY, DEFAULT_BRIGHT, 1); //side tube
@@ -600,7 +592,6 @@ void RunRoom7() {
     static double TimeInRoom;
     TimeInRoom += worldDeltaTime;
     int capden = 255 - TimeInRoom * 200;
-    float warp = ((TimeInRoom * .1) > 1) ? 1 : ((TimeInRoom * .1) + .1);
 
     if (firstrun) {
         //Mini waiting platform
@@ -614,7 +605,6 @@ void RunRoom7() {
         MakeJumpSection(2, 2, 41, 13, 13, 1, 0, -19, -65, farrot);
 
         //Adn vice versa
-        float farrot2[] = {1, 0, 0, 0, -1, 0, 0, 0, -1};
         MakeJumpSection(2, 2, 25, 13, 13, 1, 0, -19, -65, farrot);
 
 
@@ -690,7 +680,6 @@ void RunRoom8() {
     static double TimeInRoom;
     TimeInRoom += worldDeltaTime;
     int capden = 255 - TimeInRoom * 200;
-    float warp = ((TimeInRoom * .1) > 1) ? 1 : ((TimeInRoom * .1) + .1);
 
     if (firstrun) {
         TimeInRoom = 0;
@@ -804,9 +793,6 @@ void StartAtRoom(int rid) {
 }
 
 GameMap::GameMap() {
-}
-
-GameMap::GameMap(const GameMap& orig) {
 }
 
 GameMap::~GameMap() {

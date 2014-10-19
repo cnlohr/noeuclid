@@ -29,15 +29,15 @@ void DestroyShaderProgram(GLhandleARB iProgramID) {
     //Iterate through all children.
     if (count > 0) {
         objects = (GLhandleARB *) malloc(count * sizeof (GLhandleARB));
-        glGetAttachedObjectsARB(iProgramID, count, NULL, objects);
+        glGetAttachedShaders(iProgramID, count, NULL, objects);
     } else
         return;
 
     for (i = 0; i < count; ++i) {
-        glDetachObjectARB(iProgramID, objects[i]);
+        glDetachShader(iProgramID, objects[i]);
     }
 
-    glDeleteObjectARB(iProgramID);
+    glDeleteShader(iProgramID);
     free(objects);
     return;
 }
@@ -139,33 +139,21 @@ bool Shader::LoadShaderFrag(const char * sShaderCode) {
     if (strlen(sShaderCode) < 5)
         return false;
 
-    if (strncmp(sShaderCode, "!!ARB", 5) == 0) {
-        glGenProgramsARB(1, &fragmentProgram);
-        glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, fragmentProgram);
-        glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei) strlen(sShaderCode), (GLubyte*) sShaderCode);
-        if (glGetError() != GL_NO_ERROR) {
-            puts("ERROR Compiling ASM Fragment Shader Error follows:");
-            puts((char*) glGetString(GL_PROGRAM_ERROR_STRING_ARB));
-            return false;
-        }
-        bIsGLSLAsm = 1;
-    } else {
-        GLint bFragCompiled;
-        GLint stringLength;
-        fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-        glShaderSourceARB(fragmentShader, 1, &sShaderCode, NULL);
-        glCompileShaderARB(fragmentShader);
+    GLint bFragCompiled;
+    GLint stringLength;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
+    glShaderSource(fragmentShader, 1, &sShaderCode, NULL);
+    glCompileShader(fragmentShader);
 
-        glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &bFragCompiled);
-        glGetObjectParameterivARB(fragmentShader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
-        if (stringLength > 1) {
-            char * tmpstr = (char*) malloc(stringLength + 1);
-            glGetInfoLogARB(fragmentShader, stringLength, NULL, tmpstr);
-            puts("Compiling Fragment Shader response follows:");
-            puts(tmpstr);
-            free(tmpstr);
-            return bFragCompiled != 0;
-        }
+    glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &bFragCompiled);
+    glGetObjectParameterivARB(fragmentShader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
+    if (stringLength > 1) {
+        char * tmpstr = (char*) malloc(stringLength + 1);
+        glGetInfoLogARB(fragmentShader, stringLength, NULL, tmpstr);
+        puts("Compiling Fragment Shader response follows:");
+        puts(tmpstr);
+        free(tmpstr);
+        return bFragCompiled != 0;
     }
     return true;
 }
@@ -174,37 +162,26 @@ bool Shader::LoadShaderVert(const char * sShaderCode) {
     if (strlen(sShaderCode) < 5)
         return false;
 
-    if (strncmp(sShaderCode, "!!ARB", 5) == 0) {
-        glGenProgramsARB(1, &vertexProgram);
-        glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vertexProgram);
-        glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei) strlen(sShaderCode), (GLubyte*) sShaderCode);
-        if (glGetError() != GL_NO_ERROR) {
-            puts("ERROR Compiling ASM Fragment Shader Error follows:");
-            puts((char*) glGetString(GL_PROGRAM_ERROR_STRING_ARB));
-            return false;
-        }
-        bIsGLSLAsm = 1;
-    } else {
-        GLint bVertCompiled;
-        GLint stringLength;
-        //Create a new vertex shader
-        vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-        //Bind the shader to the text, setting that to be its source.
-        glShaderSourceARB(vertexShader, 1, &sShaderCode, NULL);
-        //Compile the shader
-        glCompileShaderARB(vertexShader);
-        //Did the shader compile?  Were there any errors?
-        glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &bVertCompiled);
-        glGetObjectParameterivARB(vertexShader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
-        if (stringLength > 1) {
-            char * tmpstr = (char*) malloc(stringLength + 1);
-            glGetInfoLogARB(vertexShader, stringLength, NULL, tmpstr);
-            puts("Compiling Vertex Shader response follows:");
-            puts(tmpstr);
-            free(tmpstr);
-            return bVertCompiled != 0;
-        }
+    GLint bVertCompiled;
+    GLint stringLength;
+    //Create a new vertex shader
+    vertexShader = glCreateShader(GL_VERTEX_SHADER_ARB);
+    //Bind the shader to the text, setting that to be its source.
+    glShaderSource(vertexShader, 1, &sShaderCode, NULL);
+    //Compile the shader
+    glCompileShader(vertexShader);
+    //Did the shader compile?  Were there any errors?
+    glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &bVertCompiled);
+    glGetObjectParameterivARB(vertexShader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
+    if (stringLength > 1) {
+        char * tmpstr = (char*) malloc(stringLength + 1);
+        glGetInfoLogARB(vertexShader, stringLength, NULL, tmpstr);
+        puts("Compiling Vertex Shader response follows:");
+        puts(tmpstr);
+        free(tmpstr);
+        return bVertCompiled != 0;
     }
+
     return true;
 }
 
@@ -215,45 +192,18 @@ bool Shader::LinkShaders() {
         GLint bLinked;
         GLint stringLength;
         //Create the actual shader prgoram
-        iProgramID = glCreateProgramObjectARB();
+        iProgramID = glCreateProgram();
         printf("Linking Shaders. %d <- %d + %d + %d\n", iProgramID, vertexShader, fragmentShader, geometryShader);
         //Attach the fragment/vertex shader to it.
         if (vertexShader)
-            glAttachObjectARB(iProgramID, vertexShader);
+            glAttachShader(iProgramID, vertexShader);
         if (fragmentShader)
-            glAttachObjectARB(iProgramID, fragmentShader);
+            glAttachShader(iProgramID, fragmentShader);
         if (geometryShader)
-            glAttachObjectARB(iProgramID, geometryShader);
+            glAttachShader(iProgramID, geometryShader);
         //Attempt to link the shader
-        glLinkProgramARB(iProgramID);
+        glLinkProgram(iProgramID);
         printf("Shaders Linked\n");
-        //If we're using a geometry shader, we have to do a little extra.
-        if (geometryShader) {
-#ifndef __APPLE__
-            if (glProgramParameteriEXT_v == 0) {
-                glProgramParameteriEXT_v = (PFNGLPROGRAMPARAMETERIEXTPROC) glutGetProcAddress("glProgramParameteriEXT");
-            }
-            if (glProgramParameteriEXT_v) {
-                glProgramParameteriEXT_v(iProgramID, GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
-                glProgramParameteriEXT_v(iProgramID, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
-
-                int ierror, i;
-                GLint imaxvert;
-                glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &imaxvert);
-                if ((ierror = glGetError()) != 0) {
-                    puts("ERROR: You cannot load a geometry shader when there are still errors left in OpenGL.");
-                    puts("Please track down the error remaining by using glGetError() to cordon off your code.");
-                    printf("The last error received was: %d\n", ierror);
-                }
-                for (i = 1; i < imaxvert; i++) {
-                    glProgramParameteriEXT_v(iProgramID, GL_GEOMETRY_VERTICES_OUT_EXT, imaxvert / i);
-                    if (glGetError() == 0)
-                        break;
-                }
-                printf("Geometry Shader loaded with a total of %d max verticies.  Because there are %d max vertices, and %d preceived components per vert.\n", imaxvert / i, imaxvert, i);
-            }
-#endif
-        }
 
 
         //See if there were any errors.
@@ -286,18 +236,18 @@ bool Shader::ActivateShader(vector< string > &vsAllSamplerLocs, vector< string >
             glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, i, vfUniformFloats[i], 0, 0, 0);
         }
     } else {
-        glUseProgramObjectARB(iProgramID);
+        glUseProgram(iProgramID);
 
         for (i = 0; i < vsAllSamplerLocs.size(); ++i) {
-            int iTexPosID = glGetUniformLocationARB(iProgramID, vsAllSamplerLocs[i].c_str());
+            int iTexPosID = glGetUniformLocation(iProgramID, vsAllSamplerLocs[i].c_str());
             if (iTexPosID > -1)
-                glUniform1iARB(iTexPosID, i);
+                glUniform1i(iTexPosID, i);
         }
 
         for (i = 0; i < vsUniformFloats.size(); ++i) {
-            int iTexPosID = glGetUniformLocationARB(iProgramID, vsUniformFloats[i].c_str());
+            int iTexPosID = glGetUniformLocation(iProgramID, vsUniformFloats[i].c_str());
             if (iTexPosID > -1)
-                glUniform1fARB(iTexPosID, vfUniformFloats[i]);
+                glUniform1f(iTexPosID, vfUniformFloats[i]);
         }
     }
     return true;
@@ -306,19 +256,19 @@ bool Shader::ActivateShader(vector< string > &vsAllSamplerLocs, vector< string >
 bool Shader::ActivateShader(vector< string > &vsAllSamplerLocs) {
     unsigned i;
 
-    glUseProgramObjectARB(iProgramID);
+    glUseProgram(iProgramID);
 
     for (i = 0; i < vsAllSamplerLocs.size(); ++i) {
         int iTexPosID = glGetUniformLocationARB(iProgramID, vsAllSamplerLocs[i].c_str());
         if (iTexPosID > -1)
-            glUniform1iARB(iTexPosID, i);
+            glUniform1i(iTexPosID, i);
     }
 
     return true;
 }
 
 bool Shader::DeactivateShader() {
-    glUseProgramObjectARB(0);
+    glUseProgram(0);
     return true;
 }
 
@@ -370,7 +320,7 @@ bool Texture::LoadTexture(char * sRawData, int iWidth, int iHeight, TextureType 
         }
     } else {
 
-        glTexImage3DEXT(iTextureType, 0, imTypes[mtt], mWidth, mWidth, mHeight, 0, imXTypes[mtt], byTypes[mtt], sRawData);
+        glTexImage3D(iTextureType, 0, imTypes[mtt], mWidth, mWidth, mHeight, 0, imXTypes[mtt], byTypes[mtt], sRawData);
         glTexParameteri(iTextureType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(iTextureType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -382,14 +332,14 @@ bool Texture::LoadTexture(char * sRawData, int iWidth, int iHeight, TextureType 
 }
 
 bool Texture::ActivateTexture(int iPlace) {
-    glActiveTextureARB(GL_TEXTURE0_ARB + iPlace);
+    glActiveTexture(GL_TEXTURE0_ARB + iPlace);
     glBindTexture(iTextureType, iTexture);
     glEnable(iTextureType);
     return true;
 }
 
 bool Texture::DeactivateTexture(int iPlace) {
-    glActiveTextureARB(GL_TEXTURE0_ARB + iPlace);
+    glActiveTexture(GL_TEXTURE0_ARB + iPlace);
     glDisable(iTextureType);
     return true;
 }
@@ -404,16 +354,16 @@ RFBuffer::RFBuffer() {
 
 RFBuffer::~RFBuffer() {
     if (iRenderbuffer != 0) {
-        glDeleteRenderbuffersEXT(1, &iRenderbuffer);
-        glDeleteFramebuffersEXT(1, &iOutputBuffer);
+        glDeleteRenderbuffers(1, &iRenderbuffer);
+        glDeleteFramebuffers(1, &iOutputBuffer);
     }
 }
 
 bool RFBuffer::Setup(bool bUseDepthBuffer) {
     m_bUseDepthBuffer = bUseDepthBuffer;
     if (m_bUseDepthBuffer)
-        glGenRenderbuffersEXT(1, &iRenderbuffer);
-    glGenFramebuffersEXT(1, &iOutputBuffer);
+        glGenRenderbuffers(1, &iRenderbuffer);
+    glGenFramebuffers(1, &iOutputBuffer);
     return true;
 }
 
@@ -425,26 +375,23 @@ bool RFBuffer::ConfigureAndStart(int iWidth, int iHeight, int iTextures, Texture
     mHeight = iHeight;
     iNumTextures = iTextures;
     if (m_bUseDepthBuffer) {
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, iRenderbuffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, mWidth, mHeight);
+        glBindRenderbuffer(GL_RENDERBUFFER_EXT, iRenderbuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, mWidth, mHeight);
     }
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, iOutputBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER_EXT, iOutputBuffer);
     for (int i = 0; i < iTextures; i++)
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + i,
+        glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + i,
             GL_TEXTURE_2D, TexturesToAttach[i].GetTexHandle(), 0);
     if (m_bUseDepthBuffer)
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT,
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER_EXT,
             GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, iRenderbuffer);
 
     //Added by Peter Bessman to verify nonexecution of the following code.
-#ifdef _WIN32
-    if (glDrawBuffersARB)
-#endif
-        glDrawBuffersARB(iTextures, buffers);
+        glDrawBuffers(iTextures, buffers);
     glViewport(0, 0, mWidth, mHeight);
 
     //Check to see if there were any errors with the framebuffer
-    switch ((GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)) {
+    switch ((GLenum) glCheckFramebufferStatus(GL_FRAMEBUFFER_EXT)) {
         case GL_FRAMEBUFFER_COMPLETE_EXT: break; //GOOD!
         case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
             printf("OpenGL Framebuffer error: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n");
@@ -480,14 +427,14 @@ bool RFBuffer::ConfigureAndStart(int iWidth, int iHeight, int iTextures, Texture
 bool RFBuffer::End(int iRegVPX, int iRegVPY) {
 
     for (unsigned i = 0; i < iNumTextures; i++) {
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + i,
+        glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + i,
                 GL_TEXTURE_2D, 0, 0);
 
-        glActiveTextureARB(GL_TEXTURE0_ARB + i);
+        glActiveTexture(GL_TEXTURE0_ARB + i);
         glDisable(GL_TEXTURE_2D);
     }
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER_EXT, 0);
     glViewport(0, 0, iRegVPX, iRegVPY);
     return true;
 }

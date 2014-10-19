@@ -31,7 +31,6 @@
 #include "Common.h"
 #include <sys/time.h>
 #include "GameMap.h"
-
 void mousePress(int b, int state, int x, int y);
 
 void mouseDrag(int x, int y);
@@ -148,9 +147,6 @@ public:
 
     ///Get the proc address for an extension.
 
-    void (*GetProcAddress(const char * csp))() {
-        return (void(*)())glutGetProcAddress(csp);
-    };
 private:
     ///Delta time between last frame and this frame
     int iDeltaMS;
@@ -268,7 +264,7 @@ double Pitch = 90.;
 double Yaw = 0.;
 double Roll = 0.0;
  */
-float LookQuaternion[4];
+float LookQuaternion[4] = { 0, 0, 0, 1.0f };
 
 float gPositionX;
 float gPositionY;
@@ -310,8 +306,8 @@ void mouseDrag(int x, int y) {
     //Find the amount moved from last frame to this frame.
     float dx = x - glut.miWidth / 2;
     float dy = y - glut.miHeight / 2;
-    dx *= mouseSensitivity;
-    dy *= mouseSensitivity;
+    dx *= mouseSensitivity * worldDeltaTime * 40;
+    dy *= mouseSensitivity * worldDeltaTime * 40;
     glut.miLastMouseX = x;
     glut.miLastMouseY = y;
 
@@ -485,13 +481,13 @@ void LoadProbes(bool isRerun) {
 
         //Stack is the number of radial rays.
         float sigma = (i / ((float) stacks * 2 - 1)* 3.14159);
-        float dz = cosf(sigma);
-        float mz = sinf(sigma);
+        float dz = cos(sigma);
+        float mz = sin(sigma);
         stack++;
         for (j = 0; j < stack; j++) {
             float theta = (j / (float) stack) * 3.14159 * 2.0;
-            float dx = mz * cosf(theta);
-            float dy = mz * sinf(theta);
+            float dx = mz * cos(theta);
+            float dy = mz * sin(theta);
             CollisionProbe * p;
             probes.push_back(p = gh->AddProbe());
             p->Position = RGBAf(gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ, 0);
@@ -972,7 +968,9 @@ int main(int argc, char ** argv) {
     quatfromaxisangle(LookQuaternion, initialrotaxis, -3.14159 / 2.);
 
     glut.Init(argc, (char**) argv, xSize, ySize, "No! Euclid!");
+#ifndef EMSCRIPTEN
     glutWindowStatusFunc(ThisWindowStatus);
+#endif
 
     //For display purposes, we should depth test all of our surfaces.
     glEnable(GL_DEPTH_TEST);
