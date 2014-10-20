@@ -271,6 +271,7 @@ char gDialog[1024];
 int gMouseLastClickButton = -1;
 int gOverallUpdateNo = 0; //Gets reset if we "re-load" everything
 GameMap gamemap;
+unordered_map<string, int> aliases;
 
 void mousePress(int b, int state, int x, int y) {
     glut.miLastMouseX = x;

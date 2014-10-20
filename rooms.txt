@@ -90,6 +90,7 @@ Init
 PaintRange (5 47 43) (1 1 1) Goal
 
 
+
 Room 5
 Time 15
 Start (5.5 47.5 42)
@@ -108,6 +109,7 @@ Warp (7 34 30) (3 11 6) (1 5 1)
 PaintRange (5 30 31) (1 1 2) Goal
 
 
+
 Room 6
 Time 30
 Start (5.5 30.5 32)
@@ -123,6 +125,7 @@ PaintRange (6 27 31) (1 3 3) 1 120
 PaintRange (5 15 31) (1 1 2) Goal
 # Hide warp zone next to door.
 JumpSection (7 29 31) (2 1 3) (-2 4 -15) (1 0 0) (0 0 1) (0 1 0)
+
 
 
 Room 7
@@ -149,11 +152,14 @@ EmptyBox (13 2 18) (5 13 1) Lava 115
 Init
 
 
+
 Room 8
 Time 200
 Start (23 7.5 22)
 Exit (16 46 54) (2 2 2)
 AnimateOpen (24 7 21) (1 1 2)
+RequireRoom 7
+RequireRoom 4
 
 Init
 PaintRange (3 28 48) (6 1 2) Bedrock
@@ -169,11 +175,13 @@ ClearCell (17 48 54)
 PaintRange (16 48 54) (2 1 2) Goal
 
 
+
 Room 9
 Time 200
 Start (17.4 49.8 55.1)
 Exit (4 65 48) (2 2 2)
 AnimateOpen (16 48 54) (2 1 2)
+RequireRoom 8
 
 PaintRange (15 45 53) (3 3 1) Water 130
 # Draw whatever tubes and all.
@@ -184,14 +192,19 @@ Init
 PaintRange (4 66 47) (2 1 3) Goal
 
 
+
 Room 10
 Time 200
 Start (5.1 65.2 48)
 Exit (0 0 0) (-1 -1 -1)
 AnimateOpen (4 66 47) (2 1 3)
+RequireRoom 9
 
 EmptyBox (2 67 46) (6 10 10) 4
 ClearRange (4 67 47) (2 1 3)
 Warp (2 67 46) (10 10 10) (.3 .3 1)
 Warp (7 67 51) (2 10 1) (.3 1.5 .5)
 PaintRange (3 70 46) (10 3 1) 10
+Init
+
+
