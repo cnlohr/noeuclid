@@ -7,7 +7,6 @@
 
 #ifndef GAMEMAP_H
 #define	GAMEMAP_H
-#define START_ROOM 1
 //Define all lava/death blocks.
 //If the user touches one, he dies.
 #define MAX_DEATH_BLOCKS 8192
@@ -21,7 +20,7 @@ using runfn = std::function<void(double timeIn)>;
 #include <unordered_map>
 class GameMap {
 public:
-    int lastroom = -1, curroom = START_ROOM;
+    int lastroom = -1, curroom = 0;
     DeathBlock DeathBlocks[MAX_DEATH_BLOCKS];
     PickableBlock PBlocks[MAX_PICKABLES];
     vector<Room*> rooms {
@@ -35,7 +34,8 @@ public:
         new Room7(),
         new Room8(),
         new Room9(),
-        new Room10()
+        new Room10(),
+        new Room11()
     };
     GameMap();
     GameMap(const GameMap& orig);

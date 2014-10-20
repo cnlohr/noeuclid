@@ -66,11 +66,11 @@ public:
         return Vec3{x + b.x, y + b.y, z + b.z};
     }
     
-    const Vec3<T> operator-(const Vec3& b) const{
+    const Vec3<T> operator-(const Vec3& b) const {
         return Vec3{x - b.x, y - b.y, z - b.z};
     }
 
-    const bool operator==(const Vec3& b) const {
+    bool operator==(const Vec3& b) const {
         return x == b.x && y == b.y && z == b.z;
     }
 
@@ -78,11 +78,11 @@ public:
         return Vec3{x*s, y*s, z * s};
     }
     
-    const Vec3<T> operator/(const T s) const{
+    const Vec3<T> operator/(const T s) const {
         return Vec3{x/s, y/s, z/s};
     }
 
-    const void operator/=(const T s) {
+    void operator/=(const T s) {
         x /= s;
         y /= s;
         z /= s;

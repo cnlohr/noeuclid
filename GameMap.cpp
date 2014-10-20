@@ -37,8 +37,10 @@ void GameMap::init() {
     ifstream file("rooms.txt");
     if(!file.is_open()) printf("Could not open rooms.txt");
     string line;
-    Room * room = rooms[0];
+    int rid = 0;
+    Room * room = rooms[rid];
     int lineNum = 0;
+    int startAtRoom = 0;
     while(getline(file, line)) {
         lineNum++;
         if(line.back()=='\r') line.pop_back();
@@ -48,11 +50,13 @@ void GameMap::init() {
         for(char c: "()") line.erase(remove(line.begin(),line.end(),c),line.end()); // remove parens
         istringstream l(line);
         string cmd; l >> cmd;
-        if(cmd == "Room") {int i; l >> i; if(i>=rooms.size()) rooms.resize(i+1);room=rooms[i];}
+        if(cmd == "StartAtRoom") l>>startAtRoom;
+        else if(cmd == "Room") {
+            l >> rid; while(rid>=rooms.size()) rooms.push_back(new Room()); room = rooms[rid];}
         else if(cmd == "Start") l >> room->start;
         else if(cmd == "Exit") l >> room->exitr1 >> room->exitr2;
         else if(cmd == "Time") l >> room->maxTime;
-        else if(cmd == "Init") room->inits.push_back([room](){room->init();});
+        else if(cmd == "Init") room->inits.push_back([this,rid](){rooms[rid]->init();});
         else if(initfuncs.count(cmd))
             room->inits.push_back(initfuncs[cmd](l));
         else if(runfuncs.count(cmd))
@@ -60,7 +64,8 @@ void GameMap::init() {
         else cout <<lineNum<<": Error: Invalid command " << cmd << endl;
         if(l.fail()) cout<<lineNum<<": Error: line formatting error "<<endl;
     }
-    curroom = START_ROOM;
+    curroom = startAtRoom;
+        
     gPosition = rooms[curroom]->start;
 }
 

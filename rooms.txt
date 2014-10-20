@@ -1,5 +1,6 @@
 # Static room settings
 # "Init" calls the c++ room init function at that position
+StartAtRoom 11
 Room 0
 Time 100
 Start (3 3 64)
@@ -196,7 +197,7 @@ PaintRange (4 66 47) (2 1 3) Goal
 Room 10
 Time 200
 Start (5.1 65.2 48)
-Exit (0 0 0) (-1 -1 -1)
+Exit (3 76 47) (2 2 2)
 AnimateOpen (4 66 47) (2 1 3)
 RequireRoom 9
 
@@ -206,5 +207,14 @@ Warp (2 67 46) (10 10 10) (.3 .3 1)
 Warp (7 67 51) (2 10 1) (.3 1.5 .5)
 PaintRange (3 70 46) (10 3 1) 10
 Init
+PaintRange (3 76 46) (1 1 1) Goal
 
 
+Room 11
+RequireRoom 10
+Time 100
+Start (4 75 48)
+AnimateOpen (3 76 46) (1 1 1)
+EmptyBox (2 67 36) (6 10 10) 4 100
+JumpSection (3 67 37) (3 1 3) (0 5 0)
+#JumpSection (3 77 37) (3 1 3) (0 -9 0) 

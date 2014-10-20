@@ -330,7 +330,7 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     } else {
         fprintf(stderr, "We are not doing thigns without subtracing anymore.\n");
     }
-    delete( inskips);
+    delete[](inskips);
 
 }
 
