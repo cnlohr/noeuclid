@@ -229,6 +229,8 @@ void RTHelper::LoadAttributeMap() {
 
         Description = dats[0];
         iTileID = atoi(dats[1].c_str());
+        
+        aliases[Description] = iTileID;
         iMetaID = atoi(dats[2].c_str());
         fdensity = atof(dats[3].c_str());
 

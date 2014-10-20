@@ -50,8 +50,10 @@
 #include <cmath>
 #include <cstdlib>
 #include <vector>
+#include <iostream>
+#include <unordered_map>
 
-using std::string;
+using namespace std;
 string ZLibUncompress(const string & in);
 
 
@@ -111,6 +113,11 @@ public:
     const Vec3<T> cross(const Vec3& b) {
         return Vec3{y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x};
     }
+    
+    friend istream &operator>>(istream &inp, Vec3 &v) {
+        inp>>v.x>>v.y>>v.z;
+        return inp;
+    }
 };
 typedef Vec3<short> Vec3s;
 typedef Vec3<int> Vec3i;
@@ -147,6 +154,23 @@ struct RGBAf {
 
 struct RGBA {
     unsigned char r, g, b, a;
+};
+extern unordered_map<string, int> aliases;
+struct BlockType {
+    unsigned char t = 0;
+    operator char() {return t;}
+    friend istream &operator>>(istream &inp, BlockType& p) {
+        int x; inp>>x;
+        if(inp.fail()) { // string alias?
+            inp.clear();
+            string alias; inp >> alias;
+            if(aliases.count(alias)==0) throw invalid_argument("Invalid alias " + alias);
+            p.t=aliases[alias];
+        } else {
+            p.t = (unsigned char)x;
+        }
+        return inp;
+    }
 };
 
 

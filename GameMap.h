@@ -12,11 +12,11 @@ class GameMap {
 public:
     GameMap();
     GameMap(const GameMap& orig);
-    void Update();
+    void update();
     void collision(struct CollisionProbe * ddat);
     virtual ~GameMap();
 private:
-
+    void init();
 };
 
 

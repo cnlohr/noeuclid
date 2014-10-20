@@ -79,7 +79,7 @@ void Shader::GetTimeCodes(unsigned long * iOut, const char * sShaderName) {
 
 bool Shader::LoadShader(const char * sShaderName) {
     GetTimeCodes(iTimeCode, sShaderName);
-    string s1 = sShaderName, s2 = sShaderName, s3 = sShaderName;
+    string s1 = sShaderName, s2 = sShaderName;
     FILE * f1;
     FILE * f2;
     char * Buffer;
@@ -94,7 +94,7 @@ bool Shader::LoadShader(const char * sShaderName) {
             printf("Could not open %s.\n", (char*) s1.c_str());
         if (!f2)
             printf("Could not open %s.\n", (char*) s2.c_str());
-        return false;
+        return false; 
     }
     if (f1) {
         fseek(f1, 0, SEEK_END);

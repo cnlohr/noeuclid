@@ -765,7 +765,7 @@ clend:
     gTargetPerceivedDistance = gpForward->TargetLocation.a;
 
 
-    gamemap.Update();
+    gamemap.update();
 
     gOverallUpdateNo++;
     //printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );

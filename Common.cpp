@@ -7,7 +7,7 @@ void cross3d(float * out, const float * a, const float * b) {
 }
 
 void normalize3d(float * out, const float * in) {
-    float r = 1. / sqrtf(in[0] * in[0] + in[1] * in[1] + in[2] * in[2]);
+    float r = 1. / sqrt(in[0] * in[0] + in[1] * in[1] + in[2] * in[2]);
     out[0] = in[0] * r;
     out[1] = in[1] * r;
     out[2] = in[2] * r;

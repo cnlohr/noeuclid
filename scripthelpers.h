@@ -51,6 +51,7 @@ void QuickCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b
 void QuickCell1GBAOnly(Vec3i p, unsigned char g, unsigned char b, unsigned char a);
 void UpdateZone(Vec3i p, Vec3i s);
 int AllocAddInfo(int nradds);
+void AlterAddInfo(int pos, Vec3f f, float a);
 void AlterAddInfo(int pos, float x, float y, float z, float a);
 void MarkAddDataForReload();
 extern double worldDeltaTime;
@@ -116,28 +117,21 @@ void ClearCell(Vec3i p) {
     ChangeCell(0, p, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
 }
 
-void ClearRange(Vec3i p, Vec3i s) {
+void PaintRange(Vec3i p, Vec3i s, int cell, int density, int unclear = 1) {
     int i, j, k;
     for (i = p.x; i < p.x + s.x; i++)
         for (j = p.y; j < p.y + s.y; j++)
             for (k = p.z; k < p.z + s.z; k++) {
-                QuickCell(0, {i, j, k}, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
+                QuickCell(0, {i, j, k}, unclear, DEFAULT_BRIGHT, density, cell);
             }
     UpdateZone(p, s + Vec3i{1,1,1});
 }
 
-void PaintRange(Vec3i p, Vec3i s, int cell, int density) {
-    int i, j, k;
-    for (i = p.x; i < p.x + s.x; i++)
-        for (j = p.y; j < p.y + s.y; j++)
-            for (k = p.z; k < p.z + s.z; k++) {
-                QuickCell(0, {i, j, k}, 1, DEFAULT_BRIGHT, density, cell);
-            }
-    UpdateZone(p, s + Vec3i{1,1,1});
+void ClearRange(Vec3i p, Vec3i s) {
+    PaintRange(p, s, DEFAULT_EMPTY_BLOCK, 0, 0);
 }
 
 void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int force_empty) {
-
     //Will cause an update over our whole area.
     if (force_empty)
         ClearRange(p, s);
@@ -166,19 +160,13 @@ void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int 
 
 }
 
-void MakeJumpSection(Vec3i p, Vec3i s, int xofs, int yofs, int zofs, float * farray) {
+void MakeJumpSection(Vec3i p, Vec3i s, Vec3f ofs, Vec3f f1 = {1,0,0}, Vec3f f2={0,1,0}, Vec3f f3 = {0,0,1}) {
     int newalloc = AllocAddInfo(4);
-
-    if (farray) {
-        AlterAddInfo(newalloc + 0, farray[0], farray[1], farray[2], 0);
-        AlterAddInfo(newalloc + 1, farray[3], farray[4], farray[5], 0);
-        AlterAddInfo(newalloc + 2, farray[6], farray[7], farray[8], 0);
-    } else {
-        AlterAddInfo(newalloc + 0, 1, 0, 0, 0);
-        AlterAddInfo(newalloc + 1, 0, 1, 0, 0);
-        AlterAddInfo(newalloc + 2, 0, 0, 1, 0);
-    }
-    AlterAddInfo(newalloc + 3, xofs, yofs, zofs, 0);
+    
+    AlterAddInfo(newalloc + 0, f1, 0);
+    AlterAddInfo(newalloc + 1, f2, 0);
+    AlterAddInfo(newalloc + 2, f3, 0);
+    AlterAddInfo(newalloc + 3, ofs, 0);
 
     short i, j, k;
     for (i = p.x; i <= p.x + s.x; i++)
@@ -328,7 +316,8 @@ void UpdatePickableBlocks() {
 }
 
 void PickableClick(bool left, Vec3f p, float dist) {
-    if (dist > 4) return;
+    //TODO calculate dist some other way (through portals)
+    //if (dist > 4) return;
     if (left) {
         if (pickables_in_inventory > 0) {
             PlacePickableAt({(int)p.x,(int)p.y,(int)p.z}, 0.0);
@@ -419,9 +408,9 @@ int AllocAddInfo(int nr) {
     return gh->AllocAddInfo(nr);
 }
 
-/*void AlterAddInfo(int pos, Vec3f p, float a) {
+void AlterAddInfo(int pos, Vec3f p, float a) {
     gh->AdditionalInformationMapData[pos] = RGBAf(p, a);
-}*/
+}
 
 void AlterAddInfo(int pos, float x, float y, float z, float a) {
     gh->AdditionalInformationMapData[pos] = RGBAf(x,y,z, a);
@@ -431,6 +420,51 @@ void MarkAddDataForReload() {
     gh->MarkAddInfoForReload();
 }
 
+#include <functional>
+#include <unordered_map>
+#include <iostream>
+using namespace std;
+unordered_map<string, function<function<void()>(istream&)>> funcs;
+unordered_map<string, int> aliases;
+using fn = function<void()>;
+#define DONE (i>>ws).eof()
+//TODO nobody can read this
+void initfuncs() {
+    
+    funcs["EmptyBox"] = [](istream& i) -> function<void()> {
+        Vec3i p,s; BlockType b; i>>p>>s>>b;
+        int density = DEFAULT_DENSITY; if(!DONE) i>>density;
+        return bind(MakeEmptyBox, p, s, b, density, DEFAULT_BRIGHT, 1);
+    };
+    funcs["Cell"] = [](istream& i) -> function<void()> { 
+        Vec3i p; BlockType b; i>>p>>b;
+        return bind(ChangeCell, 0, p, 1, DEFAULT_BRIGHT, 255, b);
+    };
+    funcs["ClearCell"] = [](istream& i) -> function<void()> {
+        Vec3i p; i>>p; //TODO merge with "Block"
+        return bind(ChangeCell, 0, p, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
+    };
+    funcs["ClearRange"] = [](istream& i) -> function<void()> {
+        Vec3i p,s; i>>p>>s;
+        return bind(ClearRange, p, s);
+    };
+    funcs["PaintRange"] = [](istream& i) -> function<void()> {
+        Vec3i p,s; BlockType b; i>>p>>s>>b;
+        int density = DEFAULT_DENSITY; if(!DONE) i>>density;
+        return bind(PaintRange, p, s, b, density, 1);
+    };
+    funcs["Warp"] = [](istream& i) -> function<void()> { 
+        Vec3i p,s; Vec3f x;
+        i>>p>>s>>x;
+        return bind(SetWarpSpaceArea, p, s, x);
+    };
+    funcs["JumpSection"] = [](istream& i) -> function<void()> {
+        Vec3i p,s; Vec3f ofs, f1 = {1,0,0},f2={0,1,0},f3={0,0,1};
+        i>>p>>s>>ofs;
+        if(!DONE) i>>f1>>f2>>f3;
+        return bind(MakeJumpSection, p, s, ofs, f1, f2, f3);
+    };
 
+}
 #endif
 

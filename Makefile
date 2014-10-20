@@ -26,4 +26,4 @@ windows/noeuclid.exe : noeuclid.obj OGLParts.obj RTHelper.obj Map.obj Common.obj
 
 
 clean :
-	rm -fr *.obj *.o tcc/*.o *~ noeuclid windows/noeuclid.exe
+	rm -fr *.obj *.o *~ noeuclid windows/noeuclid.exe
