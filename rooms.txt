@@ -7,7 +7,7 @@ Exit (4 4 61) (1 1 1)
 
 EmptyBox (1 1 60) (6 6 6) Sand 
 Warp (1 1 60) (6 6 6) (.1 .1 .1)
-Cell (4 4 60) Goal 
+Cell (4 4 60) Goal
 Cell (2 4 62) IronOre
 Cell (4 4 62) Leaves 
 Cell (3 2 61) 35
@@ -16,11 +16,12 @@ Cell (3 5 64) 81
 Cell (5 5 63) 22
 
 
+
 Room 1
 Time 100
 Start (4.28 4.27 59.13)
 Exit (3 9 51) (3 1 2)
-
+AnimateOpen (4 4 60) (1 1 1)
 # Box off to the side
 EmptyBox (2 6 50) (4 4 3) 7
 # Chute
@@ -33,10 +34,12 @@ ClearRange (3 6 51) (3 1 2)
 PaintRange (4 10 50) (1 1 3) Goal
 
 
+
 Room 2
 Time 100
 Start (4.5 7.92 51.92)
 Exit (3 15.1 48) (3 1 2)
+AnimateOpen (4 10 51) (1 1 2)
 
 Init
 EmptyBox (2 11 47) (4 4 10) EndRender
@@ -45,10 +48,12 @@ PaintRange (3 11 47) (3 1 8) Goal
 ClearRange (4 11 51) (1 1 2)
 
 
+
 Room 3
 Time 100
 Start (4.5 15.29 48.44)
 Exit (6 32 48) (1 1 2)
+AnimateOpen (4 16 48) (1 1 1)
 
 Warp (1 15 40) (12 12 12) (.3 .3 .3)
 PaintRange (3 15 47) (3 2 3) 19
@@ -64,11 +69,13 @@ ClearRange (4 15 48) (1 1 1)
 Init
 
 
+
 Room 4
 Time 100
 Start 6.5 31.5 49)
 Exit (5 47 43) (1 1 2)
-
+AnimateOpen (6 33 48) (1 1 2)
+AnimateClose (3 28 48) (6 1 2)
 # Main room.
 EmptyBox (3 33 43) (15 15 16) 2 255
 # Tucked away (For start point)
@@ -87,6 +94,7 @@ Room 5
 Time 15
 Start (5.5 47.5 42)
 Exit (5 31 31) (1 1 2)
+AnimateOpen (5 47 43) (1 1 1)
 
 EmptyBox (3 45 30) (4 4 13) 13
 EmptyBox (3 30 30) (7 15 4) 13
@@ -104,7 +112,7 @@ Room 6
 Time 30
 Start (5.5 30.5 32)
 Exit (5 15 31) (1 2 2)
-
+AnimateOpen (5 30 31) (1 1 2)
 EmptyBox (3 15 30) (5 15 4) 1
 
 PaintRange (3 18 30) (5 7 1) 10 255
@@ -121,6 +129,7 @@ Room 7
 Time 150
 Start (5.5 16.5 32)
 Exit (23 7 21) (1 1 2)
+AnimateOpen (5 15 31) (1 1 2)
 
 # Mini waiting platform
 EmptyBox (2 2 30) (13 13 18) Dirt 115
@@ -144,10 +153,11 @@ Room 8
 Time 200
 Start (23 7.5 22)
 Exit (16 46 54) (2 2 2)
+AnimateOpen (24 7 21) (1 1 2)
 
 Init
-PaintRange (3 28 48) (6 1 2) BedRock
-PaintRange (5 47 43) (1 1 1) BedRock
+PaintRange (3 28 48) (6 1 2) Bedrock
+PaintRange (5 47 43) (1 1 1) Bedrock
 PaintRange (6 33 48) (1 1 2) Goal 0
 # But block the exit.
 JumpSection (25 7 21) (3 2 3) (-19 24 27)
@@ -163,6 +173,7 @@ Room 9
 Time 200
 Start (17.4 49.8 55.1)
 Exit (4 65 48) (2 2 2)
+AnimateOpen (16 48 54) (2 1 2)
 
 PaintRange (15 45 53) (3 3 1) Water 130
 # Draw whatever tubes and all.
@@ -177,9 +188,10 @@ Room 10
 Time 200
 Start (5.1 65.2 48)
 Exit (0 0 0) (-1 -1 -1)
+AnimateOpen (4 66 47) (2 1 3)
 
 EmptyBox (2 67 46) (6 10 10) 4
 ClearRange (4 67 47) (2 1 3)
-SetWarpSpaceArea (2 67 46) (10 10 10) (.3 .3 1)
-SetWarpSpaceArea (7 67 51) (2 10 1) (.3 1.5 .5)
+Warp (2 67 46) (10 10 10) (.3 .3 1)
+Warp (7 67 51) (2 10 1) (.3 1.5 .5)
 PaintRange (3 70 46) (10 3 1) 10

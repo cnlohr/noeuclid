@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <errno.h>
+#include <fstream>
 
 using namespace std;
 
@@ -80,57 +81,33 @@ void Shader::GetTimeCodes(unsigned long * iOut, const char * sShaderName) {
 bool Shader::LoadShader(const char * sShaderName) {
     GetTimeCodes(iTimeCode, sShaderName);
     string s1 = sShaderName, s2 = sShaderName;
-    FILE * f1;
-    FILE * f2;
-    char * Buffer;
-    int i;
 
     s1 += ".frag";
     s2 += ".vert";
-    f1 = fopen((char*) s1.c_str(), "rb");
-    f2 = fopen((char*) s2.c_str(), "rb");
-    if (f1 == 0 || f2 == 0) {
-        if (!f1)
-            printf("Could not open %s.\n", (char*) s1.c_str());
-        if (!f2)
-            printf("Could not open %s.\n", (char*) s2.c_str());
-        return false; 
+    ifstream f1(s1);
+    ifstream f2(s2);
+    if (!f1) {
+        printf("Could not open %s.\n", (char*) s1.c_str());
+        return false;
     }
-    if (f1) {
-        fseek(f1, 0, SEEK_END);
-        i = ftell(f1);
-        fseek(f1, 0, SEEK_SET);
-        Buffer = (char*) malloc(i + 1);
-        if (!fread(Buffer, 1, i, f1))
-            return false;
-        fclose(f1);
-        printf("Compiling: %s\n", s1.c_str());
-        Buffer[i] = '\0';
-        if (!LoadShaderFrag(Buffer)) {
-            free(Buffer);
-            if (f2)
-                fclose(f2);
-            printf("Reporting failed shaderload. Not linking.\n");
-            return false;
-        }
-        free(Buffer);
+    if (!f2) {
+        printf("Could not open %s.\n", (char*) s2.c_str());
+        return false;
     }
-    if (f2) {
-        fseek(f2, 0, SEEK_END);
-        i = ftell(f2);
-        fseek(f2, 0, SEEK_SET);
-        Buffer = (char*) malloc(i + 1);
-        if (!fread(Buffer, 1, i, f2))
-            return false;
-        fclose(f2);
-        Buffer[i] = '\0';
-        printf("Compiling: %s\n", s2.c_str());
-        if (!LoadShaderVert(Buffer)) {
-            free(Buffer);
-            printf("Reporting failed shaderload. Not linking.\n");
-            return false;
-        }
-        free(Buffer);
+    string sh1((istreambuf_iterator<char>(f1)),
+            istreambuf_iterator<char>());
+    printf(s1.c_str());
+    printf("Compiling: %s\n", s1.c_str());
+    if (!LoadShaderFrag(sh1.c_str())) {
+        printf("Reporting failed shaderload. Not linking.\n");
+        return false;
+    }
+    string sh2((istreambuf_iterator<char>(f2)),
+            istreambuf_iterator<char>());
+    printf("Compiling: %s\n", s2.c_str());
+    if (!LoadShaderVert(sh2.c_str())) {
+        printf("Reporting failed shaderload. Not linking.\n");
+        return false;
     }
     return LinkShaders();
 }
@@ -387,7 +364,7 @@ bool RFBuffer::ConfigureAndStart(int iWidth, int iHeight, int iTextures, Texture
             GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, iRenderbuffer);
 
     //Added by Peter Bessman to verify nonexecution of the following code.
-        glDrawBuffers(iTextures, buffers);
+    glDrawBuffers(iTextures, buffers);
     glViewport(0, 0, mWidth, mHeight);
 
     //Check to see if there were any errors with the framebuffer

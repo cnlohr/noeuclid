@@ -424,47 +424,55 @@ void MarkAddDataForReload() {
 #include <unordered_map>
 #include <iostream>
 using namespace std;
-unordered_map<string, function<function<void()>(istream&)>> funcs;
-unordered_map<string, int> aliases;
-using fn = function<void()>;
+using initfn = function<void()>;
+using runfn = function<void(double timeIn)>;
+
 #define DONE (i>>ws).eof()
 //TODO nobody can read this
-void initfuncs() {
-    
-    funcs["EmptyBox"] = [](istream& i) -> function<void()> {
+unordered_map<string, function<initfn(istream&)>> initfuncs {
+    {"EmptyBox", [](istream& i) -> initfn {
         Vec3i p,s; BlockType b; i>>p>>s>>b;
         int density = DEFAULT_DENSITY; if(!DONE) i>>density;
         return bind(MakeEmptyBox, p, s, b, density, DEFAULT_BRIGHT, 1);
-    };
-    funcs["Cell"] = [](istream& i) -> function<void()> { 
+    }}, {"Cell", [](istream& i) -> initfn { 
         Vec3i p; BlockType b; i>>p>>b;
         return bind(ChangeCell, 0, p, 1, DEFAULT_BRIGHT, 255, b);
-    };
-    funcs["ClearCell"] = [](istream& i) -> function<void()> {
+    }}, {"ClearCell", [](istream& i) -> initfn {
         Vec3i p; i>>p; //TODO merge with "Block"
         return bind(ChangeCell, 0, p, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
-    };
-    funcs["ClearRange"] = [](istream& i) -> function<void()> {
+    }}, {"ClearRange", [](istream& i) -> initfn {
         Vec3i p,s; i>>p>>s;
         return bind(ClearRange, p, s);
-    };
-    funcs["PaintRange"] = [](istream& i) -> function<void()> {
+    }}, {"PaintRange", [](istream& i) -> initfn {
         Vec3i p,s; BlockType b; i>>p>>s>>b;
         int density = DEFAULT_DENSITY; if(!DONE) i>>density;
         return bind(PaintRange, p, s, b, density, 1);
-    };
-    funcs["Warp"] = [](istream& i) -> function<void()> { 
+    }}, {"Warp", [](istream& i) -> initfn { 
         Vec3i p,s; Vec3f x;
         i>>p>>s>>x;
         return bind(SetWarpSpaceArea, p, s, x);
-    };
-    funcs["JumpSection"] = [](istream& i) -> function<void()> {
+    }}, {"JumpSection", [](istream& i) -> initfn {
         Vec3i p,s; Vec3f ofs, f1 = {1,0,0},f2={0,1,0},f3={0,0,1};
         i>>p>>s>>ofs;
         if(!DONE) i>>f1>>f2>>f3;
         return bind(MakeJumpSection, p, s, ofs, f1, f2, f3);
-    };
-
-}
+    }}
+};
+unordered_map<string, function<runfn(istream&)>> runfuncs {
+    {"AnimateOpen", [](istream& i) -> runfn {
+        Vec3i p,s; i>>p>>s;
+        return [p,s](double timeIn) {
+            int capden = 255 - timeIn * 200;
+            PaintRange(p, s, GOAL_BLOCK, capden<0?0:capden);
+        };
+    }}, {"AnimateClose", [](istream& i) -> runfn {
+        Vec3i p,s; i>>p>>s;
+        return [p,s](double timeIn) {
+            int capden = 255 - timeIn * 200;
+            PaintRange(p, s, DEADGOAL_BLOCK, capden<0?255:255-capden);
+        };
+    }}
+};
+unordered_map<string, int> aliases;
 #endif
 

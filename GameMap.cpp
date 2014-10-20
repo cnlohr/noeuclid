@@ -21,13 +21,9 @@ int lastroom = -1, curroom = START_ROOM;
 
 class Room {
 public:
-    Room() : maxTime(1000), start({0,0,0}),exitr1({0,0,0}),exitr2({0,0,0}) {}
-    Room(double maxTime, Vec3f start, Vec3f exitr1, Vec3f exitr2) :
-        maxTime(maxTime), start(start), exitr1(exitr1), exitr2(exitr2) {
-        inits.push_back([this](){init();});
-    };
-    vector<function<void()>> inits;
-    double timeIn = 0, maxTime;
+    vector<initfn> inits;
+    vector<runfn> runs;
+    double timeIn = 0, maxTime = 1000;
     Vec3f start, exitr1, exitr2;
     
     void reset() {
@@ -36,12 +32,14 @@ public:
         begin();
     }
     void begin() {
-        cout<<"beginning room"<<endl;
         for(auto& initfn:inits) initfn();
     }
     
     void update() {
+        timeIn+=worldDeltaTime;
         run();
+        for(auto& runfn:runs) runfn(timeIn);
+        
         if (IsPlayerInRange(exitr1, exitr2)) {
             curroom++;
         }
@@ -83,15 +81,6 @@ public:
         ClearCell({4, 4, 59});
         //Make hole in side.
         ClearRange({3, 6, 51}, {3, 1, 2});
-
-
-        int capden = 255 - timeIn * 200;
-
-        if (capden < 0) {
-            ChangeCell(0, {4, 4, 60}, 0, DEFAULT_BRIGHT, 0, GOAL_BLOCK);
-        } else {
-            ChangeCell(0, {4, 4, 60}, 1, DEFAULT_BRIGHT, capden, GOAL_BLOCK);
-        }
     }
 };
 
@@ -105,14 +94,6 @@ public:
 
     void run() {
         gDaytime = gDaytime * .99 + 400 * .01;
-
-        int capden = 255 - timeIn * 200;
-
-        if (capden < 0) {
-            PaintRange({4, 10, 51}, {1, 1, 2}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({4, 10, 51}, {1, 1, 2}, GOAL_BLOCK, capden);
-        }
 
         //Force user to look around to get out.
         switch (stage) {
@@ -171,8 +152,6 @@ public:
             already_setup_jumpspace = 1;
         }
 
-        int capden = 255 - timeIn * 200;
-
         int i;
         //Make shifting platform.
         for (i = 2; i < 13; i++) {
@@ -183,13 +162,6 @@ public:
             if (swd > 1) swd = 1;
             swd = pow(swd, .5);
             PaintRange({i, 21, 46}, {1, 2, 1}, 17, swd * 255); //Random little platform
-        }
-
-        if (capden < 0) {
-            if (already_removed_stretch == 0)
-                PaintRange({4, 16, 48}, {1, 1, 1}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({4, 16, 48}, {1, 1, 1}, GOAL_BLOCK, capden);
         }
     }
 };
@@ -216,17 +188,6 @@ public:
     }
 
     void run() {
-        int capden = 255 - timeIn * 200;
-
-        //Open Room 3 goal to room 4.
-        if (capden < 0) {
-            PaintRange({6, 33, 48}, {1, 1, 2}, GOAL_BLOCK, 0);
-            PaintRange({3, 28, 48}, {6, 1, 2}, DEADGOAL_BLOCK, 255);
-        } else {
-            PaintRange({6, 33, 48}, {1, 1, 2}, GOAL_BLOCK, capden);
-            PaintRange({3, 28, 48}, {6, 1, 2}, DEADGOAL_BLOCK, 255 - capden);
-        }
-
         for (int x = 0; x < 14; x++)
             for (int y = 0; y < 14; y++) {
                 QuickCell(0, {4 + x, 34 + y, 43 + 10}, 1, DEFAULT_BRIGHT, (sin(x * 2 + y + timeIn)*80 + 80), 9);
@@ -236,29 +197,11 @@ public:
 };
 
 class Room5 : public Room {
-public:    
-    void run() {
-        int capden = 255 - timeIn * 200;
-        //Open Room 3 goal to room 4.
-        if (capden < 0) {
-            PaintRange({5, 47, 43}, {1, 1, 1}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({5, 47, 43}, {1, 1, 1}, GOAL_BLOCK, capden);
-        }
-    }
 };
 
 class Room6 : public Room {
 public:
     void run() {
-        int capden = 255 - timeIn * 200;
-
-        if (capden < 0) {
-            PaintRange({5, 30, 31}, {1, 1, 2}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({5, 30, 31}, {1, 1, 2}, GOAL_BLOCK, capden);
-        }
-
         if (IsPlayerInRange({3, 18, 30}, {5, 7, 4})) {
             Die();
         }
@@ -306,14 +249,6 @@ public:
     }
 
     void run() {
-        int capden = 255 - timeIn * 200;
-
-        if (capden < 0) {
-            PaintRange({5, 15, 31}, {1, 1, 2}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({5, 15, 31}, {1, 1, 2}, GOAL_BLOCK, capden);
-        }
-
         if (IsPlayerInRange({13, 1, 18}, {7, 15, 3})) {
             Die();
         }
@@ -323,7 +258,6 @@ public:
 class Room8 : public Room {
 public:
     void init() {
-
         //Make sure room 7 is set up for us. (And room 4)
         rooms[7]->begin();
         rooms[4]->begin();
@@ -338,17 +272,6 @@ public:
                     PlacePickableAt({x + 6, y + 29, z + 48}, -(x + y)*.5 - z * .5);
                 }
             }
-        }
-        
-    }
-
-    void run() {
-        int capden = 255 - timeIn * 200;
-
-        if (capden < 0) {
-            PaintRange({24, 7, 21}, {1, 1, 2}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({24, 7, 21},{1, 1, 2}, GOAL_BLOCK, capden);
         }
     }
 };
@@ -374,7 +297,6 @@ public:
     }
 
     void run() {
-        int capden = 255 - timeIn * 200;
         //Fix life map up.
         if (TimeTransition >= 1) {
             memcpy(lifemap, newlife, sizeof ( lifemap));
@@ -412,11 +334,6 @@ public:
             }
         TimeTransition += worldDeltaTime;
 
-        if (capden < 0) {
-            PaintRange({16, 48, 54}, {2, 1, 2}, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({16, 48, 54}, {2, 1, 2}, GOAL_BLOCK, capden);
-        }
         if (gPosition.z < 47.8) {
             Die();
         }
@@ -427,32 +344,22 @@ class Room10 : public Room {
 public:
     void init() {
         rooms[9]->begin();
-
-        
-
     }
 
     void run() {
-        int capden = 255 - timeIn * 200;
         for (int z = 46; z < 57; z++)
             for (int y = 67; y < 77; y++) {
                 if ((y + z)&1) continue;
                 QuickCell(0,{2, y, z}, 1, DEFAULT_BRIGHT, sin(timeIn * 10.0 + z + y)*50.5 + 160, 5);
             }
-        UpdateZone({1, 66, 46},
-        {
-            1, 10, 10
-        });
+        UpdateZone({1, 66, 46}, {1, 10, 10});
 
         for (int z = 46; z < 57; z++)
             for (int x = 2; x < 12; x++) {
                 if ((x + z)&1) continue;
                 QuickCell(0,{x, 77, z}, 1, DEFAULT_BRIGHT, sin(timeIn * 10.0 + x + z)*50.5 + 160, 5);
             }
-        UpdateZone({1, 76, 46},
-        {
-            10, 1, 10
-        });
+        UpdateZone({1, 76, 46},{10, 1, 10});
 
         for (int y = 67; y < 77; y++)
             for (int x = 2; x < 12; x++) {
@@ -463,19 +370,6 @@ public:
         {
             10, 10, 1
         });
-
-
-        if (capden < 0) {
-            PaintRange({4, 66, 47},
-            {
-                2, 1, 3
-            }, GOAL_BLOCK, 0);
-        } else {
-            PaintRange({4, 66, 47},
-            {
-                2, 1, 3
-            }, GOAL_BLOCK, capden);
-        }
 
         if (IsPlayerInRange({3, 70, 46}, {6, 3, 2.1})) {
             Die();
@@ -505,9 +399,8 @@ GameMap::~GameMap() {
 }
 
 void GameMap::init() {
-    initfuncs();
-    
-    ifstream file("games/rooms.txt");
+    ifstream file("rooms.txt");
+    if(!file.is_open()) printf("Could not open rooms.txt");
     string line;
     int room = 0;
     int lineNum = 0;
@@ -525,12 +418,12 @@ void GameMap::init() {
         else if(cmd == "Exit") l >> rooms[room]->exitr1 >> rooms[room]->exitr2;
         else if(cmd == "Time") l >> rooms[room]->maxTime;
         else if(cmd == "Init") rooms[room]->inits.push_back([room](){rooms[room]->init();});
-        else if(funcs.count(cmd)) {
-            rooms[room]->inits.push_back(funcs[cmd](l));
-            if(l.fail()) cout<<lineNum<<": Error: failbit"<<endl;
-        } else {
-            cout <<lineNum<<": Error: Invalid command " << cmd << endl;
-        }
+        else if(initfuncs.count(cmd))
+            rooms[room]->inits.push_back(initfuncs[cmd](l));
+        else if(runfuncs.count(cmd))
+            rooms[room]->runs.push_back(runfuncs[cmd](l));
+        else cout <<lineNum<<": Error: Invalid command " << cmd << endl;
+        if(l.fail()) cout<<lineNum<<": Error: line formatting error "<<endl;
     }
     curroom = START_ROOM;
     rooms[curroom]->reset();
@@ -545,7 +438,7 @@ void GameMap::update() {
     }
 
     if (curroom != lastroom) {
-        printf("Switching to room %d", curroom);
+        printf("Switching to room %d\n", curroom);
         rooms[curroom]->begin();
         lastroom = curroom;
     }
@@ -556,7 +449,6 @@ void GameMap::update() {
         Die();
     }
 
-    rooms[curroom]->timeIn += worldDeltaTime;
     rooms[curroom]->update();
 
     sprintf(gDialog, "Room: %d\n", curroom);
@@ -582,6 +474,7 @@ void GameMap::update() {
     } else if (gKeyMap['-'] || gKeyMap['_']) {
         if (!was_level_change_pressed)
             curroom--;
+        was_level_change_pressed = 1;
         rooms[curroom]->reset();
     } else
         was_level_change_pressed = 0;

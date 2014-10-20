@@ -141,12 +141,6 @@ public:
     ///This value gets set by SetCamDistance (See that function)
     static float fGLUTCamDistance;
 
-    int GetDeltaMS() {
-        return iDeltaMS;
-    }
-
-    ///Get the proc address for an extension.
-
 private:
     ///Delta time between last frame and this frame
     int iDeltaMS;
@@ -188,7 +182,6 @@ bool bPause = false;
 unsigned char gFocused;
 double worldDeltaTime;
 int show_debugging = 0;
-void (*g_tcceupdate)() = 0;
 int pickables_in_inventory = 0;
 int AddSizeStride = ADDSIZEX;
 
@@ -264,7 +257,7 @@ double Pitch = 90.;
 double Yaw = 0.;
 double Roll = 0.0;
  */
-float LookQuaternion[4] = { 0, 0, 0, 1.0f };
+float LookQuaternion[4] = {0, 0, 0, 1.0f};
 
 Vec3f gPosition;
 Vec3f gDirection;
@@ -376,7 +369,7 @@ float gPhyDTime;
 
 void LoadProbes(bool isRerun) {
     Vec3f gv; //Goal direction.
-    Vec3f d = {0,0,0};
+    Vec3f d = {0, 0, 0};
 
     if (!isRerun) {
         //		if( gKeyMap['r'] ) gOverallUpdateNo = 0;
@@ -417,7 +410,7 @@ void LoadProbes(bool isRerun) {
     //	printf( "%f %f %f\n", fwdx, fwdy, fwdz );
 
     if (gGodMode) {
-        gh->v = {nx * 4.f,ny * 4.f,d.z * 4.f};
+        gh->v = {nx * 4.f, ny * 4.f, d.z * 4.f};
         gh->MapOffset += gh->v*worldDeltaTime;
     } else {
         if (!isRerun) {
@@ -470,7 +463,7 @@ void LoadProbes(bool isRerun) {
             CollisionProbe * p;
             probes.push_back(p = gh->AddProbe());
             p->Position = RGBAf(gh->MapOffset);
-            p->Direction = RGBAf(d+gv, 10000);
+            p->Direction = RGBAf(d + gv, 10000);
         }
     }
 
@@ -874,20 +867,6 @@ void draw() {
 
 }
 
-#include <sys/stat.h>
-
-double OGGetFileTime(const char * file) {
-    struct stat buff;
-
-    int r = stat(file, &buff);
-
-    if (r < 0) {
-        return -1;
-    }
-
-    return buff.st_mtime;
-}
-
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
@@ -908,7 +887,7 @@ int main(int argc, char ** argv) {
 
     gh = new RTHelper(0);
 
-    gh->MapOffset = {GLH_SIZEX / 2,GLH_SIZEY / 2,5};
+    gh->MapOffset = {GLH_SIZEX / 2, GLH_SIZEY / 2, 5};
 
     glutKeyboardFunc(pKeyDown);
     glutKeyboardUpFunc(pKeyUp);
