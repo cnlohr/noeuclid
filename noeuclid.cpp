@@ -24,7 +24,11 @@
         (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+#ifdef _WIN32
+#include <windows.h>
+#include <GL/glew.h>
+#include <GL/glut.h>
+#endif
 #include "OGLParts.h"
 #include "RTHelper.h"
 #include <unistd.h>
@@ -882,7 +886,10 @@ int main(int argc, char ** argv) {
 #ifndef EMSCRIPTEN
     glutWindowStatusFunc(ThisWindowStatus);
 #endif
-
+#ifdef _WIN32
+	printf("Initializing GLEW.\n");
+	printf("glewInit() = %d\n",glewInit());
+#endif
     //For display purposes, we should depth test all of our surfaces.
     glEnable(GL_DEPTH_TEST);
 
