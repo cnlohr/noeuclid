@@ -8,12 +8,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
 
-#set(CMAKE_EXE_LINKER_FLAGS -static) 
 
-add_definitions(-DGLEW_STATIC)
-add_definitions(-DGLUT_STATIC)
-add_definitions(-DGL_GLEXT_PROTOTYPES)
-add_definitions(-DGLUT_DISABLE_ATEXIT_HACK)
+add_definitions(-DGLEW_STATIC -DGLUT_STATIC -DGL_GLEXT_PROTOTYPES -DGLUT_DISABLE_ATEXIT_HACK)
 include_directories(${GLEW_INCLUDE_PATH} ${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS})
 target_link_libraries(noeuclid ${GLEW_LIBRARY} ${GLUT_LIBRARY} ${OPENGL_LIBRARIES})
 file(COPY rooms.txt DESTINATION .)
