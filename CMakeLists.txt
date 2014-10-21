@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 2.8)
+
+aux_source_directory(. files)
+project (noeuclid)
+add_executable(noeuclid ${files})
+add_definitions(-std=c++11)
+find_package(OpenGL REQUIRED)
+find_package(GLUT REQUIRED)
+
+add_definitions(-DGL_GLEXT_PROTOTYPES)
+include_directories(${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS})
+target_link_libraries(noeuclid ${GLUT_LIBRARY} ${OPENGL_LIBRARIES})
+file(COPY rooms.txt DESTINATION .)
+file(COPY tileattributes.txt DESTINATION .)
+file(COPY Arial.ini DESTINATION .)
+file(COPY Arial.ppm DESTINATION .)
+file(COPY Shaders DESTINATION .)
