@@ -105,7 +105,7 @@ void UpdateZone(Vec3i p, Vec3i s);
 
 void MarkAddDataForReload();
 
-
+bool fileChanged(string fname);
 
 struct PickableBlock {
     Vec3i p;

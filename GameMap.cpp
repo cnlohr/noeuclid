@@ -33,14 +33,29 @@ void GameMap::collision(struct CollisionProbe * ddat) {
     //printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
 }
 
-void GameMap::init() {
-    ifstream file("rooms.txt");
+void GameMap::loadRooms(string fname) {
+    for(Room* r:rooms) delete r;
+    rooms = {
+        new Room(),
+        new Room1(),
+        new Room2(),
+        new Room3(),
+        new Room4(),
+        new Room5(),
+        new Room6(),
+        new Room7(),
+        new Room8(),
+        new Room9(),
+        new Room10(),
+        new Room11()
+    };
+    ifstream file(fname);
+    printf("Loading %s\n", fname.c_str());
     if(!file.is_open()) printf("Could not open rooms.txt");
     string line;
     int rid = 0;
     Room * room = rooms[rid];
     int lineNum = 0;
-    int startAtRoom = 0;
     while(getline(file, line)) {
         lineNum++;
         if(line.back()=='\r') line.pop_back();
@@ -58,7 +73,7 @@ void GameMap::init() {
         for(char c: "()") line.erase(remove(line.begin(),line.end(),c),line.end()); // remove parens
         istringstream l(line);
         string cmd; l >> cmd;
-        if(cmd == "StartAtRoom") l>>startAtRoom;
+        if(cmd == "StartAtRoom") l>>startroom;
         else if(cmd == "Room") {
             l >> rid; while(rid>=rooms.size()) rooms.push_back(new Room()); room = rooms[rid];}
         else if(cmd == "Start") l >> room->start;
@@ -72,19 +87,22 @@ void GameMap::init() {
         else cout <<lineNum<<": Error: Invalid command " << cmd << endl;
         if(l.fail()) cout<<lineNum<<": Error: line formatting error "<<endl;
     }
-    curroom = startAtRoom;
-        
-    gPosition = rooms[curroom]->start;
 }
 
 void GameMap::update() {
     static int was_level_change_pressed;
+    if (gOverallUpdateNo % 30 == 0 && fileChanged("rooms.txt")) {
+        loadRooms("rooms.txt");
+
+    }
+    
     if (gOverallUpdateNo == 0) {
-        init();
+        curroom = startroom;
+        gPosition = rooms[curroom]->start;
     }
 
     if (curroom != lastroom) {
-        printf("Switching to room %d, star=%f,%f\n", curroom,rooms[curroom]->start.x,rooms[curroom]->start.y);
+        printf("Switching to room %d", curroom);
         rooms[curroom]->begin();
         lastroom = curroom;
     }

@@ -23,23 +23,10 @@ extern chaiscript::ChaiScript chai;
 
 class GameMap {
 public:
-    int lastroom = -1, curroom = 0;
+    int lastroom = -1, curroom = 0, startroom = 0;
     DeathBlock DeathBlocks[MAX_DEATH_BLOCKS];
     PickableBlock PBlocks[MAX_PICKABLES];
-    vector<Room*> rooms {
-        new Room(),
-        new Room1(),
-        new Room2(),
-        new Room3(),
-        new Room4(),
-        new Room5(),
-        new Room6(),
-        new Room7(),
-        new Room8(),
-        new Room9(),
-        new Room10(),
-        new Room11()
-    };
+    vector<Room*> rooms;
     GameMap();
     GameMap(const GameMap& orig);
     void update();
@@ -123,7 +110,7 @@ public:
 
     void PickableClick(bool left, Vec3f p, float dist);
 private:
-    void init();
+    void loadRooms(string fname);
 };
 
 

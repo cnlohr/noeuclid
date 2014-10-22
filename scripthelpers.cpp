@@ -1,5 +1,6 @@
 #include "scripthelpers.h"
 #include "RTHelper.h"
+#include "sys/stat.h"
 extern RTHelper * gh;
 //File for useful scripts.
 
@@ -128,7 +129,14 @@ int IsPlayerInRange(Vec3f p, Vec3f s) {
     return 0;
 }
 
-
+bool fileChanged(string fname) {
+    static unordered_map<string, time_t> modTime;
+    struct stat s; stat(fname.c_str(), &s);
+    time_t mtime = s.st_mtime;
+    if(modTime[fname] != mtime) {
+        modTime[fname] = mtime; return true;
+    } else return false;
+}
 
 
 
