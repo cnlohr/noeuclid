@@ -176,15 +176,15 @@ struct BlockType {
 
 
 struct CollisionProbe {
-    struct RGBAf Position; //x,y,z,unused
-    struct RGBAf Direction; //x,y,z,maxdist
-    struct RGBAf AuxRotation; //x, y, z, unused (Used for probing for direction changes)
+    RGBAf Position; //x,y,z,unused
+    RGBAf Direction; //x,y,z,maxdist
+    RGBAf AuxRotation; //x, y, z, unused (Used for probing for direction changes)
 
 
-    struct RGBAf NewDirection; //Passed out unphased by Pass1, but, for Pass1Physics, uses TestDirection
-    struct RGBAf Normal; //normal x,y,z,                         w:  [actual distance]
-    struct RGBAf InAreaWarp; //dx, dy, dz, (Current compression)     w:  [proj/apparent dist]
-    struct RGBAf TargetLocation; //Hit x,y,z, (position in 3D space) w:  [Perceived distance]
+    RGBAf NewDirection; //Passed out unphased by Pass1, but, for Pass1Physics, uses TestDirection
+    RGBAf Normal; //normal x,y,z,                         w:  [actual distance]
+    RGBAf InAreaWarp; //dx, dy, dz, (Current compression)     w:  [proj/apparent dist]
+    RGBAf TargetLocation; //Hit x,y,z, (position in 3D space) w:  [Perceived distance]
 
     int id;
 };

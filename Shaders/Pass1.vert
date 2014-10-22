@@ -1,15 +1,16 @@
 varying vec3 RayDirection;
 varying vec3 InitialCamera;
-varying vec3 AuxRotation;
 
 varying float maxdist;
 varying float doPhysics;
 
+varying vec3 AuxRotation;
+
 void main()
 {
 	maxdist = gl_Vertex.z;
-        
-        AuxRotation = gl_MultiTexCoord1.xyz;
+
+	AuxRotation = gl_MultiTexCoord1.xyz;
 
 	if( gl_Color.a < 0. )
 	{
@@ -21,7 +22,7 @@ void main()
 	else
 	{
 		InitialCamera = -(( gl_ModelViewMatrixInverse * vec4(0.0,0.0,0.0,-1.0) )).xyz;
-		RayDirection = vec3( ( gl_Vertex  ).x, ( gl_Vertex  ).y, -1.0 );
+		RayDirection = vec3( ( gl_Vertex  ).x, ( gl_Vertex  ).y, -2.0 );
 		RayDirection = -( ( gl_ModelViewMatrixInverse * vec4(-RayDirection,0.0) ) ).xyz;
 		doPhysics = 0.0;
 	}

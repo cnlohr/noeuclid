@@ -385,3 +385,4 @@ float pNoise3( vec3 PLoc )
 		mix( mix( MixB.x, MixB.y, FnMix.x ), mix( MixB.z, MixB.w, FnMix.x ), FnMix.y ),
 		FnMix.z );
 }
+

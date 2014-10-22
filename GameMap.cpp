@@ -28,7 +28,7 @@ void GameMap::die() {
 }
 
 
-void GameMap::collision(struct CollisionProbe * ddat) {
+void GameMap::collision(CollisionProbe * ddat) {
     ///XXX TODO: pointers for where we're aimed should come in here.
     //printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
 }
