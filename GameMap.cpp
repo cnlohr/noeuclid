@@ -47,6 +47,14 @@ void GameMap::init() {
         if(line.length()==0) continue;
         
         if(line[0]=='#') continue;
+        if(line.substr(0,9) == "RunScript") {
+            room->runs.push_back(chai.eval<runfn>("fun(timeInRoom) {"+line.substr(9,-1)+"}"));
+            continue;
+        }
+        if(line.substr(0,10) == "InitScript") {
+            room->inits.push_back(chai.eval<initfn>("fun() {"+line.substr(10,-1)+"}"));
+            continue;
+        }
         for(char c: "()") line.erase(remove(line.begin(),line.end(),c),line.end()); // remove parens
         istringstream l(line);
         string cmd; l >> cmd;
@@ -152,6 +160,7 @@ void GameMap::update() {
         int ly = ((int) gPosition.y) - 40;
         sprintf(gDialog, "OnTile %d\n", lx + ly * 16);
     }
+    //TODO What is this?
     //Util: Make reference swatches.
     for (int i = 0; i < 256; i++) {
         ChangeCell(0,{2 + (i % 16), 40 + (i / 16), 63}, 1, DEFAULT_BRIGHT, 255, i);

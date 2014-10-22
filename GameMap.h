@@ -18,6 +18,9 @@ using initfn = std::function<void()>;
 using runfn = std::function<void(double timeIn)>;
 #include "Room.h"
 #include <unordered_map>
+#include "include/chaiscript/chaiscript.hpp"
+extern chaiscript::ChaiScript chai;
+
 class GameMap {
 public:
     int lastroom = -1, curroom = 0;

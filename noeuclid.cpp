@@ -35,6 +35,8 @@
 #include "Common.h"
 #include <sys/time.h>
 #include "GameMap.h"
+#include "include/chaiscript/chaiscript.hpp"
+#include "include/chaiscript/chaiscript_stdlib.hpp"
 void mousePress(int b, int state, int x, int y);
 
 void mouseDrag(int x, int y);
@@ -872,12 +874,22 @@ void draw() {
 
 }
 
+chaiscript::ChaiScript chai(chaiscript::Std_Lib::library());
+
+Vec3i makeVec3i(int x, int y, int z) {return {x,y,z};}
+int chairound(double x) {return int(x);}
+int chaiprint(double x) {cout<<x<<endl;}
+
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
 
     unsigned int xSize = 720, ySize = 480;
 
+    chai.add(chaiscript::fun(&ChangeCell),"ChangeCell");
+    chai.add(chaiscript::fun(&makeVec3i),"Vec3i");
+    chai.add(chaiscript::fun(&chairound),"int");
+    chai.add(chaiscript::fun(&chaiprint),"print");
     //	quatsetnone( LookQuaternion );
     float initialrotaxis[] = {1, 0, 0};
     quatfromaxisangle(LookQuaternion, initialrotaxis, -3.14159 / 2.);
