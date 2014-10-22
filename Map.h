@@ -32,7 +32,7 @@ public:
     list< CellUpdate > ListUpdates;
 
     void TackChange(Vec3i p) {
-        ListUpdates.push_back({p, {0,0,0}});
+        ListUpdates.push_back({p, {1,1,1}});
     }
 
     void TackMultiChange(Vec3i p, Vec3i s) {
