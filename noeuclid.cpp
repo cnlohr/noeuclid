@@ -35,8 +35,7 @@
 #include "Common.h"
 #include <sys/time.h>
 #include "GameMap.h"
-#include "include/chaiscript/chaiscript.hpp"
-#include "include/chaiscript/chaiscript_stdlib.hpp"
+#include "TCC.h"
 void mousePress(int b, int state, int x, int y);
 
 void mouseDrag(int x, int y);
@@ -873,23 +872,17 @@ void draw() {
     glutPostRedisplay();
 
 }
-
-chaiscript::ChaiScript chai(chaiscript::Std_Lib::library());
+TCC tcc;
 
 Vec3i makeVec3i(int x, int y, int z) {return {x,y,z};}
-int chairound(double x) {return int(x);}
-int chaiprint(double x) {cout<<x<<endl;}
-void chaiCell(Vec3i p, byte block) { ChangeCell(0,p,{1,190,255,block});};
+void tccCell(int x, int y, int z, byte block, byte density) { printf("lu");ChangeCell(0,{x,y,z},{1,190,density,block});};
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
 
     unsigned int xSize = 720, ySize = 480;
 
-    chai.add(chaiscript::fun(&chaiCell),"Cell");
-    chai.add(chaiscript::fun(&makeVec3i),"Vec3i");
-    chai.add(chaiscript::fun(&chairound),"int");
-    chai.add(chaiscript::fun(&chaiprint),"print");
+    tcc.addfun(string("Cell"),string("void Cell(int x, int y, int z, unsigned char block, unsigned char density)"), &tccCell);
     //	quatsetnone( LookQuaternion );
     float initialrotaxis[] = {1, 0, 0};
     quatfromaxisangle(LookQuaternion, initialrotaxis, -3.14159 / 2.);

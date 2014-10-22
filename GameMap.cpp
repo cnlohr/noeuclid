@@ -63,11 +63,14 @@ void GameMap::loadRooms(string fname) {
         
         if(line[0]=='#') continue;
         if(line.substr(0,9) == "RunScript") {
-            room->runs.push_back(chai.eval<runfn>("fun(timeInRoom) {"+line.substr(9,-1)+"}"));
+            if(room->runscript) cout <<lineNum<<": Error: Already has run script." << endl;
+            room->runscript = tcc.eval<void(double)>("void fun(double timeInRoom) {"+line.substr(9,-1)+"}");
             continue;
         }
         if(line.substr(0,10) == "InitScript") {
-            room->inits.push_back(chai.eval<initfn>("fun() {"+line.substr(10,-1)+"}"));
+            throw "noo";
+            if(room->initscript) cout <<lineNum<<": Error: Already has init script." << endl;
+            room->initscript = tcc.eval<void(void)>("void fun() {"+line.substr(10,-1)+"}");
             continue;
         }
         for(char c: "()") line.erase(remove(line.begin(),line.end(),c),line.end()); // remove parens
@@ -102,7 +105,7 @@ void GameMap::update() {
     }
 
     if (curroom != lastroom) {
-        printf("Switching to room %d", curroom);
+        printf("Switching to room %d\n", curroom);
         rooms[curroom]->begin();
         lastroom = curroom;
     }

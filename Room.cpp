@@ -10,11 +10,13 @@ void Room::reset() {
 }
 void Room::begin() {
     for(auto& initfn:inits) initfn();
+    if(initscript) (*initscript)();
 }
 
 void Room::update() {
     timeIn+=worldDeltaTime;
     run();
+    if(runscript) (*runscript)(timeIn);
     for(auto& runfn:runs) runfn(timeIn);
 
     if (IsPlayerInRange(exitr1, exitr2)) {
