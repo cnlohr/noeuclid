@@ -33,6 +33,17 @@ void GameMap::collision(CollisionProbe * ddat) {
     //printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
 }
 
+string readScript(ifstream& file, int& lineNum) {
+    string script = "", line;
+    int beginning = lineNum;
+    while(getline(file, line)) {
+        if(line=="}") return script;
+        script += line+"\n";
+        lineNum++;
+    }
+    cout<<"Error: script beginning at line "<<beginning<<" not terminated."<<endl;
+}
+
 void GameMap::loadRooms(string fname) {
     for(Room* r:rooms) delete r;
     rooms = {
@@ -62,15 +73,14 @@ void GameMap::loadRooms(string fname) {
         if(line.length()==0) continue;
         
         if(line[0]=='#') continue;
-        if(line.substr(0,9) == "RunScript") {
+        if(line == "RunScript {") {
             if(room->runscript) cout <<lineNum<<": Error: Already has run script." << endl;
-            room->runscript = tcc.eval<void(double)>("void fun(double timeInRoom) {"+line.substr(9,-1)+"}");
+            room->runscript = tcc.eval<void(double)>("void fun(double timeInRoom) {"+readScript(file, lineNum)+"}");
             continue;
         }
-        if(line.substr(0,10) == "InitScript") {
-            throw "noo";
+        if(line == "InitScript {") {
             if(room->initscript) cout <<lineNum<<": Error: Already has init script." << endl;
-            room->initscript = tcc.eval<void(void)>("void fun() {"+line.substr(10,-1)+"}");
+            room->initscript = tcc.eval<void(void)>("void fun() {"+readScript(file, lineNum)+"}");
             continue;
         }
         for(char c: "()") line.erase(remove(line.begin(),line.end(),c),line.end()); // remove parens
