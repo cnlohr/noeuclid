@@ -183,9 +183,9 @@ double GameTimer = 1000;
 double GameAttempt = 1;
 extern int pickables_in_inventory;
 float gTimeSinceOnGround;
-unsigned char gKeyMap[256];
+byte gKeyMap[256];
 bool bPause = false;
-unsigned char gFocused;
+byte gFocused;
 double worldDeltaTime;
 int show_debugging = 0;
 int pickables_in_inventory = 0;
@@ -233,7 +233,7 @@ void StripDataFromBuffer(int ix, int iy, int iwidth, int iheight, TextureType tt
     glReadPixels(ix, iy, iwidth, iheight, imXTypes[tt], byTypes[tt], buffer);
 }
 
-void pKeyDown(unsigned char key, int x, int y) {
+void pKeyDown(byte key, int x, int y) {
     if (key == 27) {
         printf("Esc was pushed\n");
         exit(0);
@@ -252,7 +252,7 @@ void pKeyDown(unsigned char key, int x, int y) {
     gKeyMap[key] = 1;
 }
 
-void pKeyUp(unsigned char key, int x, int y) {
+void pKeyUp(byte key, int x, int y) {
     gKeyMap[key] = 0;
 }
 
@@ -879,14 +879,14 @@ chaiscript::ChaiScript chai(chaiscript::Std_Lib::library());
 Vec3i makeVec3i(int x, int y, int z) {return {x,y,z};}
 int chairound(double x) {return int(x);}
 int chaiprint(double x) {cout<<x<<endl;}
-
+void chaiCell(Vec3i p, byte block) { ChangeCell(0,p,{1,190,255,block});};
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
 
     unsigned int xSize = 720, ySize = 480;
 
-    chai.add(chaiscript::fun(&ChangeCell),"ChangeCell");
+    chai.add(chaiscript::fun(&chaiCell),"Cell");
     chai.add(chaiscript::fun(&makeVec3i),"Vec3i");
     chai.add(chaiscript::fun(&chairound),"int");
     chai.add(chaiscript::fun(&chaiprint),"print");

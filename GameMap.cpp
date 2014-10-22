@@ -178,12 +178,6 @@ void GameMap::update() {
         int ly = ((int) gPosition.y) - 40;
         sprintf(gDialog, "OnTile %d\n", lx + ly * 16);
     }
-    //TODO What is this?
-    //Util: Make reference swatches.
-    for (int i = 0; i < 256; i++) {
-        ChangeCell(0,{2 + (i % 16), 40 + (i / 16), 63}, 1, DEFAULT_BRIGHT, 255, i);
-    }
-
 }
 
 void GameMap::AddDeathBlock(Vec3i p) {
@@ -298,7 +292,7 @@ void GameMap::UpdatePickableBlocks() {
         float drawden = (pb->density < 0) ? 0.0 : ((pb->density > 1.0) ? 1.0 : pb->density);
 
         if (drawden > .01) {
-            PaintRange(pb->p, {1, 1, 1}, PICKABLE_CELL, drawden * 200);
+            PaintRange(pb->p, {1, 1, 1}, {1,190,byte(drawden * 200), PICKABLE_CELL});
         } else {
             ClearCell(pb->p);
         }

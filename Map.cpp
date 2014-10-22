@@ -31,7 +31,7 @@ Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false
         FakeIt();
     else
         DefaultIt();
-
+    
     printf("Basis created. Recalculating structure.\n");
     RecalculateAccelerationStructure(0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ);
     m_bReloadFullTexture = true;
@@ -43,25 +43,23 @@ Map::~Map() {
     glDeleteTextures(3, i3DTex);
 }
 
-void Map::SetCellInternal(unsigned x, unsigned y, unsigned z, unsigned thiscell, unsigned color) {
-    SetCellInternal({x,y,z},thiscell,color);
-}
-
-void Map::SetCellInternal(Vec3iu p, unsigned thiscell, unsigned color) {
+void Map::SetCellInternal(Vec3i p, byte thiscell, byte color) {
     int lookupcolor = color;
     if (lookupcolor > 15) lookupcolor = 15;
 
-    TexCell(0, p).r = thiscell;
-    TexCell(0, p).g = color;
-    TexCell(0, p).b = parent->LTTex[thiscell * 128 + lookupcolor * 8 + 7].a * 128.;
-    TexCell(0, p).a = thiscell;
+    TexCell(0, p) = {
+        thiscell,
+        color,
+        (byte)(parent->LTTex[thiscell * 128 + lookupcolor * 8 + 7].a * 128.),
+        thiscell
+    };
     TexCell(1, p) = {0, 0, 0, 0}; // (Largescale trace hit?, Jumpmap xy, 
 
 
     RGBA & rr = TexCell(1, p);
     RGBA & rr2 = TexCell(0, p);
-    unsigned char in = rr2.a;
-    unsigned char meta = rr.b;
+    byte in = rr2.a;
+    byte meta = rr.b;
     if (meta > 15) meta = 15;
     TexCell(0, p).b = parent->LTTex[in * 128 + meta * 8 + 7].a * 128.;
 }
@@ -69,83 +67,54 @@ void Map::SetCellInternal(Vec3iu p, unsigned thiscell, unsigned color) {
 void Map::DefaultIt() {
 
     //All defaults.
-    for (unsigned x = 0; x < GLH_SIZEX; x++)
-        for (unsigned y = 0; y < GLH_SIZEY; y++)
-            for (unsigned z = 0; z < GLH_SIZEZ; z++)
-                SetCellInternal(x, y, z, 0, 254);
+    for (int x = 0; x < GLH_SIZEX; x++)
+        for (int y = 0; y < GLH_SIZEY; y++)
+            for (int z = 0; z < GLH_SIZEZ; z++)
+                SetCellInternal({x, y, z}, 0, 254);
 
-    for (unsigned x = 0; x < GLH_SIZEX; x++)
-        for (unsigned y = 0; y < GLH_SIZEY; y++)
-            for (unsigned z = 0; z < GLH_SIZEZ; z++)
-                TexCell(2, x, y, z) = {127, 127, 127, 127};
+    for (int x = 0; x < GLH_SIZEX; x++)
+        for (int y = 0; y < GLH_SIZEY; y++)
+            for (int z = 0; z < GLH_SIZEZ; z++)
+                TexCell(2, {x, y, z}) = {127, 127, 127, 127};
 
     printf("In Default.\n");
     //Walls
-    for (unsigned x = 0; x < GLH_SIZEX; x++) {
-        for (unsigned y = 0; y < GLH_SIZEY; y++) {
-            SetCellInternal(x, y, 1, 0xFd, 254);
-            SetCellInternal(x, y, GLH_SIZEZ - 2, 0xFd, 254);
+    for (int x = 0; x < GLH_SIZEX; x++) {
+        for (int y = 0; y < GLH_SIZEY; y++) {
+            SetCellInternal({x, y, 1}, 0xFd, 254);
+            SetCellInternal({x, y, GLH_SIZEZ - 2}, 0xFd, 254);
         }
     }
 
-    for (unsigned z = 0; z < GLH_SIZEZ; z++)
-        for (unsigned x = 0; x < GLH_SIZEX; x++) {
-            SetCellInternal(x, 1, z, 0xfd, 254);
-            SetCellInternal(x, GLH_SIZEY - 2, z, 0xFd, 254);
+    for (int z = 0; z < GLH_SIZEZ; z++)
+        for (int x = 0; x < GLH_SIZEX; x++) {
+            SetCellInternal({x, 1, z}, 0xfd, 254);
+            SetCellInternal({x, GLH_SIZEY - 2, z}, 0xFd, 254);
         }
 
-    for (unsigned z = 0; z < GLH_SIZEZ; z++)
-        for (unsigned y = 0; y < GLH_SIZEY; y++) {
-            SetCellInternal(1, y, z, 0xfd, 0xFF);
-            SetCellInternal(GLH_SIZEX - 2, y, z, 0xFd, 254);
+    for (int z = 0; z < GLH_SIZEZ; z++)
+        for (int y = 0; y < GLH_SIZEY; y++) {
+            SetCellInternal({1, y, z}, 0xfd, 0xFF);
+            SetCellInternal({GLH_SIZEX - 2, y, z}, 0xFd, 254);
         }
 }
 
 void Map::FakeIt() {
     printf("%p / Fakeit\n", this);
-
-
-    //World-based boundaries.
-    for (unsigned x = 0; x < GLH_SIZEX; x++)
-        for (unsigned y = 0; y < GLH_SIZEY; y++)
-            for (unsigned z = 0; z < GLH_SIZEZ; z++)
-                SetCellInternal(x, y, z, 0, 254);
-
-    for (unsigned x = 0; x < GLH_SIZEX; x++)
-        for (unsigned y = 0; y < GLH_SIZEY; y++)
-            for (unsigned z = 0; z < GLH_SIZEZ; z++)
-                TexCell(2, x, y, z) = RGBA{127, 127, 127, 127};
-
-
-    for (unsigned x = 0; x < GLH_SIZEX; x++) {
-        for (unsigned y = 0; y < GLH_SIZEY; y++) {
-            SetCellInternal(x, y, GLH_SIZEZ - 1, 0xFF, 254);
-        }
-    }
-
-    for (unsigned z = 0; z < GLH_SIZEZ; z++)
-        for (unsigned x = 0; x < GLH_SIZEX; x++) {
-            SetCellInternal(x, 0, z, 0xff, 254);
-            SetCellInternal(x, GLH_SIZEY - 1, z, 0xFF, 254);
-        }
-
-    for (unsigned z = 0; z < GLH_SIZEZ; z++)
-        for (unsigned y = 0; y < GLH_SIZEY; y++) {
-            SetCellInternal(0, y, z, 0xff, 0xFF);
-            SetCellInternal(GLH_SIZEX - 1, y, z, 0xFF, 254);
-        }
+    
+    DefaultIt();
 
     //For edge portals
-    for (unsigned z = 0; z < 7; z++) {
+    for (int z = 0; z < 7; z++) {
         if (z < 6) {
-            SetCellInternal(GLH_SIZEX / 2, 0, z, 0x00, 254);
-            SetCellInternal(GLH_SIZEX / 2, GLH_SIZEY - 1, z, 0x00, 254);
+            SetCellInternal({GLH_SIZEX / 2, 0, z}, 0x00, 254);
+            SetCellInternal({GLH_SIZEX / 2, GLH_SIZEY - 1, z}, 0x00, 254);
         }
 
-        SetCellInternal(GLH_SIZEX / 2 + 1, 0, z, 10, 254);
-        SetCellInternal(GLH_SIZEX / 2 + 1, GLH_SIZEY - 1, z, 10, 254);
-        SetCellInternal(GLH_SIZEX / 2 - 1, 0, z, 10, 254);
-        SetCellInternal(GLH_SIZEX / 2 - 1, GLH_SIZEY - 1, z, 10, 254);
+        SetCellInternal({GLH_SIZEX / 2 + 1, 0, z}, 10, 254);
+        SetCellInternal({GLH_SIZEX / 2 + 1, GLH_SIZEY - 1, z}, 10, 254);
+        SetCellInternal({GLH_SIZEX / 2 - 1, 0, z}, 10, 254);
+        SetCellInternal({GLH_SIZEX / 2 - 1, GLH_SIZEY - 1, z}, 10, 254);
 
     }
 
@@ -166,48 +135,48 @@ void Map::FakeIt() {
     parent->AdditionalInformationMapData[addpos + 3] = RGBAf(21, 30, 0, 0);
 
     printf("ADDPOS: %d\n", addpos);
-    for (unsigned z = 0; z < 4; z++) {
-        for (unsigned x = 0; x < 6; x++)
-            for (unsigned y = 0; y < 6; y++) {
-                TexCell(1, x + 10, y + 10, z) = {0, 0, (unsigned char) (addpos % ADDSIZEX), (unsigned char) (addpos / ADDSIZEX)};
+    for (int z = 0; z < 4; z++) {
+        for (int x = 0; x < 6; x++)
+            for (int y = 0; y < 6; y++) {
+                TexCell(1, {x + 10, y + 10, z}) = {0, 0, (byte) (addpos % ADDSIZEX), (byte) (addpos / ADDSIZEX)};
             }
     }
     parent->MarkAddInfoForReload();
 
     //Ground
-    for (unsigned x = 0; x < GLH_SIZEX; x++) {
-        for (unsigned y = 0; y < GLH_SIZEY; y++) {
-            SetCellInternal(x, y, 1, 2, 254);
+    for (int x = 0; x < GLH_SIZEX; x++) {
+        for (int y = 0; y < GLH_SIZEY; y++) {
+            SetCellInternal({x, y, 1}, 2, 254);
         }
     }
 
     //left side of unusual wall
-    for (unsigned y = 22; y < 43; y++) {
+    for (int y = 22; y < 43; y++) {
         int x = 36;
-        SetCellInternal(x, y + 10, 2, rand() % 15, 254);
-        SetCellInternal(x, y + 10, 3, rand() % 15, 254);
-        SetCellInternal(x, y + 10, 4, rand() % 15, 254);
+        SetCellInternal({x, y + 10, 2}, rand() % 15, 254);
+        SetCellInternal({x, y + 10, 3}, rand() % 15, 254);
+        SetCellInternal({x, y + 10, 4}, rand() % 15, 254);
     }
 
 
-    for (unsigned y = 10; y < 40; y += 10) {
-        for (unsigned x = 20; x < 35; x++) {
+    for (int y = 10; y < 40; y += 10) {
+        for (int x = 20; x < 35; x++) {
             if (y == 10 || y == 20) {
                 //The physical bridges
-                SetCellInternal(x, y + 0, 2, 15, 254);
-                SetCellInternal(x, y + 0, 3, 15, 254);
-                SetCellInternal(x, y + 0, 4, 15, 254);
-                SetCellInternal(x, y + 0, 5, 16, 254);
-                SetCellInternal(x, y + 1, 5, 15, 254);
-                SetCellInternal(x, y + 2, 5, 15, 254);
-                SetCellInternal(x, y + 3, 5, 15, 254);
-                SetCellInternal(x, y + 3, 4, 15, 254);
-                SetCellInternal(x, y + 3, 3, 15, 254);
-                SetCellInternal(x, y + 3, 2, 15, 254);
+                SetCellInternal({x, y + 0, 2}, 15, 254);
+                SetCellInternal({x, y + 0, 3}, 15, 254);
+                SetCellInternal({x, y + 0, 4}, 15, 254);
+                SetCellInternal({x, y + 0, 5}, 16, 254);
+                SetCellInternal({x, y + 1, 5}, 15, 254);
+                SetCellInternal({x, y + 2, 5}, 15, 254);
+                SetCellInternal({x, y + 3, 5}, 15, 254);
+                SetCellInternal({x, y + 3, 4}, 15, 254);
+                SetCellInternal({x, y + 3, 3}, 15, 254);
+                SetCellInternal({x, y + 3, 2}, 15, 254);
             } else {
-                SetCellInternal(x, y + 10, 2, rand() % 15, 254);
-                SetCellInternal(x, y + 10, 3, rand() % 15, 254);
-                SetCellInternal(x, y + 10, 4, rand() % 15, 254);
+                SetCellInternal({x, y + 10, 2}, rand() % 15, 254);
+                SetCellInternal({x, y + 10, 3}, rand() % 15, 254);
+                SetCellInternal({x, y + 10, 4}, rand() % 15, 254);
             }
 
             RGBA cond;
@@ -222,18 +191,18 @@ void Map::FakeIt() {
 
             if (x > 20) //Do not set the low-end of any of the squares. (Except Z)
             {
-                TexCell(2, x, y + 1, 2) = cond;
-                TexCell(2, x, y + 1, 3) = cond;
-                TexCell(2, x, y + 1, 4) = cond;
-                TexCell(2, x, y + 1, 5) = cond;
-                TexCell(2, x, y + 2, 2) = cond;
-                TexCell(2, x, y + 2, 3) = cond;
-                TexCell(2, x, y + 2, 4) = cond;
-                TexCell(2, x, y + 2, 5) = cond;
-                TexCell(2, x, y + 3, 2) = cond;
-                TexCell(2, x, y + 3, 3) = cond;
-                TexCell(2, x, y + 3, 4) = cond;
-                TexCell(2, x, y + 3, 5) = cond;
+                TexCell(2, {x, y + 1, 2}) = cond;
+                TexCell(2, {x, y + 1, 3}) = cond;
+                TexCell(2, {x, y + 1, 4}) = cond;
+                TexCell(2, {x, y + 1, 5}) = cond;
+                TexCell(2, {x, y + 2, 2}) = cond;
+                TexCell(2, {x, y + 2, 3}) = cond;
+                TexCell(2, {x, y + 2, 4}) = cond;
+                TexCell(2, {x, y + 2, 5}) = cond;
+                TexCell(2, {x, y + 3, 2}) = cond;
+                TexCell(2, {x, y + 3, 3}) = cond;
+                TexCell(2, {x, y + 3, 4}) = cond;
+                TexCell(2, {x, y + 3, 5}) = cond;
             }
         }
     }
@@ -244,17 +213,17 @@ void Map::FakeIt() {
         for (int x = 20; x < 25; x++)
             for (int z = 2; z < 4; z++) {
                 if (y != 40 && x != 20 && z < 4)
-                    TexCell(2, x, y, z) = {9, 9, 9, 100};
+                    TexCell(2, {x, y, z}) = {9, 9, 9, 100};
                 if (y == 42 && (x == 20 || x == 24)) {
                 } else if (y == 40 || y == 44 || x == 20 || x == 24 || z == 3)
-                    SetCellInternal(x, y, z, 4, 254);
+                    SetCellInternal({x, y, z}, 4, 254);
 
             }
 
     for (int y = 42; y < 44; y++)
         for (int z = 2; z < 4; z++) {
-            TexCell(2, 20, y, z) = {9, 9, 9, 20};
-            TexCell(2, 25, y, z) = {9, 9, 9, 20};
+            TexCell(2, {20, y, z}) = {9, 9, 9, 20};
+            TexCell(2, {25, y, z}) = {9, 9, 9, 20};
         }
 
     //for( int i = 0; i < 10; i++ )
@@ -265,7 +234,7 @@ void Map::FakeIt() {
 }
 
 
-unsigned char skipTypes[23] = {06, 20, 37, 38, 39, 40, 51, 55, 59, 63, 64, 65, 66, 68, 69, 71, 75, 76, 77, 83, 85, 86, 91};
+byte skipTypes[23] = {06, 20, 37, 38, 39, 40, 51, 55, 59, 63, 64, 65, 66, 68, 69, 71, 75, 76, 77, 83, 85, 86, 91};
 
 void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int sy, int sz) {
     //	printf( "Recalculate %d %d %d    %d %d %d\n", ix, iy, iz, sx, sy, sz );
@@ -279,15 +248,15 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     //	timeval tv1;
     //	gettimeofday( &tv1, 0 );	
 
-    unsigned char * inskips = new unsigned char[GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ];
-    //	unsigned char ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
+    byte * inskips = new byte[GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ];
+    //	byte ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
     if (parent->LTTex != NULL) {
         for (int z = iz; z < sz; z++)
             for (int y = iy; y < sy; y++)
                 for (int x = ix; x < sx; x++) {
                     //RGBA & rr = TexCell( 1, x, y, z );
-                    RGBA & rr2 = TexCell(0, x, y, z);
-                    unsigned char in = rr2.a;
+                    RGBA & rr2 = TexCell(0, {x, y, z});
+                    byte in = rr2.a;
                     inskips[x + y * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY] = in != 0;
                     //XXX do skip processing here
                     for (unsigned int i = 0; i < 23; ++i)
@@ -308,22 +277,22 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
 
     //Needs to be unsigned here, because we may % negative numbers.
     if (doSubtrace) {
-        for (unsigned z = iz; z < sz; z++)
-            for (unsigned y = iy; y < sy; y++)
-                for (unsigned x = ix; x < sx; x++) {
+        for (int z = iz; z < sz; z++)
+            for (int y = iy; y < sy; y++)
+                for (int x = ix; x < sx; x++) {
 
-                    unsigned char in = inskips[x + y * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<0,0,0>
-                    unsigned char in1 = inskips[((x - 1) % GLH_SIZEX) + y * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<-1,0,0>
-                    unsigned char in2 = inskips[x + ((y - 1) % GLH_SIZEY) * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<0,-1,0>
-                    unsigned char in3 = inskips[x + y * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<0,0,-1>
-                    unsigned char in4 = inskips[((x - 1) % GLH_SIZEX)+((y - 1) % GLH_SIZEY) * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<-1,-1,0>
-                    unsigned char in5 = inskips[((x - 1) % GLH_SIZEX) + y * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<-1,0,-1>
-                    unsigned char in6 = inskips[x + ((y - 1) % GLH_SIZEY) * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<0,-1,-1>
-                    unsigned char in7 = inskips[((x - 1) % GLH_SIZEX)+((y - 1) % GLH_SIZEY) * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<-1,-1,-1>
+                    byte in = inskips[x + y * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<0,0,0>
+                    byte in1 = inskips[((x - 1) % GLH_SIZEX) + y * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<-1,0,0>
+                    byte in2 = inskips[x + ((y - 1) % GLH_SIZEY) * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<0,-1,0>
+                    byte in3 = inskips[x + y * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<0,0,-1>
+                    byte in4 = inskips[((x - 1) % GLH_SIZEX)+((y - 1) % GLH_SIZEY) * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY]; //<-1,-1,0>
+                    byte in5 = inskips[((x - 1) % GLH_SIZEX) + y * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<-1,0,-1>
+                    byte in6 = inskips[x + ((y - 1) % GLH_SIZEY) * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<0,-1,-1>
+                    byte in7 = inskips[((x - 1) % GLH_SIZEX)+((y - 1) % GLH_SIZEY) * GLH_SIZEX + ((z - 1) % GLH_SIZEZ) * GLH_SIZEX * GLH_SIZEY]; //<-1,-1,-1>
 
-                    unsigned char cc = (in || in1 || in2 || in3 || in4 || in5 || in6 || in7) ? 0xFF : 0;
+                    byte cc = (in || in1 || in2 || in3 || in4 || in5 || in6 || in7) ? 0xFF : 0;
 
-                    TexCell(1, Vec3iu{x, y, z}).r = cc;
+                    TexCell(1, {x, y, z}).r = cc;
                     //ouskips[x+y*GLH_SIZEX+z*GLH_SIZEX*GLH_SIZEY] = (cc)?1:MAX_SEEKER;
 
                 }
@@ -366,7 +335,7 @@ void Map::Draw() {
             for (lz = 0; lz < sz; lz++)
                 for (ly = 0; ly < sy; ly++)
                     for (lx = 0; lx < sx; lx++)
-                        buffer[lz * stridea + ly * strideb + lx] = TexCell( i, cu.p.x+lx-1, cu.p.y+ly-1, cu.p.z+lz-1 );
+                        buffer[lz * stridea + ly * strideb + lx] = TexCell(i, {cu.p.x+lx-1, cu.p.y+ly-1, cu.p.z+lz-1});
 
             glTexSubImage3D(GL_TEXTURE_3D, 0, cu.p.x - 1, cu.p.y - 1, cu.p.z - 1, sx, sy, sz, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
         }

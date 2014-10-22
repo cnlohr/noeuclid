@@ -30,24 +30,28 @@ float swoovey(float f, float siny) {
 }
 
 void ClearCell(Vec3i p) {
-    ChangeCell(0, p, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
+    ChangeCell(0, p, {0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK});
 }
 
-void PaintRange(Vec3i p, Vec3i s, int cell, int density, int unclear) {
+
+void PaintRange(Vec3i p, Vec3i s, byte block, byte density) {
+    PaintRange(p, s, {1,190,density,block});
+}
+void PaintRange(Vec3i p, Vec3i s, RGBA val) {
     int i, j, k;
     for (i = p.x; i < p.x + s.x; i++)
         for (j = p.y; j < p.y + s.y; j++)
             for (k = p.z; k < p.z + s.z; k++) {
-                QuickCell(0, {i, j, k}, unclear, DEFAULT_BRIGHT, density, cell);
+                gh->TMap->TexCell(0, {i, j, k}) = val;
             }
     UpdateZone(p, s + Vec3i{1,1,1});
 }
 
 void ClearRange(Vec3i p, Vec3i s) {
-    PaintRange(p, s, DEFAULT_EMPTY_BLOCK, 0, 0);
+    PaintRange(p, s, {0, DEFAULT_BRIGHT, DEFAULT_EMPTY_BLOCK, 0});
 }
 
-void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int force_empty) {
+void MakeEmptyBox(Vec3i p, Vec3i s, bool force_empty, RGBA v) {
     //Will cause an update over our whole area.
     if (force_empty)
         ClearRange(p, s);
@@ -55,33 +59,32 @@ void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int 
         UpdateZone(p, s + Vec3i{1,1,1});
 
 
-    short j, k;
-    for (j = p.x; j <= p.x + s.x; j++)
-        for (k = p.y; k <= p.y + s.y; k++) {
-            QuickCell(0, {j, k, p.z}, 1, bright, defden, cell);
-            QuickCell(0, {j, k, p.z + s.z}, 1, bright, defden, cell);
+    for (int j = p.x; j <= p.x + s.x; j++)
+        for (int k = p.y; k <= p.y + s.y; k++) {
+            gh->TMap->TexCell(0, {j, k, p.z}) = v;
+            gh->TMap->TexCell(0, {j, k, p.z + s.z}) = v;
         }
 
-    for (j = p.z; j <= p.z + s.z; j++)
-        for (k = p.x; k <= p.x + s.x; k++) {
-            QuickCell(0, {k, p.y, j}, 1, bright, defden, cell);
-            QuickCell(0, {k, p.y + s.y, j}, 1, bright, defden, cell);
+    for (int j = p.z; j <= p.z + s.z; j++)
+        for (int k = p.x; k <= p.x + s.x; k++) {
+            gh->TMap->TexCell(0, {k, p.y, j}) = v;
+            gh->TMap->TexCell(0, {k, p.y + s.y, j}) = v;
         }
 
-    for (j = p.z; j <= p.z + s.z; j++)
-        for (k = p.y; k <= p.y + s.y; k++) {
-            QuickCell(0, {p.x, k, j}, 1, bright, defden, cell);
-            QuickCell(0, {p.x + s.x, k, j}, 1, bright, defden, cell);
+    for (int j = p.z; j <= p.z + s.z; j++)
+        for (int k = p.y; k <= p.y + s.y; k++) {
+            gh->TMap->TexCell(0, {p.x, k, j}) = v;
+            gh->TMap->TexCell(0, {p.x + s.x, k, j}) = v;
         }
 
 }
 
-void MakeJumpSection(Vec3i p, Vec3i s, Vec3f ofs, Vec3f f1, Vec3f f2, Vec3f f3) {
+void MakeJumpSection(Vec3i p, Vec3i s, Vec3f offset, Vec3f f1, Vec3f f2, Vec3f f3) {
     int newalloc = gh->AllocAddInfo(4);
     gh->AdditionalInformationMapData[newalloc + 0] = f1;
     gh->AdditionalInformationMapData[newalloc + 1] = f2;
     gh->AdditionalInformationMapData[newalloc + 2] = f3;
-    gh->AdditionalInformationMapData[newalloc + 3] = ofs;
+    gh->AdditionalInformationMapData[newalloc + 3] = offset;
 
     short i, j, k;
     for (i = p.x; i <= p.x + s.x; i++)
@@ -106,10 +109,10 @@ void SetWarpSpaceArea(Vec3i p, Vec3i s, Vec3f comp) {
     cc.z = CLAMP(cc.z, 0, 1);
     wterm = CLAMP(wterm, 0, 1);
 
-    unsigned char xt = cc.x * 255;
-    unsigned char yt = cc.y * 255;
-    unsigned char zt = cc.z * 255;
-    unsigned char wt = wterm * 255;
+    byte xt = cc.x * 255;
+    byte yt = cc.y * 255;
+    byte zt = cc.z * 255;
+    byte wt = wterm * 255;
 
     //	float xyzpres = sqrt( xcomp*xcomp + ycomp*ycomp + zcomp*zcomp );
 
@@ -117,7 +120,7 @@ void SetWarpSpaceArea(Vec3i p, Vec3i s, Vec3f comp) {
     for (i = p.x; i <= p.x + s.x; i++)
         for (j = p.y; j <= p.y + s.y; j++)
             for (k = p.z; k <= p.z + s.z; k++) {
-                QuickCell(2, {i, j, k}, xt, yt, zt, wt);
+                gh->TMap->TexCell(2, {i, j, k}) = {xt, yt, zt, wt};
             }
     UpdateZone(p, s + Vec3i{1,1,1});
 }
@@ -138,22 +141,16 @@ bool fileChanged(string fname) {
     } else return false;
 }
 
-
-
-
-void ChangeCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-    QuickCell(t,p,r,g,b,a);
+void ChangeCell(int t, Vec3i p, RGBA c) {
+    gh->TMap->TexCell(t, p) = c;
     gh->TMap->TackChange(p);
 }
 
-void QuickCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-    gh->TMap->TexCell(t, p).r = r;
-    gh->TMap->TexCell(t, p).g = g;
-    gh->TMap->TexCell(t, p).b = b;
-    gh->TMap->TexCell(t, p).a = a;
+void QuickCell(int t, Vec3i p, RGBA c) {
+    gh->TMap->TexCell(t, p) = c;
 }
 
-void QuickCell1GBAOnly(Vec3i p, unsigned char g, unsigned char b, unsigned char a) {
+void QuickCell1GBAOnly(Vec3i p, byte g, byte b, byte a) {
     gh->TMap->TexCell(1, p).g = g;
     gh->TMap->TexCell(1, p).b = b;
     gh->TMap->TexCell(1, p).a = a;

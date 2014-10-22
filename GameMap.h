@@ -40,20 +40,20 @@ public:
         {"EmptyBox", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;
             int density = DEFAULT_DENSITY; if(!DONE) i>>density;
-            return bind(MakeEmptyBox, p, s, b, density, DEFAULT_BRIGHT, 1);
+            return bind(MakeEmptyBox, p, s, true, RGBA{1, DEFAULT_BRIGHT, byte(density), b});
         }}, {"Cell", [](istream& i) -> initfn { 
             Vec3i p; BlockType b; i>>p>>b;
-            return bind(ChangeCell, 0, p, 1, DEFAULT_BRIGHT, 255, b);
+            return bind(ChangeCell, 0, p, RGBA{1, DEFAULT_BRIGHT, 255, b});
         }}, {"ClearCell", [](istream& i) -> initfn {
             Vec3i p; i>>p; //TODO merge with "Block"
-            return bind(ChangeCell, 0, p, 0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK);
+            return bind(ChangeCell, 0, p, RGBA{0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK});
         }}, {"ClearRange", [](istream& i) -> initfn {
             Vec3i p,s; i>>p>>s;
             return bind(ClearRange, p, s);
         }}, {"PaintRange", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;
             int density = DEFAULT_DENSITY; if(!DONE) i>>density;
-            return bind(PaintRange, p, s, b, density, 1);
+            return bind(PaintRange, p, s, RGBA{1,190,byte(density),b});
         }}, {"Warp", [](istream& i) -> initfn { 
             Vec3i p,s; Vec3f x;
             i>>p>>s>>x;
@@ -73,13 +73,13 @@ public:
             Vec3i p,s; i>>p>>s;
             return [p,s](double timeIn) {
                 int capden = 255 - timeIn * 200;
-                PaintRange(p, s, GOAL_BLOCK, capden<0?0:capden);
+                PaintRange(p, s, {1, 190, byte(capden<0?0:capden), GOAL_BLOCK});
             };
         }}, {"AnimateClose", [](istream& i) -> runfn {
             Vec3i p,s; i>>p>>s;
             return [p,s](double timeIn) {
                 int capden = 255 - timeIn * 200;
-                PaintRange(p, s, DEADGOAL_BLOCK, capden<0?255:255-capden);
+                PaintRange(p, s, {1,190,byte(capden<0?255:255-capden),DEADGOAL_BLOCK});
             };
         }}
     };

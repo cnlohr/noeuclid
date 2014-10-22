@@ -55,7 +55,7 @@
 
 using namespace std;
 string ZLibUncompress(const string & in);
-
+using byte = unsigned char;
 
 
 template<class T> class Vec3 {
@@ -153,11 +153,11 @@ struct RGBAf {
 };
 
 struct RGBA {
-    unsigned char r, g, b, a;
+    byte r, g, b, a;
 };
 extern unordered_map<string, int> aliases;
 struct BlockType {
-    unsigned char t = 0;
+    byte t = 0;
     operator char() {return t;}
     friend istream &operator>>(istream &inp, BlockType& p) {
         int x; inp>>x;
@@ -167,7 +167,7 @@ struct BlockType {
             if(aliases.count(alias)==0) throw invalid_argument("Invalid alias " + alias);
             p.t=aliases[alias];
         } else {
-            p.t = (unsigned char)x;
+            p.t = (byte)x;
         }
         return inp;
     }

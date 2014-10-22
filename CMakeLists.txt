@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE Debug)
-#list(APPEND CMAKE_CXX_FLAGS "-O2")
+#list(APPEND CMAKE_CXX_FLAGS "-Wall")
 aux_source_directory(. files)
 project (noeuclid)
 add_executable(noeuclid ${files})

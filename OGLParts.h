@@ -19,6 +19,7 @@
 
 using std::vector;
 using std::string;
+using byte = unsigned char;
 ///Texture type for use with CPPGPGPU.
 enum TextureType
 {
@@ -337,10 +338,10 @@ bool DrawText( const char * text, float size = 1.0, const string & sFontName = "
 ///OpenImage Utility function - This isn't ordinarily used, but has been found to be useful.  It
 ///allocates a buffer, and you give it pointers to width and height.  0 return indicates a failed
 ///load.
-int OpenImage( const char * sImageName, unsigned char ** buffer, int * width, int * height, int * channels = NULL );
+int OpenImage( const char * sImageName, byte ** buffer, int * width, int * height, int * channels = NULL );
 
 ///Generic image loader format
-typedef int (*OpenImageFunction)( const char * sPPMName, unsigned char ** buffer, int * width, int * height, int * channels );
+typedef int (*OpenImageFunction)( const char * sPPMName, byte ** buffer, int * width, int * height, int * channels );
 
 ///General Utility function to pull a line out of a file of iBuffersize or less.  You must create
 /// the line* value.

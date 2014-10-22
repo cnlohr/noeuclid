@@ -1,6 +1,6 @@
 # Static room settings
 # "Init" calls the c++ room init function at that position
-StartAtRoom 11
+StartAtRoom 0
 Room 0
 Time 100
 Start (3 3 64)
@@ -73,7 +73,7 @@ Init
 
 Room 4
 Time 100
-Start 6.5 31.5 49)
+Start (6.5 31.5 49)
 Exit (5 47 43) (1 1 2)
 AnimateOpen (6 33 48) (1 1 2)
 AnimateClose (3 28 48) (6 1 2)
@@ -213,9 +213,12 @@ PaintRange (3 76 46) (1 1 1) Goal
 Room 11
 RequireRoom 10
 Time 100
-Start (4 75 48)
-AnimateOpen (3 76 46) (1 1 1)
+Start (4 74 48)
+AnimateOpen (4 74 46) (1 1 1)
 EmptyBox (2 67 36) (6 10 10) 4 100
 JumpSection (3 67 37) (3 1 3) (0 5 0)
 #JumpSection (3 77 37) (3 1 3) (0 -9 0) 
-RunScript print(timeInRoom); ChangeCell(0, Vec3i(3,74,38), 1, 190, timeInRoom*50, 17);
+#Cell (3 74 38) 17
+Init
+InitScript Cell(Vec3i(3,74,38), 17);
+#RunScript print(timeInRoom); ChangeCell(0, Vec3i(3,74,38), 1, 190, timeInRoom*50, 17);

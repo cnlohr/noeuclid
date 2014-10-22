@@ -2,7 +2,7 @@
 #include <cstring>
 
 extern GameMap gamemap;
-
+void PaintRange(Vec3i p, Vec3i s, byte block, byte density);
 void Room::reset() {
     gPosition = start;
     GameTimer = maxTime;
@@ -32,7 +32,7 @@ void Room1::init() {
 
 void Room1::run() {
     //Make cute breathe
-    MakeEmptyBox({2, 2, 48}, {4, 4, 11}, 4, swoovey(timeIn * .1, 1)*70 + 185, DEFAULT_BRIGHT, 1); //Chute
+    MakeEmptyBox({2, 2, 48}, {4, 4, 11}, true, {1, DEFAULT_BRIGHT, byte(swoovey(timeIn * .1, 1)*70 + 185), 4}); //Chute
     ClearCell({4, 4, 60});
     ClearCell({4, 4, 59});
     //Make hole in side.
@@ -123,7 +123,7 @@ void Room4::init() {
         for (int y = 0; y < 11; y++) {
             i = (i * 2089) % 491;
             if (((i % 7) > 1)) {
-                QuickCell(0, {3 + x, 35 + y, 43}, 1, DEFAULT_BRIGHT, 60, 10); //Lava
+                QuickCell(0, {3 + x, 35 + y, 43}, {1, DEFAULT_BRIGHT, 60, 10}); //Lava
                 gamemap.AddDeathBlock({3 + x, 35 + y, 43});
             }
         }
@@ -133,7 +133,7 @@ void Room4::init() {
 void Room4::run() {
     for (int x = 0; x < 14; x++)
         for (int y = 0; y < 14; y++) {
-            QuickCell(0, {4 + x, 34 + y, 43 + 10}, 1, DEFAULT_BRIGHT, (sin(x * 2 + y + timeIn)*80 + 80), 9);
+            QuickCell(0, {4 + x, 34 + y, 43 + 10}, {1, DEFAULT_BRIGHT, byte(sin(x * 2 + y + timeIn)*80 + 80), 9});
         }
     UpdateZone({3, 33, 43 + 10},{ 15, 15, 3});
 }
@@ -172,7 +172,7 @@ void Room7::init() {
     for (x = 0; x < 8; x++)
         for (y = 0; y < 8; y++) {
             if (lavamap[x + y * 8]) {
-                QuickCell(0, {4 + x, 4 + y, 20}, 1, DEFAULT_BRIGHT, 60, 10); //Lava
+                QuickCell(0, {4 + x, 4 + y, 20}, {1, DEFAULT_BRIGHT, 60, 10}); //Lava
                 gamemap.AddDeathBlock({4 + x, 4 + y, 20});
             }
         }
@@ -244,9 +244,8 @@ void Room9::run() {
     }
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 16; y++) {
-
             double den = ((double) lifemap[x + y * 16]) * (1. - TimeTransition) + ((double) newlife[x + y * 16]) * TimeTransition;
-            QuickCell(0, {3 + x, 50 + y, 47}, 1, DEFAULT_BRIGHT, den*255, 5);
+            QuickCell(0, {3 + x, 50 + y, 47}, {1, DEFAULT_BRIGHT, byte(den*255), 5});
         }
     }
     UpdateZone({3,50,47}, {19, 66, 47});
@@ -261,21 +260,21 @@ void Room10::run() {
     for (int z = 46; z < 57; z++)
         for (int y = 67; y < 77; y++) {
             if ((y + z)&1) continue;
-            QuickCell(0,{2, y, z}, 1, DEFAULT_BRIGHT, sin(timeIn * 10.0 + z + y)*50.5 + 160, 5);
+            QuickCell(0,{2, y, z}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + z + y)*50.5 + 160), 5});
         }
     UpdateZone({1, 66, 46}, {1, 10, 10});
 
     for (int z = 46; z < 57; z++)
         for (int x = 2; x < 12; x++) {
             if ((x + z)&1) continue;
-            QuickCell(0,{x, 77, z}, 1, DEFAULT_BRIGHT, sin(timeIn * 10.0 + x + z)*50.5 + 160, 5);
+            QuickCell(0,{x, 77, z}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + x + z)*50.5 + 160), 5});
         }
     UpdateZone({1, 76, 46},{10, 1, 10});
 
     for (int y = 67; y < 77; y++)
         for (int x = 2; x < 12; x++) {
             if ((y + x)&1) continue;
-            QuickCell(0,{x, y, 56}, 1, DEFAULT_BRIGHT, sin(timeIn * 10.0 + x + y)*50.5 + 160, 5);
+            QuickCell(0,{x, y, 56}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + x + y)*50.5 + 160), 5});
         }
     UpdateZone({2, 67, 56}, {10, 10, 1});
 
@@ -285,7 +284,12 @@ void Room10::run() {
 
 }
 
+void Room11::init() {
+   
+}
+
 void Room11::run() {
-    //float ang = timeIn * 0.1;
+    //ChangeCell(0,{3,74,38},1,190,50,17);
+     //float ang = timeIn * 0.1;
     //MakeJumpSection({3, 67, 37}, {3, 1, 3}, {0, 5, 0},{1, 0, 0},{0, cos(ang), -sin(ang)},{0.1, sin(ang), cos(ang)});
 }

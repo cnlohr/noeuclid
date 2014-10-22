@@ -93,6 +93,7 @@ public:
 
 class Room11 : public Room {
 public:
+    void init();
     void run();
 };
 

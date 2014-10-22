@@ -482,7 +482,7 @@ void RegisterImageLoader(unsigned int fingerprint, OpenImageFunction f) {
     m_AllLoaders[ fingerprint ] = f;
 }
 
-int OpenImage(const char * sImageName, unsigned char ** buffer, int * width, int * height, int * channels) {
+int OpenImage(const char * sImageName, byte ** buffer, int * width, int * height, int * channels) {
     unsigned int fingerprint = 0;
     char cfingerprint[3];
     FILE * f = fopen(sImageName, "rb");
@@ -500,8 +500,8 @@ int OpenImage(const char * sImageName, unsigned char ** buffer, int * width, int
 //      and this thing seems to load them all ok. (DO NOT TRUST THIS CODE TO BE RELIABLE)
 //
 
-int OpenPPM(const char * sPPMName, unsigned char ** buffer, int * width, int * height, int * channels) {
-    unsigned char Magic[2];
+int OpenPPM(const char * sPPMName, byte ** buffer, int * width, int * height, int * channels) {
+    byte Magic[2];
     char line[512];
     int maxval;
     int totalsize;
@@ -547,7 +547,7 @@ int OpenPPM(const char * sPPMName, unsigned char ** buffer, int * width, int * h
     }
 
     totalsize = 3 * (*height) * (*width);
-    *buffer = (unsigned char*) malloc(totalsize);
+    *buffer = (byte*) malloc(totalsize);
     if (!fread(*buffer, totalsize, 1, f)) {
         fclose(f);
         return 0;
@@ -769,7 +769,7 @@ TextUtil * TextUtil::CheckAndLoadFont(const string & sFontName) {
 }
 
 bool TextUtil::LoadFont(const string & sFontName) {
-    unsigned char * RawLoadedData;
+    byte * RawLoadedData;
     unsigned int * FontMapData;
     char line[256];
     float AddToAll = 0;

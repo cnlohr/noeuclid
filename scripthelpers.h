@@ -61,13 +61,12 @@ extern float gTargetActualDistance;
 extern float gTargetProjDistance;
 extern float gTargetPerceivedDistance;
 extern char gDialog[1024];
-extern unsigned char gKeyMap[256];
-extern unsigned char gFocused;
+extern byte gKeyMap[256];
+extern byte gFocused;
 extern int gMouseLastClickButton;
 extern float gTimeSinceOnGround;
 extern int pickables_in_inventory;
 extern int gOverallUpdateNo;
-
 extern double GameTimer;
 extern double GameAttempt;
 
@@ -82,29 +81,17 @@ typedef void (*ClickCellCBType)(bool left, Vec3f pos, float dist);
 
 
 void ClearCell(Vec3i p);
-
-void PaintRange(Vec3i p, Vec3i s, int cell, int density, int unclear = 1);
-
+void PaintRange(Vec3i p, Vec3i s, RGBA val);
 void ClearRange(Vec3i p, Vec3i s);
-
-void MakeEmptyBox(Vec3i p, Vec3i s, short cell, short defden, short bright, int force_empty);
-
+void MakeEmptyBox(Vec3i p, Vec3i s, bool force_empty, RGBA val);
 void MakeJumpSection(Vec3i p, Vec3i s, Vec3f ofs, Vec3f f1 = {1,0,0}, Vec3f f2={0,1,0}, Vec3f f3 = {0,0,1});
-
 void SetWarpSpaceArea(Vec3i p, Vec3i s, Vec3f comp);
-
 int IsPlayerInRange(Vec3f p, Vec3f s) ;
-
-void ChangeCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-
-void QuickCell(int t, Vec3i p, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-
-void QuickCell1GBAOnly(Vec3i p, unsigned char g, unsigned char b, unsigned char a);
-
+void ChangeCell(int t, Vec3i p, RGBA c);
+void QuickCell(int t, Vec3i p, RGBA c);
+void QuickCell1GBAOnly(Vec3i p, byte g, byte b, byte a);
 void UpdateZone(Vec3i p, Vec3i s);
-
 void MarkAddDataForReload();
-
 bool fileChanged(string fname);
 
 struct PickableBlock {

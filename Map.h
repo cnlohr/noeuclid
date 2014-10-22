@@ -39,20 +39,6 @@ public:
         ListUpdates.push_back({p, s});
     }
     
-    inline RGBA & TexCell(unsigned i, int x, int y, int z) {
-        x = ((unsigned long) x) % GLH_SIZEX;
-        y = ((unsigned long) y) % GLH_SIZEY;
-        z = ((unsigned long) z) % GLH_SIZEZ;
-        return GLTextureData[i][x + y * GLH_SIZEX + z * GLH_SIZEX * GLH_SIZEY];
-    }
-
-    inline RGBA & TexCell(unsigned i, Vec3iu p) {
-        p.x = ((unsigned long) p.x) % GLH_SIZEX;
-        p.y = ((unsigned long) p.y) % GLH_SIZEY;
-        p.z = ((unsigned long) p.z) % GLH_SIZEZ;
-        return GLTextureData[i][p.x + p.y * GLH_SIZEX + p.z * GLH_SIZEX * GLH_SIZEY];
-    }
-    
     inline RGBA & TexCell(unsigned i, Vec3i p) {
         p.x = ((unsigned long) p.x) % GLH_SIZEX;
         p.y = ((unsigned long) p.y) % GLH_SIZEY;
@@ -67,9 +53,7 @@ public:
 private:
     void UpdateCellSpecific(Vec3i p, Vec3i s);
 
-    void SetCellInternal(unsigned x, unsigned y, unsigned z, unsigned cell, unsigned color);
-    
-    void SetCellInternal(Vec3iu p, unsigned cell, unsigned color);
+    void SetCellInternal(Vec3i p, byte thiscell, byte color);
 
     //Comp 0("GeoTex"): 
     //Red Channel:   Block Type < not ????
