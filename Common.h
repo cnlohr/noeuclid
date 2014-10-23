@@ -73,6 +73,10 @@ public:
     bool operator==(const Vec3& b) const {
         return x == b.x && y == b.y && z == b.z;
     }
+    
+    bool operator!=(const Vec3& b) const {
+        return !(x == b.x && y == b.y && z == b.z);
+    }
 
     const Vec3<T> operator*(const T s) const {
         return Vec3{x*s, y*s, z * s};
@@ -150,6 +154,25 @@ struct RGBAf {
     Vec3f vec() {
         return {r,g,b};
     }
+};
+
+struct Vec3range;
+struct Vec3it {
+    const Vec3range& c;
+    Vec3<int> i;
+    bool operator!=(const Vec3it& o) {
+        return i.x!=o.i.x&&i.y!=o.i.y&&i.z!=o.i.z;
+    }
+    Vec3i operator*() const {
+        return i;
+    }
+    const Vec3it& operator++();
+};
+// usage: for(Vec3 v: Vec3range{{20,40,2}, {25,45,4}}) doStuff(v);
+struct Vec3range {
+    Vec3<int> s,e;
+    Vec3it begin() const { return {*this,s};}
+    Vec3it end() const { return {*this,e};}
 };
 
 struct RGBA {
