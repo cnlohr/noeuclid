@@ -29,6 +29,21 @@ EmptyBox (2 6 50) (4 4 3) 7
 EmptyBox (2 2 48) (4 4 11) 4
 ClearCell 4 4 60
 ClearCell 4 4 59
+InitScript {
+      for(int i=0;i<10;i++) {
+              float den = (i+1.0)/12.0;
+              if(den<.1) den=.1;
+              WarpSpace(v(2,2,59-i),v(4,4,1),vf(den,den,den));
+      }
+}
+RunScript {
+       double f = fmod(timeInRoom,1); if(f<0)f=-f;
+       EmptyBox( v(2,2,48), v(4,4,11), 4, swoovey(timeInRoom * .1, 1)*70 + 185);
+       ClearCell( v(4,4,60) );
+       ClearCell( v(4,4,59) );
+       ClearRange( v(3,6,51), v(3,1,2) );
+}
+
 Init
 # Make hole in side.
 ClearRange (3 6 51) (3 1 2)

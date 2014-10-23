@@ -24,23 +24,6 @@ void Room::update() {
     }
 }
 
-void Room1::init() {
-    for (int i = 0; i < 10; i++) {
-        float den = (i + 1.0) / 12.0;
-        if (den < .1) den = .1;
-        SetWarpSpaceArea({2, 2, 59 - i}, {4, 4, 1},{ den, den, den}); //very big box
-    }
-}
-
-void Room1::run() {
-    //Make cute breathe
-    MakeEmptyBox({2, 2, 48}, {4, 4, 11}, true, {1, DEFAULT_BRIGHT, byte(swoovey(timeIn * .1, 1)*70 + 185), 4}); //Chute
-    ClearCell({4, 4, 60});
-    ClearCell({4, 4, 59});
-    //Make hole in side.
-    ClearRange({3, 6, 51}, {3, 1, 2});
-}
-
 void Room2::init() {
     stage = 0;
 }

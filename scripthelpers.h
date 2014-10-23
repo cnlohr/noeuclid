@@ -106,7 +106,9 @@ struct DeathBlock {
 };
 
 // tcc funs
-void Cell(int x, int y, int z, byte block, byte density);
-void EmptyBox(Vec3i p, Vec3i s, byte block, byte density);
+void tccCell(int x, int y, int z, byte block, byte density);
+void tccClearCell(int x, int y, int z);
+void tccClearRange(int x, int y, int z, int x2, int y2, int z2);
+void tccEmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
+void tccWarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3);
 #endif
-

@@ -33,9 +33,6 @@ public:
 };
 
 class Room1 : public Room {
-public:
-    void init();
-    void run();
 };
 
 class Room2 : public Room {

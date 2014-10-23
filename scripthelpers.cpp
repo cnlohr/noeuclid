@@ -160,10 +160,22 @@ void UpdateZone(Vec3i p, Vec3i s) {
     gh->TMap->TackMultiChange(p, s);
 }
 
-void Cell(int x, int y, int z, byte block, byte density) { 
+void tccCell(int x, int y, int z, byte block, byte density) {
     ChangeCell(0,{x,y,z},{1,190,density,block});
 }
 
-void EmptyBox(Vec3i p, Vec3i s, byte block, byte density) {
-    MakeEmptyBox(p, s, true, RGBA{1, DEFAULT_BRIGHT, density, block});
+void tccClearCell(int x, int y, int z) {
+    ClearCell({x,y,z});
+}
+
+void tccClearRange(int x, int y, int z, int x2, int y2, int z2) {
+    ClearRange({x,y,z}, {x2,y2,z2});
+}
+
+void tccEmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte density) {
+    MakeEmptyBox({x,y,z}, {x2,y2,z2}, true, RGBA{1, DEFAULT_BRIGHT, density, block});
+}
+
+void tccWarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3) {
+    SetWarpSpaceArea({x,y,z},{x2,y2,z2},{f1,f2,f3});
 }

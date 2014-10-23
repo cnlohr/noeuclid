@@ -884,12 +884,13 @@ int main(int argc, char ** argv) {
     tcc.addheader(string((istreambuf_iterator<char>(tccheader)),
             istreambuf_iterator<char>()));
     
-#define TCCADD(var) tcc.addfun(#var, &var);
+#define TCCADD(var) tcc.addfun(#var, &tcc##var);
+    tcc.addfun("swoovey",&swoovey);
     TCCADD(Cell);
-    /*TCCADD(ClearCell);
+    TCCADD(ClearCell);
     TCCADD(ClearRange);
     TCCADD(EmptyBox);
-    TCCADD(WarpSpace);*/
+    TCCADD(WarpSpace);
 
     
     float initialrotaxis[] = {1, 0, 0};
