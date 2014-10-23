@@ -111,4 +111,6 @@ void tccClearCell(int x, int y, int z);
 void tccClearRange(int x, int y, int z, int x2, int y2, int z2);
 void tccEmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
 void tccWarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3);
+int tccPlayerInRange(float x, float y, float z, float x2, float y2, float z2);
+void tccPaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
 #endif

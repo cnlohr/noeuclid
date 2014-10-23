@@ -24,39 +24,6 @@ void Room::update() {
     }
 }
 
-void Room2::init() {
-    stage = 0;
-}
-
-void Room2::run() {
-    gDaytime = gDaytime * .99 + 400 * .01;
-
-    //Force user to look around to get out.
-    switch (stage) {
-        case 0:
-            if (gDirection.y > .7 && IsPlayerInRange({3, 12, 48}, {3, 3, 3})) stage = 1;
-            break;
-        case 1:
-            if (gDirection.y < -.7) stage = 2;
-            break;
-        case 2:
-            if (gDirection.y > .7) stage = 3;
-            break;
-        case 3:
-            PaintRange({3, 11, 47}, {3, 1, 8}, SPAAACE_CELL, 255);
-            if (gDirection.y < -.7) stage = 4;
-            break;
-        case 4:
-            //Open hole in front of room.
-            PaintRange({3, 15, 47}, {3, 2, 3}, WHITE_BLOCK, 255);
-            ClearRange({4, 15, 48}, {1, 1, 1});
-            PaintRange({4, 16, 48}, {1, 1, 1}, GOAL_BLOCK, 255);
-            SetWarpSpaceArea({3, 15, 47}, {4, 4, 3}, {.3, .3, .3});
-            break;
-
-    }
-}
-
 void Room3::init() {
     already_removed_stretch = 0;
     already_setup_jumpspace = 0;

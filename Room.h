@@ -36,10 +36,6 @@ class Room1 : public Room {
 };
 
 class Room2 : public Room {
-public:
-    int stage;
-    void init();
-    void run();
 };
 
 class Room3 : public Room {

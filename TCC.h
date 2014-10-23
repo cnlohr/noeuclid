@@ -15,7 +15,7 @@ struct TCCSymbol { string name; void* func;};
 class TCC {
 public:
     template<typename T>
-    void addfun(string name, T* func) {
+    void add(string name, T* func) {
         //TODO memory leak
         if(!tcc) tcc = tcc_new();
         symbols.push_back({name, (void*) func});

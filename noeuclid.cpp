@@ -884,13 +884,24 @@ int main(int argc, char ** argv) {
     tcc.addheader(string((istreambuf_iterator<char>(tccheader)),
             istreambuf_iterator<char>()));
     
-#define TCCADD(var) tcc.addfun(#var, &tcc##var);
-    tcc.addfun("swoovey",&swoovey);
-    TCCADD(Cell);
-    TCCADD(ClearCell);
-    TCCADD(ClearRange);
-    TCCADD(EmptyBox);
-    TCCADD(WarpSpace);
+#define TCCADDFUN(var) tcc.add(#var, &tcc##var)
+    tcc.add("swoovey",&swoovey);
+    TCCADDFUN(Cell);
+    TCCADDFUN(ClearCell);
+    TCCADDFUN(ClearRange);
+    TCCADDFUN(EmptyBox);
+    TCCADDFUN(WarpSpace);
+    TCCADDFUN(PlayerInRange);
+    TCCADDFUN(PaintRange);
+#define TCCADDINT(var, sym, type) tcc.add(#var, sym);tcc.addheader("extern "#type" "#var";")
+
+#define TCCADD(var, type) TCCADDINT(var, &var, type)
+#define TCCADDVEC(var) TCCADDINT(var##X, &var.x, int);\
+        TCCADDINT(var##Y, &var.y, int);\
+        TCCADDINT(var##Z, &var.z, int);
+    TCCADDVEC(gPosition);
+    TCCADDVEC(gDirection);
+    TCCADD(gDaytime, float);
 
     
     float initialrotaxis[] = {1, 0, 0};

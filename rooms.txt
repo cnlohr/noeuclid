@@ -56,6 +56,35 @@ Time 100
 Start (4.5 7.92 51.92)
 Exit (3 15.1 48) (3 1 2)
 AnimateOpen (4 10 51) (1 1 2)
+RunScript {
+    static int stage = 0;
+    gDaytime = gDaytime * .99 + 400 * .01;
+
+    //Force user to look around to get out.
+    switch (stage) {
+        case 0:
+            if (gDirectionY > .7 && PlayerInRange(v(3, 12, 48), v(3, 3, 3))) stage = 1;
+            break;
+        case 1:
+            if (gDirectionY < -.7) stage = 2;
+            break;
+        case 2:
+            if (gDirectionY > .7) stage = 3;
+            break;
+        case 3:
+            PaintRange(v(3, 11, 47), v(3, 1, 8), SPAAACE_CELL, 255);
+            if (gDirectionY < -.7) stage = 4;
+            break;
+        case 4:
+            //Open hole in front of room.
+            PaintRange(v(3, 15, 47), v(3, 2, 3), WHITE_BLOCK, 255);
+            ClearRange(v(4, 15, 48), v(1, 1, 1));
+            PaintRange(v(4, 16, 48), v(1, 1, 1), GOAL_BLOCK, 255);
+            WarpSpace(v(3, 15, 47), v(4, 4, 3), v(.3, .3, .3));
+            break;
+
+    }
+}
 
 Init
 EmptyBox (2 11 47) (4 4 10) EndRender

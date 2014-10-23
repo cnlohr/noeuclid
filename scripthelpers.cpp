@@ -179,3 +179,11 @@ void tccEmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte d
 void tccWarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3) {
     SetWarpSpaceArea({x,y,z},{x2,y2,z2},{f1,f2,f3});
 }
+
+int tccPlayerInRange(float x, float y, float z, float x2, float y2, float z2) {
+    return IsPlayerInRange({x,y,z},{x2,y2,z2});
+}
+
+void tccPaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte density) {
+    PaintRange({x,y,z},{x2,y2,z2}, {1,190,density,block});
+}
