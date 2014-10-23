@@ -1,3 +1,10 @@
+### Compiling
+```
+mkdir build && cd build
+cmake .. # for windows: cmake -DCMAKE_TOOLCHAIN_FILE=../Windows.cmake ..
+make
+```
+
 [Explanation Video](https://www.youtube.com/watch?v=tl40xidKF-4)
 
 ### Files you care about:

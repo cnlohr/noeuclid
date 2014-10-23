@@ -5,22 +5,21 @@
 #include <GL/glew.h>
 #endif
 
-
-#ifdef WIN32
-#include "winclude.h"
-#include <windows.h>
-#endif
-
-#include <stdio.h>
-#include "GLUTCore.h"
+#include <cstdio>
 
 
 #include <vector>
 #include <string>
 #include <stdlib.h>
 #include <string.h>
-using namespace std;
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#include <GL/glext.h>
 
+using std::vector;
+using std::string;
+using byte = unsigned char;
 ///Texture type for use with CPPGPGPU.
 enum TextureType
 {
@@ -31,6 +30,8 @@ enum TextureType
 	TTRGBA32,
 	TTUNDEFINED
 };
+
+
 
 ///Basic element for turning shaders on and off
 /** This class helps aide in the loading and use of shaders.  It allows loading of files
@@ -307,9 +308,9 @@ void SetupForDataRun();
 void PopFromDataRun();
 
 ///Setup Matricies for 2D Rasterization
-EXPORT void SetupFor2D();
+void SetupFor2D();
 ///Go back into 3D mode
-EXPORT void PopFrom2D();
+void PopFrom2D();
 
 ///Strip data from the render/frame buffer into a vertex buffer object. 
 void StripDataFromBuffer( int ix, int iy, int iwidth, int iheight, TextureType tt, char * buffer );
@@ -337,10 +338,10 @@ bool DrawText( const char * text, float size = 1.0, const string & sFontName = "
 ///OpenImage Utility function - This isn't ordinarily used, but has been found to be useful.  It
 ///allocates a buffer, and you give it pointers to width and height.  0 return indicates a failed
 ///load.
-int OpenImage( const char * sImageName, unsigned char ** buffer, int * width, int * height, int * channels = NULL );
+int OpenImage( const char * sImageName, byte ** buffer, int * width, int * height, int * channels = NULL );
 
 ///Generic image loader format
-typedef int (*OpenImageFunction)( const char * sPPMName, unsigned char ** buffer, int * width, int * height, int * channels );
+typedef int (*OpenImageFunction)( const char * sPPMName, byte ** buffer, int * width, int * height, int * channels );
 
 ///General Utility function to pull a line out of a file of iBuffersize or less.  You must create
 /// the line* value.
