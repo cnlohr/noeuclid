@@ -160,4 +160,10 @@ void UpdateZone(Vec3i p, Vec3i s) {
     gh->TMap->TackMultiChange(p, s);
 }
 
+void Cell(int x, int y, int z, byte block, byte density) { 
+    ChangeCell(0,{x,y,z},{1,190,density,block});
+}
 
+void EmptyBox(Vec3i p, Vec3i s, byte block, byte density) {
+    MakeEmptyBox(p, s, true, RGBA{1, DEFAULT_BRIGHT, density, block});
+}

@@ -42,6 +42,7 @@ string readScript(ifstream& file, int& lineNum) {
         lineNum++;
     }
     cout<<"Error: script beginning at line "<<beginning<<" not terminated."<<endl;
+    return "";
 }
 
 void GameMap::loadRooms(string fname) {

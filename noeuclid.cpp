@@ -36,6 +36,7 @@
 #include <sys/time.h>
 #include "GameMap.h"
 #include "TCC.h"
+#include <fstream>
 void mousePress(int b, int state, int x, int y);
 
 void mouseDrag(int x, int y);
@@ -874,16 +875,23 @@ void draw() {
 }
 TCC tcc;
 
-Vec3i makeVec3i(int x, int y, int z) {return {x,y,z};}
-void tccCell(int x, int y, int z, byte block, byte density) { printf("lu");ChangeCell(0,{x,y,z},{1,190,density,block});};
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
-
     unsigned int xSize = 720, ySize = 480;
 
-    tcc.addfun(string("Cell"),string("void Cell(int x, int y, int z, unsigned char block, unsigned char density)"), &tccCell);
-    //	quatsetnone( LookQuaternion );
+    ifstream tccheader("tccinclude.h");
+    tcc.addheader(string((istreambuf_iterator<char>(tccheader)),
+            istreambuf_iterator<char>()));
+    
+#define TCCADD(var) tcc.addfun(#var, &var);
+    TCCADD(Cell);
+    /*TCCADD(ClearCell);
+    TCCADD(ClearRange);
+    TCCADD(EmptyBox);
+    TCCADD(WarpSpace);*/
+
+    
     float initialrotaxis[] = {1, 0, 0};
     quatfromaxisangle(LookQuaternion, initialrotaxis, -3.14159 / 2.);
 

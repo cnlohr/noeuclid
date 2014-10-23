@@ -15,21 +15,29 @@ struct TCCSymbol { string name; void* func;};
 class TCC {
 public:
     template<typename T>
-    void addfun(string name, string signature, T* func) {
+    void addfun(string name, T* func) {
         //TODO memory leak
         if(!tcc) tcc = tcc_new();
-        headers += signature +";\n";
         symbols.push_back({name, (void*) func});
+    }
+    
+    void addheader(string header) {
+        headers += header+"\n";
     }
 
     template<typename T> T* compile(string code, string symbol) {
         if(!tcc) tcc = tcc_new();
+        tcc_define_symbol(tcc, "IS_TCC_RUNTIME", nullptr);
         for(TCCSymbol& s:symbols) tcc_add_symbol(tcc, s.name.c_str(), s.func);
         code = headers + code;
         int state = tcc_compile_string(tcc, code.c_str());
-        if(state == -1) throw std::invalid_argument("Error compiling code.");
+        if(state == -1) {
+            cout<<code<<endl; //throw std::invalid_argument("Error compiling code");
+        }
         int size = tcc_relocate(tcc, TCC_RELOCATE_AUTO);
-        if(size == -1) throw std::invalid_argument("Error compiling code 2.");
+        if(size == -1) {
+            cout<<code<<endl; //throw std::invalid_argument("Error compiling code 2");
+        }
         T* fn = (T*) tcc_get_symbol(tcc, symbol.c_str());
         tcc = 0;
         return fn;

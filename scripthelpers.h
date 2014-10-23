@@ -30,7 +30,6 @@
 
 #include "Common.h"
 #include <algorithm>
-
 #define PICKABLE_CELL 114
 #define DEFAULT_BRIGHT 190
 #define DEFAULT_DENSITY 125
@@ -105,5 +104,9 @@ struct DeathBlock {
     Vec3i p;
     int in_use;
 };
+
+// tcc funs
+void Cell(int x, int y, int z, byte block, byte density);
+void EmptyBox(Vec3i p, Vec3i s, byte block, byte density);
 #endif
 
