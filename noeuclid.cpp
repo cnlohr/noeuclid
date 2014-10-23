@@ -178,7 +178,7 @@ int cix = 0;
 int ciy = 0;
 int gGodMode = 0;
 
-float mouseSensitivity = 0.1;
+float mouseSensitivity = 0.5;
 double GameTimer = 1000;
 double GameAttempt = 1;
 extern int pickables_in_inventory;

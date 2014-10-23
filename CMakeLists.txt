@@ -12,4 +12,4 @@ find_package(GLEW REQUIRED)
 
 add_definitions(-DGLEW_STATIC -DGLUT_STATIC -DGL_GLEXT_PROTOTYPES -DGLUT_DISABLE_ATEXIT_HACK)
 include_directories(${GLEW_INCLUDE_PATH} ${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS})
-target_link_libraries(noeuclid ${GLEW_LIBRARY} ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} -ldl -ltcc)
+target_link_libraries(noeuclid ${GLEW_LIBRARY} ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} -ltcc -ldl )
