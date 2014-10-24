@@ -1,5 +1,19 @@
 #include "Common.h"
 
+const Vec3it& Vec3it::operator++() {
+    ++i.z;
+    if(i.z==c.e.z) {
+        i.z = c.s.z;
+        ++i.y;
+        if(i.y == c.e.y) {
+            i.y = c.s.y;
+            ++i.x;
+        }
+    }
+    return *this;
+}
+
+
 void cross3d(float * out, const float * a, const float * b) {
     out[0] = a[1] * b[2] - a[2] * b[1];
     out[1] = a[2] * b[0] - a[0] * b[2];
