@@ -1,20 +1,21 @@
-### Compiling
+### Compiling and running
 ```
 mkdir build && cd build
-cmake .. # for windows: cmake -DCMAKE_TOOLCHAIN_FILE=../Windows.cmake ..
+cmake .. # for crosscompiling to windows: cmake -DCMAKE_TOOLCHAIN_FILE=../Windows.cmake ..
 make
+cd ..
+build/noeuclid
 ```
 
 [Explanation Video](https://www.youtube.com/watch?v=tl40xidKF-4)
 
 ### Files you care about:
 
-* games/test.c < the game.
-* scripthelpers.h < bunch of useful stuff.
-* tccexports.cpp < All the stuff exported from the main game engine to TCC.
+* rooms.txt < the levels.
+* scripthelpers.h < helper functions for the level scripts
 * tileattributes.txt < File containing the visual appearance for various tiles.
 
-Modifying games/test.c while the game is running will just cause it to be recompiled in-place.  Where you are.
+Modifying rooms.txt while the game is running will just cause it to be recompiled in-place.  Where you are.
 
 ### Hotkeys:
 
@@ -31,10 +32,6 @@ Modifying games/test.c while the game is running will just cause it to be recomp
 'l' | Load ALL levels right now.
 'p' | Pauses.
 '8' / '9' | Change mouse sensitivity.
-
-
-
-There's a map of the 256 different available blocks above Room 4.  It will say what block you are standing on.
 
 You can add new blocks by modifying tileattributes.txt
 
