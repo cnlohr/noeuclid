@@ -1,10 +1,3 @@
-/* 
- * File:   tcc.h
- * Author: tehdog
- *
- * Created on 22. Oktober 2014, 22:49
- */
-
 #ifndef TCC_H
 #define	TCC_H
 #include <string>

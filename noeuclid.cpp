@@ -881,6 +881,7 @@ int main(int argc, char ** argv) {
     unsigned int xSize = 720, ySize = 480;
 
     ifstream tccheader("tccinclude.h");
+    if(!tccheader.is_open()) throw runtime_error("missing header");
     tcc.addheader(string((istreambuf_iterator<char>(tccheader)),
             istreambuf_iterator<char>()));
     

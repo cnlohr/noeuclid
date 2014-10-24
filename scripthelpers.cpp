@@ -113,7 +113,7 @@ void SetWarpSpaceArea(Vec3i p, Vec3i s, Vec3f comp) {
     byte yt = cc.y * 255;
     byte zt = cc.z * 255;
     byte wt = wterm * 255;
-
+    if(xt == 0 || yt==0 || zt==0) throw runtime_error("tried to warp space to 0");
     //	float xyzpres = sqrt( xcomp*xcomp + ycomp*ycomp + zcomp*zcomp );
 
     short i, j, k;

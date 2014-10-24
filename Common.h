@@ -118,6 +118,10 @@ public:
         inp>>v.x>>v.y>>v.z;
         return inp;
     }
+    friend ostream &operator<<(ostream &oup, Vec3 &v) {
+        oup<<"("<<v.x<<" "<<v.y<<" "<<v.z<<")";
+        return oup;
+    }
 };
 typedef Vec3<short> Vec3s;
 typedef Vec3<int> Vec3i;
