@@ -37,6 +37,7 @@ InitScript {
       }
 }
 RunScript {
+       printf("%f %f\n",gPosition.y, gPositionY);
        double f = fmod(timeInRoom,1); if(f<0)f=-f;
        EmptyBox( v(2,2,48), v(4,4,11), 4, swoovey(timeInRoom * .1, 1)*70 + 185);
        ClearCell( v(4,4,60) );
@@ -296,7 +297,7 @@ EmptyBox (2 67 36) (6 10 10) 4 100
 #Cell (3 74 38) 17
 Init
 RunScript {
-    Cell(3, 74, 38, 17, timeInRoom*50);
+    ChangeCell(3, 74, 38, 17, timeInRoom*50);
     float a = timeInRoom*0.1;
     JumpSpaceExtended(v(3,67,37), v(3,1,3), v(0,5,0), v(1,0,0), v(0,cosf(a),-sinf(a)), v(0,sinf(a),cosf(a)));
 }

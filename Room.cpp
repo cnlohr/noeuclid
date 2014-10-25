@@ -19,7 +19,7 @@ void Room::update() {
     if(runscript) (*runscript)(timeIn);
     for(auto& runfn:runs) runfn(timeIn);
 
-    if (IsPlayerInRange(exitr1, exitr2)) {
+    if (PlayerInRangeV(exitr1, exitr2)) {
         gamemap.curroom++;
     }
 }
@@ -36,7 +36,7 @@ void Room3::run() {
 void Room4::init() {
     //Increasingly warped world.
     for (int x = 0; x < 14; x++) {
-        SetWarpSpaceArea({2 + x, 34, 42}, {3, 15, 20}, {.8f / (14 - x), .8f / (14 - x), .4f});
+        WarpSpaceV({2 + x, 34, 42}, {3, 15, 20}, {.8f / (14 - x), .8f / (14 - x), .4f});
     }
 
     //Fill some lava in in a random pattern.
@@ -45,7 +45,7 @@ void Room4::init() {
         for (int y = 0; y < 11; y++) {
             i = (i * 2089) % 491;
             if (((i % 7) > 1)) {
-                QuickCell(0, {3 + x, 35 + y, 43}, {1, DEFAULT_BRIGHT, 60, 10}); //Lava
+                QuickCellV(0, {3 + x, 35 + y, 43}, {1, DEFAULT_BRIGHT, 60, 10}); //Lava
                 gamemap.AddDeathBlock({3 + x, 35 + y, 43});
             }
         }
@@ -55,13 +55,13 @@ void Room4::init() {
 void Room4::run() {
     for (int x = 0; x < 14; x++)
         for (int y = 0; y < 14; y++) {
-            QuickCell(0, {4 + x, 34 + y, 43 + 10}, {1, DEFAULT_BRIGHT, byte(sin(x * 2 + y + timeIn)*80 + 80), 9});
+            QuickCellV(0, {4 + x, 34 + y, 43 + 10}, {1, DEFAULT_BRIGHT, byte(sin(x * 2 + y + timeIn)*80 + 80), 9});
         }
-    UpdateZone({3, 33, 43 + 10},{ 15, 15, 3});
+    UpdateZoneV({3, 33, 43 + 10},{ 15, 15, 3});
 }
 
 void Room6::run() {
-    if (IsPlayerInRange({3, 18, 30}, {5, 7, 4})) {
+    if (PlayerInRangeV({3, 18, 30}, {5, 7, 4})) {
         gamemap.die();
     }
 }
@@ -94,17 +94,17 @@ void Room7::init() {
     for (x = 0; x < 8; x++)
         for (y = 0; y < 8; y++) {
             if (lavamap[x + y * 8]) {
-                QuickCell(0, {4 + x, 4 + y, 20}, {1, DEFAULT_BRIGHT, 60, 10}); //Lava
+                QuickCellV(0, {4 + x, 4 + y, 20}, {1, DEFAULT_BRIGHT, 60, 10}); //Lava
                 gamemap.AddDeathBlock({4 + x, 4 + y, 20});
             }
         }
     //Goal
-    PaintRange({24, 7, 21}, {1, 1, 2}, GOAL_BLOCK, 255);
+    PaintRangeV({24, 7, 21}, {1, 1, 2}, {1, DEFAULT_BRIGHT, GOAL_BLOCK, 255});
 
 }
 
 void Room7::run() {
-    if (IsPlayerInRange({13, 1, 18}, {7, 15, 3})) {
+    if (PlayerInRangeV({13, 1, 18}, {7, 15, 3})) {
         gamemap.die();
     }
 }
@@ -167,10 +167,10 @@ void Room9::run() {
     for (int x = 0; x < 16; x++) {
         for (int y = 0; y < 16; y++) {
             double den = ((double) lifemap[x + y * 16]) * (1. - TimeTransition) + ((double) newlife[x + y * 16]) * TimeTransition;
-            QuickCell(0, {3 + x, 50 + y, 47}, {1, DEFAULT_BRIGHT, byte(den*255), 5});
+            QuickCellV(0, {3 + x, 50 + y, 47}, {1, DEFAULT_BRIGHT, byte(den*255), 5});
         }
     }
-    UpdateZone({3,50,47}, {19, 66, 47});
+    UpdateZoneV({3,50,47}, {19, 66, 47});
     TimeTransition += worldDeltaTime;
 
     if (gPosition.z < 47.8) {
@@ -182,25 +182,25 @@ void Room10::run() {
     for (int z = 46; z < 57; z++)
         for (int y = 67; y < 77; y++) {
             if ((y + z)&1) continue;
-            QuickCell(0,{2, y, z}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + z + y)*50.5 + 160), 5});
+            QuickCellV(0,{2, y, z}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + z + y)*50.5 + 160), 5});
         }
-    UpdateZone({1, 66, 46}, {1, 10, 10});
+    UpdateZoneV({1, 66, 46}, {1, 10, 10});
 
     for (int z = 46; z < 57; z++)
         for (int x = 2; x < 12; x++) {
             if ((x + z)&1) continue;
-            QuickCell(0,{x, 77, z}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + x + z)*50.5 + 160), 5});
+            QuickCellV(0,{x, 77, z}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + x + z)*50.5 + 160), 5});
         }
-    UpdateZone({1, 76, 46},{10, 1, 10});
+    UpdateZoneV({1, 76, 46},{10, 1, 10});
 
     for (int y = 67; y < 77; y++)
         for (int x = 2; x < 12; x++) {
             if ((y + x)&1) continue;
-            QuickCell(0,{x, y, 56}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + x + y)*50.5 + 160), 5});
+            QuickCellV(0,{x, y, 56}, {1, DEFAULT_BRIGHT, byte(sin(timeIn * 10.0 + x + y)*50.5 + 160), 5});
         }
-    UpdateZone({2, 67, 56}, {10, 10, 1});
+    UpdateZoneV({2, 67, 56}, {10, 10, 1});
 
-    if (IsPlayerInRange({3, 70, 46}, {6, 3, 2.1})) {
+    if (PlayerInRangeV({3, 70, 46}, {6, 3, 2.1})) {
         gamemap.die();
     }
 

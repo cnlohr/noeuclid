@@ -187,7 +187,7 @@ void GameMap::update() {
     }
 
 
-    if (IsPlayerInRange({2, 40, 63}, {16, 16, 4})) {
+    if (PlayerInRangeV({2, 40, 63}, {16, 16, 4})) {
         int lx = ((int) gPosition.x) - 2;
         int ly = ((int) gPosition.y) - 40;
         sprintf(gDialog, "OnTile %d\n", lx + ly * 16);
@@ -306,9 +306,9 @@ void GameMap::UpdatePickableBlocks() {
         float drawden = (pb->density < 0) ? 0.0 : ((pb->density > 1.0) ? 1.0 : pb->density);
 
         if (drawden > .01) {
-            PaintRange(pb->p, {1, 1, 1}, {1,190,byte(drawden * 200), PICKABLE_CELL});
+            PaintRangeV(pb->p, {1, 1, 1}, {1,190,byte(drawden * 200), PICKABLE_CELL});
         } else {
-            ClearCell(pb->p);
+            ClearCellV(pb->p);
         }
 
     }

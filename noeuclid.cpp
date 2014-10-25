@@ -874,24 +874,26 @@ void draw() {
 
 }
 TCC tcc;
-
+Vec3f*test;
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
     unsigned int xSize = 720, ySize = 480;
 
-    ifstream tccheader("tccinclude.h");
+    ifstream tccheader("scripthelpers.h");
     if(!tccheader.is_open()) throw runtime_error("missing header");
     tcc.addheader(string((istreambuf_iterator<char>(tccheader)),
             istreambuf_iterator<char>()));
     
-#define TCCADDFUN(var) tcc.add(#var, &tcc##var)
-    tcc.add("swoovey",&swoovey);
+#define TCCADDFUN(var) tcc.add(#var, &var)
     tcc.add("cosf",&cosf);
     tcc.add("sinf",&sinf);
     tcc.add("sin",(double(*)(double))&sin);
     tcc.add("cos",(double(*)(double))&cos);
-    TCCADDFUN(Cell);
+    test = &gPosition;tcc.add("gPosition",&gPosition);
+    
+    TCCADDFUN(swoovey);
+    TCCADDFUN(ChangeCell);
     TCCADDFUN(ClearCell);
     TCCADDFUN(ClearRange);
     TCCADDFUN(EmptyBox);
@@ -900,6 +902,7 @@ int main(int argc, char ** argv) {
     TCCADDFUN(PaintRange);
     TCCADDFUN(JumpSpace);
     TCCADDFUN(JumpSpaceExtended);
+    TCCADDFUN(loopingarrayaccess);
 #define TCCADDINT(var, sym, type) tcc.add(#var, sym);tcc.addheader("extern "#type" "#var";")
 
 #define TCCADD(var, type) TCCADDINT(var, &var, type)
@@ -908,7 +911,10 @@ int main(int argc, char ** argv) {
         TCCADDINT(var##Z, &var.z, int);
     TCCADDVEC(gPosition);
     TCCADDVEC(gDirection);
-    TCCADD(gDaytime, float);
+    TCCADDVEC(gTargetNormal);
+    TCCADDVEC(gTargetCompression);
+    TCCADDVEC(gTargetHit);
+    TCCADDFUN(gDaytime);
 
     
     float initialrotaxis[] = {1, 0, 0};

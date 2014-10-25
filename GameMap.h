@@ -40,29 +40,29 @@ public:
         {"EmptyBox", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;
             int density = DEFAULT_DENSITY; if(!DONE) i>>density;
-            return bind(MakeEmptyBox, p, s, true, RGBA{1, DEFAULT_BRIGHT, byte(density), b});
+            return bind(EmptyBoxV, p, s, true, RGBA{1, DEFAULT_BRIGHT, byte(density), b});
         }}, {"Cell", [](istream& i) -> initfn { 
             Vec3i p; BlockType b; i>>p>>b;
-            return bind(ChangeCell, 0, p, RGBA{1, DEFAULT_BRIGHT, 255, b});
+            return bind(ChangeCellV, 0, p, RGBA{1, DEFAULT_BRIGHT, 255, b});
         }}, {"ClearCell", [](istream& i) -> initfn {
             Vec3i p; i>>p; //TODO merge with "Block"
-            return bind(ChangeCell, 0, p, RGBA{0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK});
+            return bind(ChangeCellV, 0, p, RGBA{0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK});
         }}, {"ClearRange", [](istream& i) -> initfn {
             Vec3i p,s; i>>p>>s;
-            return bind(ClearRange, p, s);
+            return bind(ClearRangeV, p, s);
         }}, {"PaintRange", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;
             int density = DEFAULT_DENSITY; if(!DONE) i>>density;
-            return bind(PaintRange, p, s, RGBA{1,190,byte(density),b});
+            return bind(PaintRangeV, p, s, RGBA{1,190,byte(density),b});
         }}, {"Warp", [](istream& i) -> initfn { 
             Vec3i p,s; Vec3f x;
             i>>p>>s>>x;
-            return bind(SetWarpSpaceArea, p, s, x);
+            return bind(WarpSpaceV, p, s, x);
         }}, {"JumpSection", [](istream& i) -> initfn {
             Vec3i p,s; Vec3f ofs, f1 = {1,0,0},f2={0,1,0},f3={0,0,1};
             i>>p>>s>>ofs;
             if(!DONE) i>>f1>>f2>>f3;
-            return bind(MakeJumpSection, p, s, ofs, f1, f2, f3);
+            return bind(JumpSpaceV, p, s, ofs, f1, f2, f3);
         }}, {"RequireRoom", [this](istream& i) -> initfn {
             int room; i>>room;
             return [this,room]() { rooms[room]->begin(); };
@@ -73,13 +73,13 @@ public:
             Vec3i p,s; i>>p>>s;
             return [p,s](double timeIn) {
                 int capden = 255 - timeIn * 200;
-                PaintRange(p, s, {1, 190, byte(capden<0?0:capden), GOAL_BLOCK});
+                PaintRangeV(p, s, {1, 190, byte(capden<0?0:capden), GOAL_BLOCK});
             };
         }}, {"AnimateClose", [](istream& i) -> runfn {
             Vec3i p,s; i>>p>>s;
             return [p,s](double timeIn) {
                 int capden = 255 - timeIn * 200;
-                PaintRange(p, s, {1,190,byte(capden<0?255:255-capden),DEADGOAL_BLOCK});
+                PaintRangeV(p, s, {1,190,byte(capden<0?255:255-capden),DEADGOAL_BLOCK});
             };
         }}
     };

@@ -24,72 +24,60 @@
         (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #ifndef _SCRIPTHELPERS_H
 #define _SCRIPTHELPERS_H
+#ifdef IS_TCC_RUNTIME
+#define true 1
+#define false 0
+#define v(x,y,z) x,y,z
+#define vf(x,y,z) x,y,z
+typedef unsigned char byte;
+struct Vec3f { float x,y,z;};
+extern struct Vec3f gPosition;
+// WARNING: tcc does not throw errors when the signature of a function is not known!
+// tcc funs
+float sinf(float x);
+float cosf(float x);
+double sin(double x);
+double cos(double x);
+double pow(double a, double b);
+#else 
+
 
 #include "Common.h"
 #include <algorithm>
-#define PICKABLE_CELL 114
-#define DEFAULT_BRIGHT 190
-#define DEFAULT_DENSITY 125
-#define WALL_BLOCK 12
-#define WHITE_BLOCK 19
-#define GOAL_BLOCK 24
-//#define DEADGOAL_BLOCK 25
-#define DEADGOAL_BLOCK 7
-#define DEFAULT_EMPTY_BLOCK 0
-#define SPAAACE_CELL 255
+
 
 #define CLAMP( x, mi, ma ) (x < mi ? mi:( x>ma ? ma:x ) )
 
-extern double worldDeltaTime;
 
-extern float gDaytime;
-
-extern float gRenderMixval;
-extern float gRenderDensityLimit;
-extern float gRenderDensityMux;
 
 extern Vec3f gPosition;
 extern Vec3f gDirection;
 extern Vec3f gTargetNormal;
 extern Vec3f gTargetCompression;
 extern Vec3f gTargetHit;
-extern float gTargetActualDistance;
-extern float gTargetProjDistance;
-extern float gTargetPerceivedDistance;
-extern char gDialog[1024];
-extern byte gKeyMap[256];
-extern byte gFocused;
-extern int gMouseLastClickButton;
-extern float gTimeSinceOnGround;
-extern int pickables_in_inventory;
-extern int gOverallUpdateNo;
-extern double GameTimer;
-extern double GameAttempt;
 
 extern int AddSizeStride;
 
-char loopingarrayaccess(char * map, int w, int h, int x, int y);
+
 
 //Make a triangle wave.
-float swoovey(float f, float siny);
 
 typedef void (*ClickCellCBType)(bool left, Vec3f pos, float dist);
 
 
-void ClearCell(Vec3i p);
-void PaintRange(Vec3i p, Vec3i s, RGBA val);
-void ClearRange(Vec3i p, Vec3i s);
-void MakeEmptyBox(Vec3i p, Vec3i s, bool force_empty, RGBA val);
-void MakeJumpSection(Vec3i p, Vec3i s, Vec3f ofs, Vec3f f1 = {1,0,0}, Vec3f f2={0,1,0}, Vec3f f3 = {0,0,1});
-void SetWarpSpaceArea(Vec3i p, Vec3i s, Vec3f comp);
-int IsPlayerInRange(Vec3f p, Vec3f s) ;
-void ChangeCell(int t, Vec3i p, RGBA c);
-void QuickCell(int t, Vec3i p, RGBA c);
-void QuickCell1GBAOnly(Vec3i p, byte g, byte b, byte a);
-void UpdateZone(Vec3i p, Vec3i s);
+void ClearCellV(Vec3i p);
+void PaintRangeV(Vec3i p, Vec3i s, RGBA val);
+void ClearRangeV(Vec3i p, Vec3i s);
+void EmptyBoxV(Vec3i p, Vec3i s, bool force_empty, RGBA val);
+void JumpSpaceV(Vec3i p, Vec3i s, Vec3f ofs, Vec3f f1 = {1,0,0}, Vec3f f2={0,1,0}, Vec3f f3 = {0,0,1});
+void WarpSpaceV(Vec3i p, Vec3i s, Vec3f comp);
+int PlayerInRangeV(Vec3f p, Vec3f s) ;
+void ChangeCellV(int t, Vec3i p, RGBA c);
+void QuickCellV(int t, Vec3i p, RGBA c);
+void QuickCell1GBAOnlyV(Vec3i p, byte g, byte b, byte a);
+void UpdateZoneV(Vec3i p, Vec3i s);
 void MarkAddDataForReload();
 bool fileChanged(string fname);
 
@@ -105,15 +93,52 @@ struct DeathBlock {
     int in_use;
 };
 
-// tcc funs
-void tccCell(int x, int y, int z, byte block, byte density);
-void tccClearCell(int x, int y, int z);
-void tccClearRange(int x, int y, int z, int x2, int y2, int z2);
-void tccEmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
-void tccWarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3);
-int tccPlayerInRange(float x, float y, float z, float x2, float y2, float z2);
-void tccPaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
-void tccJumpSpace(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs);
-void tccJumpSpaceExtended(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs, float xm1, float ym1, float zm1, float xm2, float ym2, float zm2, float xm3, float ym3, float zm3);
 
+#endif
+
+#define PICKABLE_CELL 114
+#define DEFAULT_BRIGHT 190
+#define DEFAULT_DENSITY 125
+#define WALL_BLOCK 12
+#define WHITE_BLOCK 19
+#define GOAL_BLOCK 24
+#define DEADGOAL_BLOCK 7
+#define DEFAULT_EMPTY_BLOCK 0
+#define SPAAACE_CELL 255
+
+extern double worldDeltaTime;
+
+extern float gDaytime;
+
+extern float gRenderMixval;
+extern float gRenderDensityLimit;
+extern float gRenderDensityMux;
+extern float gTargetActualDistance;
+extern float gTargetProjDistance;
+extern float gTargetPerceivedDistance;
+extern char gDialog[1024];
+extern byte gKeyMap[256];
+extern byte gFocused;
+extern int gMouseLastClickButton;
+extern float gTimeSinceOnGround;
+extern int pickables_in_inventory;
+extern int gOverallUpdateNo;
+extern double GameTimer;
+extern double GameAttempt;
+
+float swoovey(float f, float siny);
+
+char loopingarrayaccess(char * map, int w, int h, int x, int y);
+
+int PlayerInRange(float x, float y, float z, float x2, float y2, float z2);
+void PaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
+void JumpSpace(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs);
+void JumpSpaceExtended(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs, float xm1, float ym1, float zm1, float xm2, float ym2, float zm2, float xm3, float ym3, float zm3);
+
+
+void ChangeCell(int x, int y, int z, byte block, byte density);
+void ClearCell(int x, int y, int z);
+void ClearRange(int x, int y, int z, int x2, int y2, int z2);
+void EmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
+void WarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3);
 #endif
