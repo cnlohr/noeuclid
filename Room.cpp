@@ -30,37 +30,7 @@ void Room3::init() {
 }
 
 void Room3::run() {
-    gDaytime = gDaytime * .999 + 472 * .001;
-
-    if (IsPlayerInRange({2, 17, 41}, {10, 10, 1.1}) && !already_removed_stretch) {
-        printf("Dewarpify.\n");
-        //Remove the stretchyness that let us into this room.
-        SetWarpSpaceArea({1, 15, 40}, {12, 12, 12}, {1, 1, 1});
-
-        PaintRange({4, 16, 48}, {1, 1, 1}, DEADGOAL_BLOCK, 255);
-        already_removed_stretch = 1;
-    }
-
-    if (IsPlayerInRange({12, 17, 41}, {1, 1, 2}) && already_setup_jumpspace == 0) {
-        ClearRange({1, 16, 37}, {1, 1, 4});
-        ClearRange({1, 16, 48}, {1, 1, 4});
-        MakeJumpSection({1, 16, 39}, {12, 12, 3}, {0, 0, 7});
-        MakeJumpSection({1, 16, 51}, {12, 12, 3}, {0, 0, -7});
-        printf("Jumpspace\n");
-        already_setup_jumpspace = 1;
-    }
-
-    int i;
-    //Make shifting platform.
-    for (i = 2; i < 13; i++) {
-        float swoove = swoovey(timeIn * .1, 3.0) + .5;
-        swoove = (swoove * 13.0 - i)*.4;
-        float swd = 1. - swoove*swoove;
-        if (swd < 0) swd = 0;
-        if (swd > 1) swd = 1;
-        swd = pow(swd, .5);
-        PaintRange({i, 21, 46}, {1, 2, 1}, 17, swd * 255); //Random little platform
-    }
+    
 }
 
 void Room4::init() {
@@ -241,7 +211,4 @@ void Room11::init() {
 }
 
 void Room11::run() {
-    //ChangeCell(0,{3,74,38},1,190,50,17);
-     //float ang = timeIn * 0.1;
-    //MakeJumpSection({3, 67, 37}, {3, 1, 3}, {0, 5, 0},{1, 0, 0},{0, cos(ang), -sin(ang)},{0.1, sin(ang), cos(ang)});
 }

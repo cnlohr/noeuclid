@@ -25,11 +25,11 @@ public:
         code = headers + code;
         int state = tcc_compile_string(tcc, code.c_str());
         if(state == -1) {
-            cout<<code<<endl; //throw std::invalid_argument("Error compiling code");
+            throw std::invalid_argument("Error compiling code (("+code+"))");
         }
         int size = tcc_relocate(tcc, TCC_RELOCATE_AUTO);
         if(size == -1) {
-            cout<<code<<endl; //throw std::invalid_argument("Error compiling code 2");
+            throw std::invalid_argument("Error compiling code 2 (("+code+"))");
         }
         T* fn = (T*) tcc_get_symbol(tcc, symbol.c_str());
         tcc = 0;

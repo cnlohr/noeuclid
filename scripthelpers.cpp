@@ -187,3 +187,11 @@ int tccPlayerInRange(float x, float y, float z, float x2, float y2, float z2) {
 void tccPaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte density) {
     PaintRange({x,y,z},{x2,y2,z2}, {1,190,density,block});
 }
+
+void tccJumpSpace(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs) {
+    MakeJumpSection({x,y,z},{x2,y2,z2},{xofs,yofs,zofs});
+}
+
+void tccJumpSpaceExtended(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs, float xm1, float ym1, float zm1, float xm2, float ym2, float zm2, float xm3, float ym3, float zm3) {
+    MakeJumpSection({x,y,z},{x2,y2,z2},{xofs,yofs,zofs},{xm1,  ym1,  zm1},  {xm2,  ym2,  zm2},  {xm3,  ym3,  zm3});
+}

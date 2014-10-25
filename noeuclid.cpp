@@ -887,6 +887,10 @@ int main(int argc, char ** argv) {
     
 #define TCCADDFUN(var) tcc.add(#var, &tcc##var)
     tcc.add("swoovey",&swoovey);
+    tcc.add("cosf",&cosf);
+    tcc.add("sinf",&sinf);
+    tcc.add("sin",(double(*)(double))&sin);
+    tcc.add("cos",(double(*)(double))&cos);
     TCCADDFUN(Cell);
     TCCADDFUN(ClearCell);
     TCCADDFUN(ClearRange);
@@ -894,6 +898,8 @@ int main(int argc, char ** argv) {
     TCCADDFUN(WarpSpace);
     TCCADDFUN(PlayerInRange);
     TCCADDFUN(PaintRange);
+    TCCADDFUN(JumpSpace);
+    TCCADDFUN(JumpSpaceExtended);
 #define TCCADDINT(var, sym, type) tcc.add(#var, sym);tcc.addheader("extern "#type" "#var";")
 
 #define TCCADD(var, type) TCCADDINT(var, &var, type)

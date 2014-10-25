@@ -113,4 +113,7 @@ void tccEmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte d
 void tccWarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3);
 int tccPlayerInRange(float x, float y, float z, float x2, float y2, float z2);
 void tccPaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
+void tccJumpSpace(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs);
+void tccJumpSpaceExtended(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs, float xm1, float ym1, float zm1, float xm2, float ym2, float zm2, float xm3, float ym3, float zm3);
+
 #endif
