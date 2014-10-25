@@ -158,6 +158,11 @@ struct RGBAf {
     Vec3f vec() {
         return {r,g,b};
     }
+    
+    friend istream &operator>>(istream &inp, RGBAf &c) {
+        inp>>c.r>>c.g>>c.b>>c.a;
+        return inp;
+    }
 };
 
 struct Vec3range;

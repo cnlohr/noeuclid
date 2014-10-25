@@ -363,15 +363,6 @@ void RegisterImageLoader( unsigned int fingerprint, OpenImageFunction f );
 
 #endif
 
-
-///Override fopen to allow user definable VFS.
-#define fopen cppgpgpufopen
-FILE * cppgpgpufopen( const char * fn, const char * );
-
-typedef FILE * (*Overridedfopen)( const char * fn, const char * mode );
-
-void SetOverrideFOpenFunction( Overridedfopen fo );
-
 /*
 Copyright (c) 2005, 2006, 2007 Charles Lohr, David Chapman, Joshua Allen
 

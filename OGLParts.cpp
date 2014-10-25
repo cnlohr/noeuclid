@@ -53,7 +53,6 @@ Shader::Shader() {
     iTimeCode[1] = 0;
     iTimeCode[2] = 0;
     bIsGLSLAsm = 0;
-    //	sOldFilename = ""; 
 }
 
 Shader::~Shader() {
@@ -807,21 +806,6 @@ bool TextUtil::LoadFont(const string & sFontName) {
         fFontWidths[i] += AddToAll;
 
     return true;
-}
-
-Overridedfopen overridedfopen;
-
-#undef fopen
-
-FILE * cppgpgpufopen(const char * fn, const char * mode) {
-    FILE * ret;
-    if (overridedfopen) {
-        ret = overridedfopen(fn, mode);
-        if (ret)
-            return ret;
-    }
-
-    return fopen(fn, mode);
 }
 
 /*

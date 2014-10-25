@@ -30,6 +30,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <cmath>
+#include <fstream>
+#include <sstream>
 #include "scripthelpers.h"
 
 float gDaytime;
@@ -130,13 +132,8 @@ void RTHelper::ReloadAdditionalInformatioMapData() {
 }
 
 void RTHelper::LoadAttributeMap() {
-    struct stat sb;
-    stat("tileattributes.txt", &sb);
-    LastAttributeTime = sb.st_mtime;
-
-
-    FILE * f = fopen("tileattributes.txt", "r");
-    if (!f) {
+    ifstream file("tileattributes.txt");
+    if (!file) {
         fprintf(stderr, "Error opening tileattributes.txt\n");
         return;
     }
@@ -146,111 +143,42 @@ void RTHelper::LoadAttributeMap() {
     {
         for (unsigned iTile = 0; iTile < 16; iTile++) //actually meta's.
         {
-            LTTex[iLine * 128 + iTile * 8 + 0].r = 1.0; //float(iLine % 16) / 16.;
-            LTTex[iLine * 128 + iTile * 8 + 0].g = 1.0; ///float(iLine / 16) / 16.;
-            LTTex[iLine * 128 + iTile * 8 + 0].b = 1.0; //float(iTile) / 16.;
-            LTTex[iLine * 128 + iTile * 8 + 0].a = 1.0;
-
-            LTTex[iLine * 128 + iTile * 8 + 1].r = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 1].g = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 1].b = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 1].a = 1.0;
-
-            LTTex[iLine * 128 + iTile * 8 + 2].r = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 2].g = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 2].b = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 2].a = 0.0;
-
-            LTTex[iLine * 128 + iTile * 8 + 3].r = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 3].g = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 3].b = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 3].a = 0.0;
-
-            LTTex[iLine * 128 + iTile * 8 + 4].r = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 4].g = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 4].b = 0.1;
-            LTTex[iLine * 128 + iTile * 8 + 4].a = 1.0;
-
-
-            LTTex[iLine * 128 + iTile * 8 + 7].r = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 7].g = 1.0;
-            LTTex[iLine * 128 + iTile * 8 + 7].b = 0.0;
-            LTTex[iLine * 128 + iTile * 8 + 7].a = 1.0;
+            LTTex[iLine * 128 + iTile * 8 + 0] = {1,1,1,1};
+            LTTex[iLine * 128 + iTile * 8 + 1] = {1,1,1,1};
+            LTTex[iLine * 128 + iTile * 8 + 2] = {0,0,0,0};
+            LTTex[iLine * 128 + iTile * 8 + 3] = {0,0,0,0};
+            LTTex[iLine * 128 + iTile * 8 + 4] = {1,1,0.1,1};
+            LTTex[iLine * 128 + iTile * 8 + 7] = {1,1,0,1};
         }
     }
 
-    char tline[1024];
+    string line;
     int lineNo = 0;
-    while (!feof(f) && fgets(tline, 1023, f)) {
+    while (getline(file,line)) {
         lineNo++;
         string Description;
-        int iTileID = -1;
-        int iMetaID = -1;
-        if (tline[0] == '#') continue;
+        int iTileID = -1, iMetaID = -1;
+        if (line[0] == '#') continue;
 
-        RGBAf BaseColor;
-        RGBAf NoiseColor;
-        RGBAf NoiseSet;
-        RGBAf NoiseMux;
-        RGBAf CoreData;
-        RGBAf TimeSettings;
-        RGBAf Speckles;
-        RGBAf ShaderEndingTerms = {1, 1, 0, 0};
+        RGBAf BaseColor, NoiseColor, NoiseSet, NoiseMux, CoreData, TimeSettings,
+                Speckles, ShaderEndingTerms = {1, 1, 0, 0};
         float fdensity;
 
-        /*		sscanf( tline, "%s %d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f", 
-                                Description, &iTileID, &iMetaID, &fdensity,
-                                &BaseColor.r, &BaseColor.g, &BaseColor.b, &BaseColor.a, &NoiseColor.r, &NoiseColor.g, &NoiseColor.b, &NoiseColor.a,
-                                &NoiseSet.r, &NoiseSet.g, &NoiseSet.b, &NoiseSet.a, &NoiseMux.r, &NoiseMux.g, &NoiseMux.b, &NoiseMux.a,
-                                &CoreData.r, &CoreData.g, &CoreData.b, &CoreData.a, &TimeSettings.r, &TimeSettings.g, &TimeSettings.b, &TimeSettings.a,
-                                &Speckles.r, &Speckles.g, &Speckles.b, &Speckles.a );
-         */
-        vector< string > dats;
-        string stmp;
-        char c = 0;
-        for (int ipl = 0; (c = tline[ipl]); ipl++) {
-            if (c == ' ' || c == '\t') {
-                if (stmp.size())
-                    dats.push_back(stmp);
-                stmp = "";
-            } else if (c == 10);
-            else {
-                stmp += c;
-            }
-        }
-        if (stmp != "")
-            dats.push_back(stmp);
-        if (dats.size() == 0) // Empty line.
-            continue;
-        if (dats.size() < 28) {
-            printf("Malformatted line in TileAttributes.txt, line %d: (%lu) args.\n", lineNo, dats.size());
-            continue;
-        }
+        istringstream l(line);
+            
 
-        Description = dats[0];
-        iTileID = atoi(dats[1].c_str());
-        
+        l >> Description >> iTileID;
         aliases[Description] = iTileID;
-        iMetaID = atoi(dats[2].c_str());
-        fdensity = atof(dats[3].c_str());
-
-        BaseColor.FromStringArray(&dats[4]);
-        NoiseColor.FromStringArray(&dats[8]);
-        NoiseSet.FromStringArray(&dats[12]);
-        NoiseMux.FromStringArray(&dats[16]);
-        CoreData.FromStringArray(&dats[20]);
-        TimeSettings.FromStringArray(&dats[24]);
-        if (dats.size() >= 32)
-            Speckles.FromStringArray(&dats[28]);
-        if (dats.size() >= 36)
-            ShaderEndingTerms.FromStringArray(&dats[32]);
+        
+        l >> iMetaID >> fdensity >> BaseColor >> NoiseColor >> NoiseSet
+                >> NoiseMux >> CoreData >> TimeSettings >> std::ws;
+        if (!l.eof())
+            l >> Speckles >> std::ws;
+        if (!l.eof())
+            l >> ShaderEndingTerms;
         ShaderEndingTerms.a = fdensity;
-
-
-        //		printf( "Loading: %d / %d (%s) ... %f %f %f %f / SPEC: %f %f %f %f\n", iTileID, iMetaID, Description.c_str(),
-        //			BaseColor.r, BaseColor.g, BaseColor.b, BaseColor.a,
-        //			Speckles.r, Speckles.g, Speckles.b, Speckles.a );
-
+        if(l.fail()) 
+            printf("Malformatted line in TileAttributes.txt, line %d", lineNo);
         if (iTileID == -1) continue;
 
         if (iMetaID == -1) {
@@ -281,7 +209,6 @@ void RTHelper::LoadAttributeMap() {
     AttributeMap.LoadTexture((char*) LTTex, 128, 256, TTRGBA32, false);
     glFinish();
     glFlush();
-    fclose(f);
 
     printf("Done with tile attributes.\n");
 
@@ -368,15 +295,10 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
 
     AttributeMap.ActivateTexture(4);
     AdditionalInformationMap.ActivateTexture(3);
-    vector< string > vsAllSamplerLocs;
-    vsAllSamplerLocs.push_back("GeoTex");
-    vsAllSamplerLocs.push_back("AddTex");
-    vsAllSamplerLocs.push_back("MovTex");
-    vsAllSamplerLocs.push_back("AdditionalInformationMap");
-    vsAllSamplerLocs.push_back("AttribMap");
-    vsAllSamplerLocs.push_back("Pass1A");
-    vsAllSamplerLocs.push_back("Pass1B");
-    vsAllSamplerLocs.push_back("Pass2");
+    vector<string> vsAllSamplerLocs {
+        "GeoTex","AddTex","MovTex","AdditionalInformationMap","AttribMap",
+        "Pass1A","Pass1B","Pass2"
+    };
 
 
     vector< string > vsAllFloats;
