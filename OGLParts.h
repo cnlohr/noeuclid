@@ -53,7 +53,7 @@ public:
 	    attempt to load, compile and link the files.  If any errors are found, they will
 	    be announced at STDOUT.  When Geometry shader support is added, it will search
 	    for .geom files */
-	bool LoadShader( const char * sShaderName );
+	bool LoadShader(string sShaderName );
 
 	///Explicitly load a fragment shader
 	/** This function takes on raw code in the sShaderCode string and attemps to compile
@@ -98,7 +98,7 @@ public:
 	bool DeactivateShader();
 
 	///Check for newer version of 'this' shader
-	void CheckForNewer( const char * sShaderName );
+	void CheckForNewer(string sShaderName);
 
 	///Explicitly get the OpenGL ProgramID in the event you need it for advanced techniques
 	GLhandleARB	GetProgramID() { return iProgramID; }

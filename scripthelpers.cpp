@@ -2,7 +2,8 @@
 #include "RTHelper.h"
 #include "sys/stat.h"
 #include "GameMap.h"
-extern RTHelper * gh;
+#include <fstream>
+extern RTHelper gh;
 //File for useful scripts.
 extern GameMap gamemap;
 //Defines outside extents.
@@ -39,7 +40,7 @@ void PaintRangeV(Vec3i p, Vec3i s, RGBA val) {
     for (i = p.x; i < p.x + s.x; i++)
         for (j = p.y; j < p.y + s.y; j++)
             for (k = p.z; k < p.z + s.z; k++) {
-                gh->TMap->TexCell(0, {i, j, k}) = val;
+                gh.TMap->TexCell(0, {i, j, k}) = val;
             }
     UpdateZoneV(p, s + Vec3i{1,1,1});
 }
@@ -58,30 +59,30 @@ void EmptyBoxV(Vec3i p, Vec3i s, bool force_empty, RGBA v) {
 
     for (int j = p.x; j <= p.x + s.x; j++)
         for (int k = p.y; k <= p.y + s.y; k++) {
-            gh->TMap->TexCell(0, {j, k, p.z}) = v;
-            gh->TMap->TexCell(0, {j, k, p.z + s.z}) = v;
+            gh.TMap->TexCell(0, {j, k, p.z}) = v;
+            gh.TMap->TexCell(0, {j, k, p.z + s.z}) = v;
         }
 
     for (int j = p.z; j <= p.z + s.z; j++)
         for (int k = p.x; k <= p.x + s.x; k++) {
-            gh->TMap->TexCell(0, {k, p.y, j}) = v;
-            gh->TMap->TexCell(0, {k, p.y + s.y, j}) = v;
+            gh.TMap->TexCell(0, {k, p.y, j}) = v;
+            gh.TMap->TexCell(0, {k, p.y + s.y, j}) = v;
         }
 
     for (int j = p.z; j <= p.z + s.z; j++)
         for (int k = p.y; k <= p.y + s.y; k++) {
-            gh->TMap->TexCell(0, {p.x, k, j}) = v;
-            gh->TMap->TexCell(0, {p.x + s.x, k, j}) = v;
+            gh.TMap->TexCell(0, {p.x, k, j}) = v;
+            gh.TMap->TexCell(0, {p.x + s.x, k, j}) = v;
         }
 
 }
 
 void JumpSpaceV(Vec3i p, Vec3i s, Vec3f offset, Vec3f f1, Vec3f f2, Vec3f f3) {
-    int newalloc = gh->AllocAddInfo(4);
-    gh->AdditionalInformationMapData[newalloc + 0] = f1;
-    gh->AdditionalInformationMapData[newalloc + 1] = f2;
-    gh->AdditionalInformationMapData[newalloc + 2] = f3;
-    gh->AdditionalInformationMapData[newalloc + 3] = offset;
+    int newalloc = gh.AllocAddInfo(4);
+    gh.AdditionalInformationMapData[newalloc + 0] = f1;
+    gh.AdditionalInformationMapData[newalloc + 1] = f2;
+    gh.AdditionalInformationMapData[newalloc + 2] = f3;
+    gh.AdditionalInformationMapData[newalloc + 3] = offset;
 
     short i, j, k;
     for (i = p.x; i <= p.x + s.x; i++)
@@ -90,7 +91,7 @@ void JumpSpaceV(Vec3i p, Vec3i s, Vec3f offset, Vec3f f1, Vec3f f2, Vec3f f3) {
                 QuickCell1GBAOnlyV({i, j, k}, 0, newalloc % AddSizeStride, newalloc / AddSizeStride);
             }
     UpdateZoneV(p, s + Vec3i{1,1,1});
-    gh->MarkAddInfoForReload();
+    gh.MarkAddInfoForReload();
 }
 
 void WarpSpaceV(Vec3i p, Vec3i s, Vec3f comp) {
@@ -117,7 +118,7 @@ void WarpSpaceV(Vec3i p, Vec3i s, Vec3f comp) {
     for (i = p.x; i <= p.x + s.x; i++)
         for (j = p.y; j <= p.y + s.y; j++)
             for (k = p.z; k <= p.z + s.z; k++) {
-                gh->TMap->TexCell(2, {i, j, k}) = {xt, yt, zt, wt};
+                gh.TMap->TexCell(2, {i, j, k}) = {xt, yt, zt, wt};
             }
     UpdateZoneV(p, s + Vec3i{1,1,1});
 }
@@ -138,23 +139,29 @@ bool fileChanged(string fname) {
     } else return false;
 }
 
+string readFile(string fname) {
+    ifstream i(fname);
+    if(!i.is_open()) throw runtime_error("Can't open file "+fname);
+    return string((istreambuf_iterator<char>(i)), istreambuf_iterator<char>());
+}
+
 void ChangeCellV(int t, Vec3i p, RGBA c) {
-    gh->TMap->TexCell(t, p) = c;
-    gh->TMap->TackChange(p);
+    gh.TMap->TexCell(t, p) = c;
+    gh.TMap->TackChange(p);
 }
 
 void QuickCellV(int t, Vec3i p, RGBA c) {
-    gh->TMap->TexCell(t, p) = c;
+    gh.TMap->TexCell(t, p) = c;
 }
 
 void QuickCell1GBAOnlyV(Vec3i p, byte g, byte b, byte a) {
-    gh->TMap->TexCell(1, p).g = g;
-    gh->TMap->TexCell(1, p).b = b;
-    gh->TMap->TexCell(1, p).a = a;
+    gh.TMap->TexCell(1, p).g = g;
+    gh.TMap->TexCell(1, p).b = b;
+    gh.TMap->TexCell(1, p).a = a;
 }
 
 void UpdateZoneV(Vec3i p, Vec3i s) {
-    gh->TMap->TackMultiChange(p, s);
+    gh.TMap->TackMultiChange(p, s);
 }
 
 void ChangeCell(int x, int y, int z, byte block, byte density) {
@@ -166,7 +173,7 @@ void ClearCell(int x, int y, int z) {
 }
 
 void QuickCell(int t, int x, int y, int z, byte block, byte density) {
-    gh->TMap->TexCell(t, {x,y,z}) = {1,190,density,block};
+    gh.TMap->TexCell(t, {x,y,z}) = {1,190,density,block};
 }
 
 void ClearRange(int x, int y, int z, int x2, int y2, int z2) {

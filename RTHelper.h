@@ -43,9 +43,10 @@ void UpdatePositionAndRotation();
 class RTHelper
 {
 public:
-	RTHelper( bool fakemode );
+	RTHelper() : v({0,0,0}), ProbePlace(0) {};
 	~RTHelper();
 
+        void Init(bool fakemode);
 	void DrawMap(double dTime, double Now);
 	void LoadAttribMap();
 	void SplitDrawSquare( float minx, float miny, float maxx, float maxy, float far = 10000 );

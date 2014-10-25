@@ -29,7 +29,8 @@
 #include "RTHelper.h"
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <math.h>
+#include <cmath>
+#include "scripthelpers.h"
 
 float gDaytime;
 float gRenderMixval = .9;
@@ -45,8 +46,7 @@ public:
     int miHeight;
 };
 extern GLUT glut;
-
-RTHelper::RTHelper(bool fakemode) : v({0,0,0}), ProbePlace(0) {
+void RTHelper::Init(bool fakemode) {
     printf("Populate Complete.\n");
 
     lastWidth = 0;
@@ -339,9 +339,7 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
     Pass2.CheckForNewer("Shaders/Pass2");
     Pass3.CheckForNewer("Shaders/Pass3");
 
-    struct stat sb;
-    ::stat("tileattributes.txt", &sb);
-    if (LastAttributeTime != sb.st_mtime)
+    if (fileChanged("tileattributes.txt"))
         LoadAttributeMap();
 
 

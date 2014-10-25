@@ -27,8 +27,6 @@
 #ifndef _SCRIPTHELPERS_H
 #define _SCRIPTHELPERS_H
 #ifdef IS_TCC_RUNTIME
-#define true 1
-#define false 0
 #define v(x,y,z) x,y,z
 #define vf(x,y,z) x,y,z
 typedef unsigned char byte;
@@ -64,6 +62,7 @@ void QuickCellV(int t, Vec3i p, RGBA c);
 void QuickCell1GBAOnlyV(Vec3i p, byte g, byte b, byte a);
 void UpdateZoneV(Vec3i p, Vec3i s);
 bool fileChanged(string fname);
+string readFile(string fname);
 
 struct PickableBlock {
     Vec3i p;

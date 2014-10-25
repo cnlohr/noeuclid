@@ -172,7 +172,7 @@ int oldX, oldY, buttonPressed = 0, rbuttonPressed = 0;
 
 int frame = 0;
 
-RTHelper * gh;
+RTHelper gh;
 
 int cix = 0;
 int ciy = 0;
@@ -383,9 +383,9 @@ void LoadProbes(bool isRerun) {
 
         if (gKeyMap['t']) {
             //reset full map.
-            gh->TMap->DefaultIt();
-            gh->TMap->RecalculateAccelerationStructure(0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ);
-            gh->TMap->m_bReloadFullTexture = true;
+            gh.TMap->DefaultIt();
+            gh.TMap->RecalculateAccelerationStructure(0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ);
+            gh.TMap->m_bReloadFullTexture = true;
 
         }
         if (gKeyMap['a']) d.x -= 1.;
@@ -394,7 +394,7 @@ void LoadProbes(bool isRerun) {
         if (gKeyMap['w']) d.y -= 1.;
         if (gKeyMap[']']) d.z += 1.;
         if (gKeyMap['[']) d.z -= 1.;
-        if (gKeyMap[' '] && gTimeSinceOnGround < 0.1) gh->v.z = 10; // && gh->gTimeSinceOnGround < 0.1
+        if (gKeyMap[' '] && gTimeSinceOnGround < 0.1) gh.v.z = 10; // && gh.gTimeSinceOnGround < 0.1
         gTimeSinceOnGround += worldDeltaTime;
 
         /*
@@ -416,8 +416,8 @@ void LoadProbes(bool isRerun) {
     //	printf( "%f %f %f\n", fwdx, fwdy, fwdz );
 
     if (gGodMode) {
-        gh->v = {nx * 4.f, ny * 4.f, d.z * 4.f};
-        gh->MapOffset += gh->v*worldDeltaTime;
+        gh.v = {nx * 4.f, ny * 4.f, d.z * 4.f};
+        gh.MapOffset += gh.v*worldDeltaTime;
     } else {
         if (!isRerun) {
             float xymag = sqrt(nx * nx + ny * ny);
@@ -426,25 +426,25 @@ void LoadProbes(bool isRerun) {
                 ny /= xymag;
             }
 
-            gh->v.x = nx * 4.;
-            gh->v.y = ny * 4.;
-            gh->v.z -= worldDeltaTime * 16.; //gravity
-            gh->v.z *= .995; //terminal velocity
+            gh.v.x = nx * 4.;
+            gh.v.y = ny * 4.;
+            gh.v.z -= worldDeltaTime * 16.; //gravity
+            gh.v.z *= .995; //terminal velocity
         }
         /*			else
                         {
-                                gh->vX = 0;
-                                gh->vY = 0;
-        //				gh->vZ = 0;
+                                gh.vX = 0;
+                                gh.vY = 0;
+        //				gh.vZ = 0;
                         }
-                        gh->vZ = gh->vZ * .994;
+                        gh.vZ = gh.vZ * .994;
          */
 
     }
 
 
     if (!isRerun) {
-        gv = gh->v*worldDeltaTime;
+        gv = gh.v*worldDeltaTime;
     } else {
         printf("GVRerun\n");
     }
@@ -467,28 +467,28 @@ void LoadProbes(bool isRerun) {
             d.x = mz * cos(theta);
             d.y = mz * sin(theta);
             CollisionProbe * p;
-            probes.push_back(p = gh->AddProbe());
-            p->Position = RGBAf(gh->MapOffset);
+            probes.push_back(p = gh.AddProbe());
+            p->Position = RGBAf(gh.MapOffset);
             p->Direction = RGBAf(d + gv, 10000);
         }
     }
 
 
     {
-        gpTest = gh->AddProbe();
-        gpTest->Position = RGBAf(gh->MapOffset);
+        gpTest = gh.AddProbe();
+        gpTest->Position = RGBAf(gh.MapOffset);
         gpTest->Direction = RGBAf(gv, gv.len());
 
-        gpTestVelocity = gh->AddProbe();
-        gpTestVelocity->Position = RGBAf(gh->MapOffset, 0);
+        gpTestVelocity = gh.AddProbe();
+        gpTestVelocity->Position = RGBAf(gh.MapOffset, 0);
         gpTestVelocity->Direction = RGBAf(gv, gv.len());
-        gpTestVelocity->AuxRotation = RGBAf(gh->v, 0);
+        gpTestVelocity->AuxRotation = RGBAf(gh.v, 0);
 
     }
 
 
-    gpForward = gh->AddProbe();
-    gpForward->Position = RGBAf(gh->MapOffset, 0);
+    gpForward = gh.AddProbe();
+    gpForward->Position = RGBAf(gh.MapOffset, 0);
     gpForward->Direction = RGBAf(ForwardVec, 10000);
 
 
@@ -508,13 +508,13 @@ void LoadProbes(bool isRerun) {
     //	FrontRot[2] *= -1;
     //	UpRot[2] *= -1;
 
-    gpRotFwd = gh->AddProbe();
-    gpRotFwd->Position = RGBAf(gh->MapOffset, 0);
+    gpRotFwd = gh.AddProbe();
+    gpRotFwd->Position = RGBAf(gh.MapOffset, 0);
     gpRotFwd->Direction = RGBAf(gv, gv.len());
     gpRotFwd->AuxRotation = RGBAf(FrontRot[0], FrontRot[1], FrontRot[2], 0);
 
-    gpRotUp = gh->AddProbe();
-    gpRotUp->Position = RGBAf(gh->MapOffset, 0);
+    gpRotUp = gh.AddProbe();
+    gpRotUp->Position = RGBAf(gh.MapOffset, 0);
     gpRotUp->Direction = RGBAf(gv, gv.len());
     gpRotUp->AuxRotation = RGBAf(UpRot[0], UpRot[1], UpRot[2], 0);
 
@@ -537,7 +537,7 @@ void DoneProbes(bool bReRun) {
 
     int i;
 
-    Vec3f newp = gh->MapOffset;
+    Vec3f newp = gh.MapOffset;
 
     int iterations = 0;
 
@@ -556,16 +556,16 @@ void DoneProbes(bool bReRun) {
 
         //Check to see if it's a jump, if so, consider re-running probes.
         if (dtdiffx > dirdiffx * 1.5 + 1.0) {
-            printf("Jump %f %f %f -> %f %f %f\n", gh->MapOffset.x, gh->MapOffset.y, gh->MapOffset.z, tp->TargetLocation.r, tp->TargetLocation.g, tp->TargetLocation.b);
-            newp = gh->MapOffset = tp->TargetLocation.vec(); // - tp->Direction.r; //??? WHY not these but Z?
+            printf("Jump %f %f %f -> %f %f %f\n", gh.MapOffset.x, gh.MapOffset.y, gh.MapOffset.z, tp->TargetLocation.r, tp->TargetLocation.g, tp->TargetLocation.b);
+            newp = gh.MapOffset = tp->TargetLocation.vec(); // - tp->Direction.r; //??? WHY not these but Z?
             //XXX WHY WHY WHY??? WHY?? (Read why below)
             //XXX TODO TODO TODO!! There is a glitch.  We have to rotate the tp->Direction before adding it, otherwise really weird things will happen.
             //I haven't gotten around to this yet.
 
             //Attempt to correct direction of speed.
-            gh->v = gpTestVelocity->NewDirection.vec();
+            gh.v = gpTestVelocity->NewDirection.vec();
 
-            gh->ForceProbeReRun();
+            gh.ForceProbeReRun();
             goto clend;
         }
     }
@@ -639,27 +639,27 @@ void DoneProbes(bool bReRun) {
              */
 
             //If it is a bottom probe, we are on the ground.
-            if (i > probes.size() - 3) {
+            if (i > int(probes.size()) - 3) {
                 gTimeSinceOnGround = 0;
-                //gh->vZ = 0;
+                //gh.vZ = 0;
             }
 
 
             //First of all, nerf any motion toward the collision.
             {
-                Vec3f ns = gh->v;
+                Vec3f ns = gh.v;
                 ns /= ns.len();
 
 
                 Vec3f dot = nd.dot(ns);
                 if (dot.x > 0) {
-                    gh->v.x *= (1. - dot.x * press) * VCFM;
+                    gh.v.x *= (1. - dot.x * press) * VCFM;
                 }
                 if (dot.y > 0) {
-                    gh->v.y *= (1. - dot.y * press) * VCFM;
+                    gh.v.y *= (1. - dot.y * press) * VCFM;
                 }
                 if (dot.z > 0) {
-                    gh->v.z *= (1. - dot.z * press * VCFM);
+                    gh.v.z *= (1. - dot.z * press * VCFM);
                 }
             }
             //Next, push the MapOffset back
@@ -683,7 +683,7 @@ void DoneProbes(bool bReRun) {
         }
 
     if (!gGodMode) {
-        gh->MapOffset = newp;
+        gh.MapOffset = newp;
     }
 
 
@@ -770,18 +770,18 @@ clend:
     //printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );
 
     if (!gGodMode) {
-        gh->MapOffset = gPosition;
+        gh.MapOffset = gPosition;
     }
 
 
-    while (gh->MapOffset.x < 0) gh->MapOffset.x += GLH_SIZEX;
-    while (gh->MapOffset.y < 0) gh->MapOffset.y += GLH_SIZEY;
-    while (gh->MapOffset.z < 0) gh->MapOffset.z += GLH_SIZEZ;
-    while (gh->MapOffset.x > GLH_SIZEX) gh->MapOffset.x -= GLH_SIZEX;
-    while (gh->MapOffset.y > GLH_SIZEY) gh->MapOffset.y -= GLH_SIZEY;
-    while (gh->MapOffset.z > GLH_SIZEZ) gh->MapOffset.z -= GLH_SIZEZ;
+    while (gh.MapOffset.x < 0) gh.MapOffset.x += GLH_SIZEX;
+    while (gh.MapOffset.y < 0) gh.MapOffset.y += GLH_SIZEY;
+    while (gh.MapOffset.z < 0) gh.MapOffset.z += GLH_SIZEZ;
+    while (gh.MapOffset.x > GLH_SIZEX) gh.MapOffset.x -= GLH_SIZEX;
+    while (gh.MapOffset.y > GLH_SIZEY) gh.MapOffset.y -= GLH_SIZEY;
+    while (gh.MapOffset.z > GLH_SIZEZ) gh.MapOffset.z -= GLH_SIZEZ;
 
-    //	printf( "%7.1f %7.1f %7.1f  /  %7.1f %7.1f %7.1f (%f %f %f)\n", NewYaw, NewPitch, NewRoll, Yaw, Pitch, Roll, gh->MapOffsetX, gh->MapOffsetY, gh->MapOffsetZ );
+    //	printf( "%7.1f %7.1f %7.1f  /  %7.1f %7.1f %7.1f (%f %f %f)\n", NewYaw, NewPitch, NewRoll, Yaw, Pitch, Roll, gh.MapOffsetX, gh.MapOffsetY, gh.MapOffsetZ );
 
 
 
@@ -820,7 +820,7 @@ void draw() {
     glMultMatrixf(mat44);
 
     glPushMatrix();
-    gh->DrawMap(worldDeltaTime, TotalTime);
+    gh.DrawMap(worldDeltaTime, TotalTime);
     DrawSquare();
     glPopMatrix();
 
@@ -841,14 +841,14 @@ void draw() {
 
     char tt[1024];
     if (show_debugging) {
-        sprintf(tt, "%1.2f %1.2f %1.2f\n", gh->MapOffset.x, gh->MapOffset.y, gh->MapOffset.z);
+        sprintf(tt, "%1.2f %1.2f %1.2f\n", gh.MapOffset.x, gh.MapOffset.y, gh.MapOffset.z);
         DrawText(tt);
     }
 
-    float pers = glut.miWidth * glut.miHeight / (gh->LastPass1Time / 1. + gh->LastPass2Time / 1. + gh->LastPass3Time);
+    float pers = glut.miWidth * glut.miHeight / (gh.LastPass1Time / 1. + gh.LastPass2Time / 1. + gh.LastPass3Time);
     glTranslatef(0, 25, 0);
     if (show_debugging) {
-        sprintf(tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh->LastPass1Time / 1000000., gh->LastPass2Time / 1000000., gh->LastPass3Time / 1000000., pers);
+        sprintf(tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh.LastPass1Time / 1000000., gh.LastPass2Time / 1000000., gh.LastPass3Time / 1000000., pers);
         DrawText(tt);
     }
 
@@ -874,10 +874,7 @@ int main(int argc, char ** argv) {
         gKeyMap[i] = 0;
     unsigned int xSize = 720, ySize = 480;
 
-    ifstream tccheader("scripthelpers.h");
-    if(!tccheader.is_open()) throw runtime_error("missing header");
-    tcc.addheader(string((istreambuf_iterator<char>(tccheader)),
-            istreambuf_iterator<char>()));
+    tcc.addheader(readFile("scripthelpers.h"));
     
 #define TCCADDFUN(var) tcc.add(#var, &var)
     tcc.add("cosf",&cosf);
@@ -931,9 +928,9 @@ int main(int argc, char ** argv) {
     //For display purposes, we should depth test all of our surfaces.
     glEnable(GL_DEPTH_TEST);
 
-    gh = new RTHelper(0);
+    gh.Init(0);
 
-    gh->MapOffset = {GLH_SIZEX / 2, GLH_SIZEY / 2, 5};
+    gh.MapOffset = {GLH_SIZEX / 2, GLH_SIZEY / 2, 5};
 
     glutKeyboardFunc(pKeyDown);
     glutKeyboardUpFunc(pKeyUp);

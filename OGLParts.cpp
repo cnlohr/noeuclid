@@ -6,6 +6,7 @@
 #include <map>
 #include <errno.h>
 #include <fstream>
+#include "scripthelpers.h"
 
 using namespace std;
 
@@ -59,51 +60,25 @@ Shader::~Shader() {
     DestroyShaderProgram(iProgramID);
 }
 
-void Shader::CheckForNewer(const char * sShaderName) {
-    unsigned long iCurTimes[3];
-    GetTimeCodes(iCurTimes, sShaderName);
-    if (iCurTimes[0] != iTimeCode[0] || iCurTimes[1] != iTimeCode[1] || iCurTimes[2] != iTimeCode[2]) {
+void Shader::CheckForNewer(string sShaderName) {
+    if (fileChanged(sShaderName+".vert") 
+            || fileChanged(sShaderName+".frag")
+            || fileChanged(sShaderName+".geom")) {
         DestroyShaderProgram(iProgramID);
         LoadShader(sShaderName);
     }
 }
 
-void Shader::GetTimeCodes(unsigned long * iOut, const char * sShaderName) {
-    struct stat sb;
-    stat((string(sShaderName) + ".vert").c_str(), &sb);
-    iOut[0] = sb.st_mtime;
-    stat((string(sShaderName) + ".frag").c_str(), &sb);
-    iOut[1] = sb.st_mtime;
-    stat((string(sShaderName) + ".geom").c_str(), &sb);
-    iOut[2] = sb.st_mtime;
-}
+bool Shader::LoadShader(string sShaderName) {
+    string s1 = sShaderName + ".frag", s2 = sShaderName + ".vert";
 
-bool Shader::LoadShader(const char * sShaderName) {
-    GetTimeCodes(iTimeCode, sShaderName);
-    string s1 = sShaderName, s2 = sShaderName;
-
-    s1 += ".frag";
-    s2 += ".vert";
-    ifstream f1(s1);
-    ifstream f2(s2);
-    if (!f1) {
-        printf("Could not open %s.\n", (char*) s1.c_str());
-        return false;
-    }
-    if (!f2) {
-        printf("Could not open %s.\n", (char*) s2.c_str());
-        return false;
-    }
-    string sh1((istreambuf_iterator<char>(f1)),
-            istreambuf_iterator<char>());
-    printf(s1.c_str());
+    string sh1 = readFile(s1);
     printf("Compiling: %s\n", s1.c_str());
     if (!LoadShaderFrag(sh1.c_str())) {
         printf("Reporting failed shaderload. Not linking.\n");
         return false;
     }
-    string sh2((istreambuf_iterator<char>(f2)),
-            istreambuf_iterator<char>());
+    string sh2 = readFile(s2);
     printf("Compiling: %s\n", s2.c_str());
     if (!LoadShaderVert(sh2.c_str())) {
         printf("Reporting failed shaderload. Not linking.\n");

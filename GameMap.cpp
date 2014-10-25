@@ -75,7 +75,7 @@ void GameMap::loadRooms(string fname) {
         if(cmd == "StartAtRoom") l>>startroom;
         else if(cmd == "Room") {
             l >> rid;
-            if(rid>=rooms.size()) rooms.resize(rid+1);
+            if(rid>=int(rooms.size())) rooms.resize(rid+1);
         }
         else if(cmd == "Start") l >> rooms[rid].start;
         else if(cmd == "Exit") l >> rooms[rid].exitr1 >> rooms[rid].exitr2;
