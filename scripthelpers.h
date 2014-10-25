@@ -63,7 +63,6 @@ void ChangeCellV(int t, Vec3i p, RGBA c);
 void QuickCellV(int t, Vec3i p, RGBA c);
 void QuickCell1GBAOnlyV(Vec3i p, byte g, byte b, byte a);
 void UpdateZoneV(Vec3i p, Vec3i s);
-void MarkAddDataForReload();
 bool fileChanged(string fname);
 
 struct PickableBlock {

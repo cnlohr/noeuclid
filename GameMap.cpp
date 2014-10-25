@@ -23,7 +23,7 @@ GameMap::~GameMap() {
 }
 
 void GameMap::die() {
-    rooms[curroom]->reset();
+    rooms[curroom].reset();
     GameAttempt++;
 }
 
@@ -46,27 +46,12 @@ string readScript(ifstream& file, int& lineNum) {
 }
 
 void GameMap::loadRooms(string fname) {
-    for(Room* r:rooms) delete r;
-    rooms = {
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room(),
-        new Room()
-    };
+    rooms.clear();
     ifstream file(fname);
     printf("Loading %s\n", fname.c_str());
     if(!file.is_open()) printf("Could not open rooms.txt");
     string line;
     int rid = 0;
-    Room * room = rooms[rid];
     int lineNum = 0;
     while(getline(file, line)) {
         lineNum++;
@@ -75,13 +60,13 @@ void GameMap::loadRooms(string fname) {
         
         if(line[0]=='#') continue;
         if(line == "RunScript {") {
-            if(room->runscript) cout <<lineNum<<": Error: Already has run script." << endl;
-            room->runscript = tcc.eval<void(double)>("void fun(double timeInRoom) {"+readScript(file, lineNum)+"}");
+            if(rooms[rid].runscript) cout <<lineNum<<": Error: Already has run script." << endl;
+            rooms[rid].runscript = tcc.eval<void(double)>("void fun(double timeInRoom) {"+readScript(file, lineNum)+"}");
             continue;
         }
         if(line == "InitScript {") {
-            if(room->initscript) cout <<lineNum<<": Error: Already has init script." << endl;
-            room->initscript = tcc.eval<void(void)>("void fun() {"+readScript(file, lineNum)+"}");
+            if(rooms[rid].initscript) cout <<lineNum<<": Error: Already has init script." << endl;
+            rooms[rid].initscript = tcc.eval<void(void)>("void fun() {"+readScript(file, lineNum)+"}");
             continue;
         }
         for(char c: "()") line.erase(remove(line.begin(),line.end(),c),line.end()); // remove parens
@@ -89,15 +74,16 @@ void GameMap::loadRooms(string fname) {
         string cmd; l >> cmd;
         if(cmd == "StartAtRoom") l>>startroom;
         else if(cmd == "Room") {
-            l >> rid; while(rid>=rooms.size()) rooms.push_back(new Room()); room = rooms[rid];}
-        else if(cmd == "Start") l >> room->start;
-        else if(cmd == "Exit") l >> room->exitr1 >> room->exitr2;
-        else if(cmd == "Time") l >> room->maxTime;
-        else if(cmd == "Init") room->inits.push_back([this,rid](){rooms[rid]->init();});
+            l >> rid;
+            if(rid>=rooms.size()) rooms.resize(rid+1);
+        }
+        else if(cmd == "Start") l >> rooms[rid].start;
+        else if(cmd == "Exit") l >> rooms[rid].exitr1 >> rooms[rid].exitr2;
+        else if(cmd == "Time") l >> rooms[rid].maxTime;
         else if(initfuncs.count(cmd))
-            room->inits.push_back(initfuncs[cmd](l));
+            rooms[rid].inits.push_back(initfuncs[cmd](l));
         else if(runfuncs.count(cmd))
-            room->runs.push_back(runfuncs[cmd](l));
+            rooms[rid].runs.push_back(runfuncs[cmd](l));
         else cout <<lineNum<<": Error: Invalid command " << cmd << endl;
         if(l.fail()) cout<<lineNum<<": Error: line formatting error "<<endl;
     }
@@ -112,12 +98,13 @@ void GameMap::update() {
     
     if (gOverallUpdateNo == 0) {
         curroom = startroom;
-        gPosition = rooms[curroom]->start;
+        gPosition = rooms[curroom].start;
     }
 
     if (curroom != lastroom) {
+        curroom = (curroom%rooms.size()+rooms.size())%rooms.size();
         printf("Switching to room %d\n", curroom);
-        rooms[curroom]->begin();
+        rooms[curroom].begin();
         lastroom = curroom;
     }
 
@@ -127,13 +114,13 @@ void GameMap::update() {
         die();
     }
 
-    rooms[curroom]->update();
+    rooms[curroom].update();
 
     sprintf(gDialog, "Room: %d\n", curroom);
 
     if (gKeyMap['l'] || gKeyMap['L']) {
-        for (Room* room:rooms) {
-            room->begin();
+        for (Room& room:rooms) {
+            room.begin();
         }
     }
 
@@ -141,19 +128,17 @@ void GameMap::update() {
 
     //Press 'r' to reset room.
     if (gKeyMap['r'] || gKeyMap['R']) {
-        rooms[curroom]->reset();
+        rooms[curroom].reset();
     }
 
     if (gKeyMap['='] || gKeyMap['+']) {
         if (!was_level_change_pressed)
-            curroom++;
+            setRoom(curroom+1,true);
         was_level_change_pressed = 1;
-        rooms[curroom]->reset();
     } else if (gKeyMap['-'] || gKeyMap['_']) {
         if (!was_level_change_pressed)
-            curroom--;
+            setRoom(curroom-1,true);
         was_level_change_pressed = 1;
-        rooms[curroom]->reset();
     } else
         was_level_change_pressed = 0;
 
@@ -186,12 +171,17 @@ void GameMap::update() {
         }
     }
 
-
     if (PlayerInRangeV({2, 40, 63}, {16, 16, 4})) {
         int lx = ((int) gPosition.x) - 2;
         int ly = ((int) gPosition.y) - 40;
         sprintf(gDialog, "OnTile %d\n", lx + ly * 16);
     }
+}
+
+void GameMap::setRoom(int i, bool reset) {
+    int s = rooms.size();
+    curroom = (i%s+s)%s;
+    if(reset) rooms[curroom].reset();
 }
 
 void GameMap::AddDeathBlock(Vec3i p) {

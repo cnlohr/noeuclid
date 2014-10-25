@@ -26,11 +26,12 @@ public:
     int lastroom = -1, curroom = 0, startroom = 0;
     DeathBlock DeathBlocks[MAX_DEATH_BLOCKS];
     PickableBlock PBlocks[MAX_PICKABLES];
-    vector<Room*> rooms;
+    vector<Room> rooms;
     GameMap();
     GameMap(const GameMap& orig);
     void update();
     void die();
+    void setRoom(int newroom, bool reset = false);
     void collision(struct CollisionProbe * ddat);
     virtual ~GameMap();
     
@@ -65,7 +66,7 @@ public:
             return bind(JumpSpaceV, p, s, ofs, f1, f2, f3);
         }}, {"RequireRoom", [this](istream& i) -> initfn {
             int room; i>>room;
-            return [this,room]() { rooms[room]->begin(); };
+            return [this,room]() { rooms[room].begin(); };
         }}
     };
     unordered_map<string, function<runfn(istream&)>> runfuncs {
