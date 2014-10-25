@@ -107,11 +107,11 @@ public:
     }
     
     const Vec3<T> norm() {
-        return this/len();
+        return (*this)/len();
     }
 
-    const Vec3<T> dot(const Vec3& b) {
-        return Vec3{x * b.x, y * b.y, z * b.z};
+    const T dot(const Vec3& b) {
+        return x * b.x + y * b.y + z * b.z;
     }
     
     const Vec3<T> cross(const Vec3& b) {
@@ -162,6 +162,177 @@ struct RGBAf {
     friend istream &operator>>(istream &inp, RGBAf &c) {
         inp>>c.r>>c.g>>c.b>>c.a;
         return inp;
+    }
+};
+
+struct Quaternion {
+    Quaternion(float f1=0,float f2=0, float f3=0, float f4=0): 
+        f{f1,f2,f3,f4} {};
+    Quaternion(RGBAf col) : f{col.r,col.g,col.b,col.a} {};
+    float f[4];
+    Quaternion cross3d(Quaternion &b) {
+        return {
+            f[1] * b[2] - f[2] * b[1],
+            f[2] * b[0] - f[0] * b[2],
+            f[0] * b[1] - f[1] * b[0], 0};
+    }
+    
+    Quaternion normalize() const {
+        return this->scale(this->invsqmagnitude());
+    }
+    Quaternion scale(float scale) const {
+        return {f[0]*scale,f[1]*scale,f[2]*scale,f[3]*scale};
+    }
+    Quaternion rotateabout(Quaternion b) const {
+        Quaternion q1 = this->normalize();
+        Quaternion q2 = b.normalize();
+        return {
+            (q1[0] * q2[0])-(q1[1] * q2[1])-(q1[2] * q2[2])-(q1[3] * q2[3]),
+            (q1[0] * q2[1])+(q1[1] * q2[0])+(q1[2] * q2[3])-(q1[3] * q2[2]),
+            (q1[0] * q2[2])-(q1[1] * q2[3])+(q1[2] * q2[0])+(q1[3] * q2[1]),
+            (q1[0] * q2[3])+(q1[1] * q2[2])-(q1[2] * q2[1])+(q1[3] * q2[0])
+        };
+    }
+    Quaternion conjugate() const {
+        return {f[0],-f[1],-f[2],-f[3]};
+    }
+    float invsqmagnitude() const {
+        const Quaternion& q = *this;
+        return 1. / ((q[0] * q[0])+(q[1] * q[1])+(q[2] * q[2])+(q[3] * q[3]));
+    }
+    const float& operator[](int index) const {
+        return f[index];
+    }
+    float& operator[](int index) {
+        return f[index];
+    }
+    
+    Quaternion reciprocal() const {
+        return this->conjugate().scale(this->invsqmagnitude());
+    }
+    
+    Vec3f rotateVector(Vec3f v) const {
+        //XXX IS THIS RIGHT? IT LOOKS WRONG!!!
+        Quaternion vquat = {(v.len2() < 0.001) ? 1.f : 0.f,v.x,v.y,v.z};
+        vquat = this->rotateabout(vquat).rotateabout(this->reciprocal());
+        return {vquat[1],vquat[2],vquat[3]};
+    }
+    
+    void toMatrix(float *matrix44) {
+        Quaternion q = this->normalize();
+        //Reduced calulation for speed
+        float xx = 2 * q[1] * q[1];
+        float xy = 2 * q[1] * q[2];
+        float xz = 2 * q[1] * q[3];
+        float xw = 2 * q[1] * q[0];
+
+        float yy = 2 * q[2] * q[2];
+        float yz = 2 * q[2] * q[3];
+        float yw = 2 * q[2] * q[0];
+
+        float zz = 2 * q[3] * q[3];
+        float zw = 2 * q[3] * q[0];
+
+        //opengl major
+        matrix44[0] = 1 - yy - zz;
+        matrix44[1] = xy - zw;
+        matrix44[2] = xz + yw;
+        matrix44[3] = 0;
+
+        matrix44[4] = xy + zw;
+        matrix44[5] = 1 - xx - zz;
+        matrix44[6] = yz - xw;
+        matrix44[7] = 0;
+
+        matrix44[8] = xz - yw;
+        matrix44[9] = yz + xw;
+        matrix44[10] = 1 - xx - yy;
+        matrix44[11] = 0;
+
+        matrix44[12] = 0;
+        matrix44[13] = 0;
+        matrix44[14] = 0;
+        matrix44[15] = 1;
+    }
+    static Quaternion fromEuler(Vec3f euler) {
+        euler/=2; //x=roll,y=pitch,z=yaw
+
+        float cx = cos(euler.x);
+        float sx = sin(euler.x);
+        float cy = cos(euler.y);
+        float sy = sin(euler.y);
+        float cz = cos(euler.z);
+        float sz = sin(euler.z);
+
+        //Correct according to
+        //http://en.wikipedia.org/wiki/Conversion_between_Quaternions_and_Euler_angles
+        Quaternion q;
+        q[0] = cx * cy * cz + sx * sy*sz; //q1
+        q[1] = sx * cy * cz - cx * sy*sz; //q2
+        q[2] = cx * sy * cz + sx * cy*sz; //q3
+        q[3] = cx * cy * sz - sx * sy*cz; //q4
+
+        return q.normalize();
+    }
+    //From: http://www.cg.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche52.html
+    static Quaternion fromMatrix(float * mat4) {
+        Quaternion q;
+        #define M4F(x,y) mat4[y*4+x]
+        #define SIGN(x) (x<0?-1:1)
+	q[0] = ( M4F(0,0) + M4F(1,1) + M4F(2,2) + 1.0f) / 4.0f;
+	q[1] = ( M4F(0,0) - M4F(1,1) - M4F(2,2) + 1.0f) / 4.0f;
+	q[2] = (-M4F(0,0) + M4F(1,1) - M4F(2,2) + 1.0f) / 4.0f;
+	q[3] = (-M4F(0,0) - M4F(1,1) + M4F(2,2) + 1.0f) / 4.0f;
+	if(q[0] < 0.0f) q[0] = 0.0f;
+	if(q[1] < 0.0f) q[1] = 0.0f;
+	if(q[2] < 0.0f) q[2] = 0.0f;
+	if(q[3] < 0.0f) q[3] = 0.0f;
+	q[0] = sqrt(q[0]);
+	q[1] = sqrt(q[1]);
+	q[2] = sqrt(q[2]);
+	q[3] = sqrt(q[3]);
+	if(q[0] >= q[1] && q[0] >= q[2] && q[0] >= q[3]) {
+		q[0] *= +1.0f;
+		q[1] *= SIGN(M4F(2,1) - M4F(1,2));
+		q[2] *= SIGN(M4F(0,2) - M4F(2,0));
+		q[3] *= SIGN(M4F(1,0) - M4F(0,1));
+	} else if(q[1] >= q[0] && q[1] >= q[2] && q[1] >= q[3]) {
+		q[0] *= SIGN(M4F(2,1) - M4F(1,2));
+		q[1] *= +1.0f;
+		q[2] *= SIGN(M4F(1,0) + M4F(0,1));
+		q[3] *= SIGN(M4F(0,2) + M4F(2,0));
+	} else if(q[2] >= q[0] && q[2] >= q[1] && q[2] >= q[3]) {
+		q[0] *= SIGN(M4F(0,2) - M4F(2,0));
+		q[1] *= SIGN(M4F(1,0) + M4F(0,1));
+		q[2] *= +1.0f;
+		q[3] *= SIGN(M4F(2,1) + M4F(1,2));
+	} else if(q[3] >= q[0] && q[3] >= q[1] && q[3] >= q[2]) {
+		q[0] *= SIGN(M4F(1,0) - M4F(0,1));
+		q[1] *= SIGN(M4F(2,0) + M4F(0,2));
+		q[2] *= SIGN(M4F(2,1) + M4F(1,2));
+		q[3] *= +1.0f;
+	} else {
+		//printf("coding error\n");
+		q[0] = 1;
+		q[1] = 0;
+		q[2] = 0;
+		q[3] = 0;
+	}
+	q = q.normalize();
+        return q;
+    }
+    
+    static Quaternion fromAxisAngle(Vec3f axis, float radians) {
+         Vec3f v = axis.norm();
+
+        float sn = sin(radians / 2.0f);
+        Quaternion q;
+        q[0] = cos(radians / 2.0f);
+        q[1] = sn * v.x;
+        q[2] = sn * v.y;
+        q[3] = sn * v.z;
+
+        return q.normalize();
     }
 };
 
@@ -220,48 +391,4 @@ struct CollisionProbe {
 
     int id;
 };
-
-void cross3d(float * out, const float * a, const float * b);
-
-void normalize3d(float * out, const float * in);
-
-float dot3d(const float * a, const float * b);
-void copy3d(float * out, const float * in);
-
-
-
-/////////////////////////////////////QUATERNIONS//////////////////////////////////////////
-//Originally from Mercury (Copyright (C) 2009 by Joshua Allen, Charles Lohr, Adam Lowman)
-//Under the mit/X11 license.
-
-void quatcopy(float * qout, const float * qin);
-
-float quatinvsqmagnitude(const float * q);
-void quatscale(float * qout, const float * qin, float s);
-void quatnormalize(float * qout, const float * qin);
-
-void quatfromeuler(float * q, const float * euler);
-
-void quatfromaxisangle(float * q, const float * axis, float radians);
-
-void quattomatrix(float * matrix44, const float * qin);
-
-void quatgetconjugate(float * qout, const float * qin);
-
-void quatrotateabout(float * qout, const float * a, const float * b);
-
-void quatscale(float * qout, const float * qin, float s);
-
-void quatgetreciprocal(float * qout, const float * qin);
-
-void quatrotatevector(float * vec3out, const float * quat, const float * vec3in);
-
-Vec3f quatrotatevector(const float * quat, Vec3f v);
-
-//From: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-//From: http://www.cg.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche52.html
-
-std::vector<float> quatfrommatrix(Vec3f r1, Vec3f r2, Vec3f r3);
-void quatfrommatrix( float * q, float * mat4 );
 #endif
-

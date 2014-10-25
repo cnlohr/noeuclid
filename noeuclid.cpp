@@ -262,7 +262,7 @@ double Pitch = 90.;
 double Yaw = 0.;
 double Roll = 0.0;
  */
-float LookQuaternion[4] = {0, 0, 0, 1.0f};
+Quaternion LookQuaternion = {0, 0, 0, 1.0f};
 
 Vec3f gPosition;
 Vec3f gDirection;
@@ -307,43 +307,25 @@ void mouseDrag(int x, int y) {
         }
     }
 
-    float qinitrotFwd[4];
-    float qinitrotBack[4];
-    float initialrotaxis[] = {1, 0, 0};
+    Quaternion qinitrotFwd = Quaternion::fromAxisAngle({1, 0, 0}, 3.14159 / 2.);
+    Quaternion qinitrotBack = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
-    quatfromaxisangle(qinitrotFwd, initialrotaxis, 3.14159 / 2.);
-    quatfromaxisangle(qinitrotBack, initialrotaxis, -3.14159 / 2.);
-
-    quatrotateabout(LookQuaternion, LookQuaternion, qinitrotFwd);
+    LookQuaternion = LookQuaternion.rotateabout(qinitrotFwd);
 
 
-    float invrot[4];
-    quatcopy(invrot, LookQuaternion);
+    Quaternion invrot = LookQuaternion;
     invrot[0] *= -1;
-    float rot[4];
-    quatcopy(rot, LookQuaternion);
+    Quaternion rot = LookQuaternion;
 
     //We rotate around +Z because...
 
-
     //This whole mess is rotating aroudn the wrong axis.
 
-
-    float qtmp2[4];
-    float euler2[] = {-dy * 0.005f, 0.0, 0.0};
-    quatfromeuler(qtmp2, euler2);
-    quatrotateabout(LookQuaternion, LookQuaternion, qtmp2);
-
-    quatrotateabout(LookQuaternion, LookQuaternion, invrot);
-    float qtmp1[4];
-    float euler1[] = {0.0, 0.0, dx * 0.005f};
-    quatfromeuler(qtmp1, euler1);
-    quatrotateabout(LookQuaternion, LookQuaternion, qtmp1);
-
-    quatrotateabout(LookQuaternion, LookQuaternion, rot);
-
-
-    quatrotateabout(LookQuaternion, LookQuaternion, qinitrotBack);
+    Quaternion qtmp2 = Quaternion::fromEuler({-dy * 0.005f, 0.0, 0.0});
+    Quaternion qtmp1 = Quaternion::fromEuler({0.0, 0.0, dx * 0.005f});
+    LookQuaternion = LookQuaternion.rotateabout(qtmp2)
+            .rotateabout(invrot).rotateabout(qtmp1)
+            .rotateabout(rot).rotateabout(qinitrotBack);
 }
 
 void reshape(int Width, int Height) {
@@ -405,11 +387,11 @@ void LoadProbes(bool isRerun) {
     }
 
     Vec3f ForwardVec = {0, 0, -1};
-    ForwardVec = quatrotatevector(LookQuaternion, ForwardVec);
+    ForwardVec = LookQuaternion.rotateVector(ForwardVec);
     ForwardVec.z = -ForwardVec.z; //??? WHY? WHY WHY??? Is LookQuaternion busted???
 
     Vec3f MoveVec = {d.x, 0, d.y};
-    MoveVec = quatrotatevector(LookQuaternion, MoveVec);
+    MoveVec = LookQuaternion.rotateVector(MoveVec);
     float nx = MoveVec.x;
     float ny = MoveVec.y;
 
@@ -468,7 +450,7 @@ void LoadProbes(bool isRerun) {
             d.y = mz * sin(theta);
             CollisionProbe * p;
             probes.push_back(p = gh.AddProbe());
-            p->Position = RGBAf(gh.MapOffset);
+            p->Position = gh.MapOffset;
             p->Direction = RGBAf(d + gv, 10000);
         }
     }
@@ -476,19 +458,19 @@ void LoadProbes(bool isRerun) {
 
     {
         gpTest = gh.AddProbe();
-        gpTest->Position = RGBAf(gh.MapOffset);
+        gpTest->Position = gh.MapOffset;
         gpTest->Direction = RGBAf(gv, gv.len());
 
         gpTestVelocity = gh.AddProbe();
-        gpTestVelocity->Position = RGBAf(gh.MapOffset, 0);
+        gpTestVelocity->Position = gh.MapOffset;
         gpTestVelocity->Direction = RGBAf(gv, gv.len());
-        gpTestVelocity->AuxRotation = RGBAf(gh.v, 0);
+        gpTestVelocity->AuxRotation = gh.v;
 
     }
 
 
     gpForward = gh.AddProbe();
-    gpForward->Position = RGBAf(gh.MapOffset, 0);
+    gpForward->Position = gh.MapOffset;
     gpForward->Direction = RGBAf(ForwardVec, 10000);
 
 
@@ -498,10 +480,8 @@ void LoadProbes(bool isRerun) {
     //???
 
 
-    float Front[3] = {1, 0, 0}, FrontRot[3]; //1,0,0 = Right; 0,0,1 = Fwd
-    float Up[3] = {0, 1, 0}, UpRot[3]; //0,1,0 = Up
-    quatrotatevector(FrontRot, LookQuaternion, Front);
-    quatrotatevector(UpRot, LookQuaternion, Up);
+    Vec3f FrontRot = LookQuaternion.rotateVector({1, 0, 0});
+    Vec3f UpRot = LookQuaternion.rotateVector({0, 1, 0});
 
     //	FrontRot[1] *= -1;
     //	FrontRot[0] *= -1;
@@ -509,14 +489,14 @@ void LoadProbes(bool isRerun) {
     //	UpRot[2] *= -1;
 
     gpRotFwd = gh.AddProbe();
-    gpRotFwd->Position = RGBAf(gh.MapOffset, 0);
+    gpRotFwd->Position = gh.MapOffset;
     gpRotFwd->Direction = RGBAf(gv, gv.len());
-    gpRotFwd->AuxRotation = RGBAf(FrontRot[0], FrontRot[1], FrontRot[2], 0);
+    gpRotFwd->AuxRotation = FrontRot;
 
     gpRotUp = gh.AddProbe();
-    gpRotUp->Position = RGBAf(gh.MapOffset, 0);
+    gpRotUp->Position = gh.MapOffset;
     gpRotUp->Direction = RGBAf(gv, gv.len());
-    gpRotUp->AuxRotation = RGBAf(UpRot[0], UpRot[1], UpRot[2], 0);
+    gpRotUp->AuxRotation = UpRot;
 
 
 }
@@ -541,6 +521,7 @@ void DoneProbes(bool bReRun) {
 
     int iterations = 0;
 
+    Quaternion orotmat[3];Quaternion newquat;
 
     CollisionProbe * tp = gpTest;
 
@@ -651,7 +632,7 @@ void DoneProbes(bool bReRun) {
                 ns /= ns.len();
 
 
-                Vec3f dot = nd.dot(ns);
+                Vec3f dot {nd.x*ns.x,nd.y*ns.y,nd.z*ns.z};
                 if (dot.x > 0) {
                     gh.v.x *= (1. - dot.x * press) * VCFM;
                 }
@@ -671,7 +652,7 @@ void DoneProbes(bool bReRun) {
 
             Vec3f nid = newcollision * press;
             nid = nid * CFM;
-            nid = nid.dot(iaw);
+            nid = {nid.x*iaw.x,nid.y*iaw.y,nid.z*iaw.z};
 
             if (sqrt(nid.x * nid.x + nid.y * nid.y) < MINSIDE) {
                 nid.x = nid.y = 0;
@@ -699,56 +680,51 @@ void DoneProbes(bool bReRun) {
      */
 
     //Re-rotate the camera based on the jump.
-    float orotmat[12];
+    
 
-    //	printf( "%f %f %f  %f %f %f\n", gpRotFwd->NewDirection.r, gpRotFwd->NewDirection.g, gpRotFwd->NewDirection.b,
-    //		gpRotUp->NewDirection.r, gpRotUp->NewDirection.g, gpRotUp->NewDirection.b );
-    memset(orotmat, 0, sizeof ( orotmat));
-    copy3d(&orotmat[0], &gpRotFwd->NewDirection.r); //X
-    copy3d(&orotmat[4], &gpRotUp->NewDirection.r); //Y
-    cross3d(&orotmat[8], &orotmat[0], &orotmat[4]); //Z
+    orotmat[0] = gpRotFwd->NewDirection; //X
+    orotmat[1] = gpRotUp->NewDirection; //Y
+    orotmat[2] = orotmat[0].cross3d(orotmat[1]);
 
-    float newquat[4];
-    quatfrommatrix(newquat, orotmat);
-
+    newquat = Quaternion::fromMatrix((float*)orotmat).normalize();
     //TODO: If we are in a situation where we're stuck on our side, don't exceute this line of code.
-    quatnormalize(LookQuaternion, newquat);
-
+    LookQuaternion[0] = newquat[0];
+    LookQuaternion[1] = newquat[1];
+    LookQuaternion[2] = newquat[2];
+    LookQuaternion[3] = newquat[3];
 
     //Attempt to re-right the player
 
 #define AUTO_RIGHT_COMP .8
     {
         //		float uptestcomp[3] = { 1, 0, 0 };
-        float lefttest[3] = {1, 0, 0}; // 0, camera "up", -into screen
-        float uptest[3] = {0, 1, 0}; // 0, camera "up", -into screen
-        float fwdtest[3] = {0, 0, 1}; // 0, camera "up", -into screen
-        float upout[3], fwdtestout[3], lefttestout[3];
-        quatrotatevector(upout, LookQuaternion, uptest);
-        quatrotatevector(fwdtestout, LookQuaternion, fwdtest);
-        quatrotatevector(lefttestout, LookQuaternion, lefttest);
-        upout[2] *= -1;
-        fwdtestout[0] *= -1;
-        lefttestout[0] *= -1;
-        fwdtestout[1] *= -1;
-        lefttestout[1] *= -1;
+        Vec3f lefttest {1, 0, 0}; // 0, camera "up", -into screen
+        Vec3f uptest {0, 1, 0}; // 0, camera "up", -into screen
+        Vec3f fwdtest {0, 0, 1}; // 0, camera "up", -into screen
+        Vec3f upout = LookQuaternion.rotateVector(uptest);
+        Vec3f fwdtestout = LookQuaternion.rotateVector(fwdtest);
+        Vec3f lefttestout = LookQuaternion.rotateVector(lefttest);
+        upout.z *= -1;
+        fwdtestout.x *= -1;
+        lefttestout.x *= -1;
+        fwdtestout.y *= -1;
+        lefttestout.y *= -1;
 
-        lefttestout[2] = 0; //Force flat test.
+        lefttestout.z = 0; //Force flat test.
 
 
         //		cross3d( rerotaxis, uptestcomp, upout );
-        float irtcos = dot3d(upout, lefttestout) * AUTO_RIGHT_COMP; //how much effort to try to right?
+        float irtcos = upout.dot(lefttestout) * AUTO_RIGHT_COMP; //how much effort to try to right?
 
         float cosofs = (3.14159 / 2.0);
 
         //Tricky: If we're upside-down we need to re-right ourselves.
-        if (upout[2] < 0) {
+        if (upout.z < 0) {
             irtcos *= -1.0;
         }
 
-        float uprotator[4];
-        quatfromaxisangle(uprotator, fwdtest, acos(irtcos) - cosofs);
-        quatrotateabout(LookQuaternion, LookQuaternion, uprotator);
+        Quaternion uprotator = Quaternion::fromAxisAngle(fwdtest, acos(irtcos) - cosofs);
+        LookQuaternion = LookQuaternion.rotateabout(uprotator);
 
     }
 clend:
@@ -795,7 +771,7 @@ void UpdatePositionAndRotation() {
     //Updated rotation here.
     glLoadIdentity();
     float mat44[16];
-    quattomatrix(mat44, LookQuaternion);
+    LookQuaternion.toMatrix(mat44);
     glMultMatrixf(mat44);
 }
 
@@ -816,7 +792,7 @@ void draw() {
     glLoadIdentity();
 
     float mat44[16];
-    quattomatrix(mat44, LookQuaternion);
+    LookQuaternion.toMatrix(mat44);
     glMultMatrixf(mat44);
 
     glPushMatrix();
@@ -913,9 +889,7 @@ int main(int argc, char ** argv) {
     TCCADDVEC(gTargetHit);
     TCCADDFUN(gDaytime);
 
-    
-    float initialrotaxis[] = {1, 0, 0};
-    quatfromaxisangle(LookQuaternion, initialrotaxis, -3.14159 / 2.);
+    LookQuaternion = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
     glut.Init(argc, (char**) argv, xSize, ySize, "No! Euclid!");
 #ifndef EMSCRIPTEN

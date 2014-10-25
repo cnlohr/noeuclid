@@ -156,10 +156,11 @@ void RTHelper::LoadAttributeMap() {
     int lineNo = 0;
     while (getline(file,line)) {
         lineNo++;
+        if(line.size() == 0) continue;
+        if (line[0] == '#') continue;
+        
         string Description;
         int iTileID = -1, iMetaID = -1;
-        if (line[0] == '#') continue;
-
         RGBAf BaseColor, NoiseColor, NoiseSet, NoiseMux, CoreData, TimeSettings,
                 Speckles, ShaderEndingTerms = {1, 1, 0, 0};
         float fdensity;
@@ -178,7 +179,7 @@ void RTHelper::LoadAttributeMap() {
             l >> ShaderEndingTerms;
         ShaderEndingTerms.a = fdensity;
         if(l.fail()) 
-            printf("Malformatted line in TileAttributes.txt, line %d", lineNo);
+            printf("Malformatted line in TileAttributes.txt, line %d\n", lineNo);
         if (iTileID == -1) continue;
 
         if (iMetaID == -1) {
