@@ -49,17 +49,17 @@ void GameMap::loadRooms(string fname) {
     for(Room* r:rooms) delete r;
     rooms = {
         new Room(),
-        new Room1(),
-        new Room2(),
-        new Room3(),
-        new Room4(),
-        new Room5(),
-        new Room6(),
-        new Room7(),
-        new Room8(),
-        new Room9(),
-        new Room10(),
-        new Room11()
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room(),
+        new Room()
     };
     ifstream file(fname);
     printf("Loading %s\n", fname.c_str());

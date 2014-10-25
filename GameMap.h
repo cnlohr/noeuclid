@@ -81,6 +81,11 @@ public:
                 int capden = 255 - timeIn * 200;
                 PaintRangeV(p, s, {1,190,byte(capden<0?255:255-capden),DEADGOAL_BLOCK});
             };
+        }}, {"DieInRange", [](istream& i) -> runfn {
+            Vec3f p,s; i>>p>>s;
+            return [p,s](double timeIn) {
+                if (PlayerInRangeV(p,s)) ::die();
+            };
         }}
     };
     unordered_map<string, int> aliases;

@@ -32,25 +32,17 @@
 #define v(x,y,z) x,y,z
 #define vf(x,y,z) x,y,z
 typedef unsigned char byte;
-struct Vec3f { float x,y,z;};
-extern struct Vec3f gPosition;
 // WARNING: tcc does not throw errors when the signature of a function is not known!
-// tcc funs
 float sinf(float x);
 float cosf(float x);
 double sin(double x);
 double cos(double x);
 double pow(double a, double b);
 #else 
-
-
 #include "Common.h"
 #include <algorithm>
 
-
 #define CLAMP( x, mi, ma ) (x < mi ? mi:( x>ma ? ma:x ) )
-
-
 
 extern Vec3f gPosition;
 extern Vec3f gDirection;
@@ -59,13 +51,6 @@ extern Vec3f gTargetCompression;
 extern Vec3f gTargetHit;
 
 extern int AddSizeStride;
-
-
-
-//Make a triangle wave.
-
-typedef void (*ClickCellCBType)(bool left, Vec3f pos, float dist);
-
 
 void ClearCellV(Vec3i p);
 void PaintRangeV(Vec3i p, Vec3i s, RGBA val);
@@ -135,10 +120,15 @@ void PaintRange(int x, int y, int z, int x2, int y2, int z2, byte block, byte de
 void JumpSpace(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs);
 void JumpSpaceExtended(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs, float xm1, float ym1, float zm1, float xm2, float ym2, float zm2, float xm3, float ym3, float zm3);
 
-
+void ClearPickableBlocks();
+void PlacePickableAt(int x, int y, int z, float initDensity);
 void ChangeCell(int x, int y, int z, byte block, byte density);
 void ClearCell(int x, int y, int z);
 void ClearRange(int x, int y, int z, int x2, int y2, int z2);
 void EmptyBox(int x, int y, int z, int x2, int y2, int z2, byte block, byte density);
 void WarpSpace(int x, int y, int z, int x2, int y2, int z2, float f1, float f2, float f3);
+void QuickCell(int t, int x, int y, int z, byte block, byte density);
+void AddDeathBlock(int x, int y, int z);
+void UpdateZone(int x, int y, int z, int x2, int y2, int z2);
+void die();
 #endif

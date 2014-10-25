@@ -181,7 +181,6 @@ int gGodMode = 0;
 float mouseSensitivity = 0.5;
 double GameTimer = 1000;
 double GameAttempt = 1;
-extern int pickables_in_inventory;
 float gTimeSinceOnGround;
 byte gKeyMap[256];
 bool bPause = false;
@@ -816,11 +815,6 @@ void draw() {
     TotalTime += worldDeltaTime;
     glLoadIdentity();
 
-    /*
-            glRotatef( Pitch, 1., 0., 0. );
-            glRotatef( Yaw, 0., 0., 1. );
-            glRotatef( Roll, 0., 1., 0. );
-     */
     float mat44[16];
     quattomatrix(mat44, LookQuaternion);
     glMultMatrixf(mat44);
@@ -902,13 +896,19 @@ int main(int argc, char ** argv) {
     TCCADDFUN(PaintRange);
     TCCADDFUN(JumpSpace);
     TCCADDFUN(JumpSpaceExtended);
+    TCCADDFUN(UpdateZone);
+    TCCADDFUN(AddDeathBlock);
+    TCCADDFUN(QuickCell);
     TCCADDFUN(loopingarrayaccess);
+    TCCADDFUN(ClearPickableBlocks);
+    TCCADDFUN(PlacePickableAt);
+    TCCADDFUN(die);
 #define TCCADDINT(var, sym, type) tcc.add(#var, sym);tcc.addheader("extern "#type" "#var";")
 
 #define TCCADD(var, type) TCCADDINT(var, &var, type)
-#define TCCADDVEC(var) TCCADDINT(var##X, &var.x, int);\
-        TCCADDINT(var##Y, &var.y, int);\
-        TCCADDINT(var##Z, &var.z, int);
+#define TCCADDVEC(var) TCCADDINT(var##X, &var.x, float);\
+        TCCADDINT(var##Y, &var.y, float);\
+        TCCADDINT(var##Z, &var.z, float);
     TCCADDVEC(gPosition);
     TCCADDVEC(gDirection);
     TCCADDVEC(gTargetNormal);

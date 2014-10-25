@@ -1,9 +1,10 @@
 #include "scripthelpers.h"
 #include "RTHelper.h"
 #include "sys/stat.h"
+#include "GameMap.h"
 extern RTHelper * gh;
 //File for useful scripts.
-
+extern GameMap gamemap;
 //Defines outside extents.
 
 char loopingarrayaccess(char * map, int w, int h, int x, int y) {
@@ -164,6 +165,10 @@ void ClearCell(int x, int y, int z) {
     ClearCellV({x,y,z});
 }
 
+void QuickCell(int t, int x, int y, int z, byte block, byte density) {
+    gh->TMap->TexCell(t, {x,y,z}) = {1,190,density,block};
+}
+
 void ClearRange(int x, int y, int z, int x2, int y2, int z2) {
     ClearRangeV({x,y,z}, {x2,y2,z2});
 }
@@ -190,4 +195,23 @@ void JumpSpace(int x, int y, int z, int x2, int y2, int z2, float xofs, float yo
 
 void JumpSpaceExtended(int x, int y, int z, int x2, int y2, int z2, float xofs, float yofs, float zofs, float xm1, float ym1, float zm1, float xm2, float ym2, float zm2, float xm3, float ym3, float zm3) {
     JumpSpaceV({x,y,z},{x2,y2,z2},{xofs,yofs,zofs},{xm1,  ym1,  zm1},  {xm2,  ym2,  zm2},  {xm3,  ym3,  zm3});
+}
+
+void ClearPickableBlocks() {
+    gamemap.ClearPickableBlocks();
+}
+
+void PlacePickableAt(int x, int y, int z, float initDensity) {
+    gamemap.PlacePickableAt({x,y,z}, initDensity);
+}
+
+void AddDeathBlock(int x, int y, int z) {
+    gamemap.AddDeathBlock({x,y,z});
+}
+
+void UpdateZone(int x, int y, int z, int x2, int y2, int z2) {
+    UpdateZoneV({x,y,z},{x2,y2,z2});
+}
+void die() {
+    gamemap.die();
 }
