@@ -44,8 +44,6 @@
 
 #define MAX_SEEKER 1
 
-
-
 #include <string>
 #include <cmath>
 #include <cstdlib>
@@ -54,9 +52,7 @@
 #include <unordered_map>
 
 using namespace std;
-string ZLibUncompress(const string & in);
 using byte = unsigned char;
-
 
 template<class T> class Vec3 {
 public:
@@ -135,25 +131,14 @@ typedef Vec3<double> Vec3d;
 
 struct RGBAf {
 
-    RGBAf() : r(0), g(0), b(0), a(0) {
-    }
+    RGBAf() : r(0), g(0), b(0), a(0) {}
 
-    RGBAf(Vec3f i) : r(i.x), g(i.y), b(i.z), a(0) {
-    }
+    RGBAf(Vec3f i) : r(i.x), g(i.y), b(i.z), a(0) {}
 
-    RGBAf(Vec3f i, float a) : r(i.x), g(i.y), b(i.z), a(a) {
-    }
+    RGBAf(Vec3f i, float a) : r(i.x), g(i.y), b(i.z), a(a) {}
 
-    RGBAf(float ri, float gi, float bi, float ai) : r(ri), g(gi), b(bi), a(ai) {
-    }
+    RGBAf(float ri, float gi, float bi, float ai) : r(ri), g(gi), b(bi), a(ai) {}
     float r, g, b, a;
-
-    void FromStringArray(string * arr) {
-        r = atof(arr[0].c_str());
-        g = atof(arr[1].c_str());
-        b = atof(arr[2].c_str());
-        a = atof(arr[3].c_str());
-    };
     
     Vec3f vec() {
         return {r,g,b};
@@ -323,7 +308,7 @@ struct Quaternion {
     }
     
     static Quaternion fromAxisAngle(Vec3f axis, float radians) {
-         Vec3f v = axis.norm();
+        Vec3f v = axis.norm();
 
         float sn = sin(radians / 2.0f);
         Quaternion q;

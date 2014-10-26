@@ -90,7 +90,7 @@ void RTHelper::Init(bool fakemode) {
     LoadAttributeMap();
 
     printf("Done loading attributes. Making map.\n ");
-    TMap = new Map("test.dat", this, fakemode);
+    TMap = new Map(this, fakemode);
     printf("Done loading map.\n");
 }
 

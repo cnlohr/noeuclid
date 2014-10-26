@@ -22,14 +22,14 @@ struct CellUpdate {
 
 class Map {
 public:
-    Map(string filename, RTHelper * p, bool fakemode);
+    Map(RTHelper * p, bool fakemode);
     ~Map();
     void FakeIt();
     void DefaultIt();
     void RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int sy, int sz);
     void Draw();
 
-    list< CellUpdate > ListUpdates;
+    list<CellUpdate> ListUpdates;
 
     void TackChange(Vec3i p) {
         ListUpdates.push_back({p, {1,1,1}});

@@ -38,15 +38,13 @@
 #include "TCC.h"
 #include <fstream>
 void mousePress(int b, int state, int x, int y);
-
 void mouseDrag(int x, int y);
-
 void reshape(int Width, int Height);
-
+void pKeyDown(byte key, int x, int y);
+void pKeyUp(byte key, int x, int y);
 void draw();
 
 extern GLuint imTypes[6];
-
 extern GLuint imXTypes[6];
 extern GLuint byTypes[6];
 
@@ -83,6 +81,11 @@ public:
         glutMouseFunc(mousePress);
         glutMotionFunc(mouseDrag);
         glutPassiveMotionFunc(mouseDrag);
+        glutKeyboardFunc(pKeyDown);
+        glutKeyboardUpFunc(pKeyUp);
+        #ifndef EMSCRIPTEN
+        glutWindowStatusFunc([](int status) {gFocused = status == 1;});
+        #endif
     };
 
     ///Main GLUT Loop call
@@ -124,15 +127,6 @@ public:
         return ((float) iDeltaMS) / 1000000.0f;
     };
 
-    ///Set camera distance for default distance on reshape
-
-    /** Whenever the viewport is resized, the default change viewport
-        function gets called and that looks at the camera distance to
-        generate the apropriate camera transformations */
-    void SetCamDist(const float fDist) {
-        fGLUTCamDistance = fDist;
-    }
-
     ///The current Width and Height of the window
     int miWidth, miHeight;
 
@@ -145,7 +139,7 @@ public:
     int miZoomY;
 
     ///This value gets set by SetCamDistance (See that function)
-    static float fGLUTCamDistance;
+    float fGLUTCamDistance;
 
 private:
     ///Delta time between last frame and this frame
@@ -161,21 +155,11 @@ private:
     ///The last millisecond seen by the frametimer.
     unsigned iTmrLastMillisecond;
 };
-float GLUTCore::fGLUTCamDistance;
 
 GLUTCore glut;
 
-//Default usage parameters for the mouse motion functs.
-int oldX, oldY, buttonPressed = 0, rbuttonPressed = 0;
-
-
-
-int frame = 0;
-
 RTHelper gh;
 
-int cix = 0;
-int ciy = 0;
 int gGodMode = 0;
 
 float mouseSensitivity = 0.5;
@@ -235,8 +219,10 @@ void StripDataFromBuffer(int ix, int iy, int iwidth, int iheight, TextureType tt
 void pKeyDown(byte key, int x, int y) {
     if (key == 27) {
         printf("Esc was pushed\n");
-        exit(0);
-    } //esc as a quck exit.
+        //if(bPause)
+            exit(0);
+        //else bPause = !bPause;
+    }
     if (key == 'p') bPause = !bPause;
     if (key == 'g') gGodMode = !gGodMode;
     if (key == '0') show_debugging = !show_debugging;
@@ -255,15 +241,7 @@ void pKeyUp(byte key, int x, int y) {
     gKeyMap[key] = 0;
 }
 
-int lButtonDown = 0, rButtonDown = 0;
-
-/*
-double Pitch = 90.;
-double Yaw = 0.;
-double Roll = 0.0;
- */
 Quaternion LookQuaternion = {0, 0, 0, 1.0f};
-
 Vec3f gPosition;
 Vec3f gDirection;
 Vec3f gTargetNormal;
@@ -276,18 +254,13 @@ char gDialog[1024];
 int gMouseLastClickButton = -1;
 int gOverallUpdateNo = 0; //Gets reset if we "re-load" everything
 GameMap gamemap;
+// aliases of the block types
 unordered_map<string, int> aliases;
 
 void mousePress(int b, int state, int x, int y) {
     glut.miLastMouseX = x;
     glut.miLastMouseY = y;
-    if (b == GLUT_LEFT_BUTTON)
-        lButtonDown = !lButtonDown;
-    if (b == GLUT_RIGHT_BUTTON)
-        rButtonDown = !rButtonDown;
-
-    if (state)
-        gMouseLastClickButton = b;
+    if (state) gMouseLastClickButton = b;
 }
 
 void mouseDrag(int x, int y) {
@@ -338,7 +311,7 @@ void reshape(int Width, int Height) {
     gluPerspective(45.0f, (float) Width / (float) Height, 0.1f, 100.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -GLUTCore::fGLUTCamDistance);
+    glTranslatef(0.0f, 0.0f, -glut.fGLUTCamDistance);
     glRotatef(glut.miSetMouseY * 0.5f, 1.0f, 0.0f, 0.0f);
     glRotatef(glut.miSetMouseX * 0.5f, 0.0f, 0.0f, 1.0f);
 }
@@ -350,19 +323,12 @@ CollisionProbe * gpTestVelocity;
 CollisionProbe * gpForward;
 CollisionProbe * gpRotFwd;
 CollisionProbe * gpRotUp;
-RGBAf LastSquish;
-
-float gPhyDTime;
-//static
 
 void LoadProbes(bool isRerun) {
     Vec3f gv; //Goal direction.
     Vec3f d = {0, 0, 0};
 
     if (!isRerun) {
-        //		if( gKeyMap['r'] ) gOverallUpdateNo = 0;
-        //		'r' is handled by the script, itself.
-
         if (gKeyMap['t']) {
             //reset full map.
             gh.TMap->DefaultIt();
@@ -386,12 +352,10 @@ void LoadProbes(bool isRerun) {
          */
     }
 
-    Vec3f ForwardVec = {0, 0, -1};
-    ForwardVec = LookQuaternion.rotateVector(ForwardVec);
+    Vec3f ForwardVec = LookQuaternion.rotateVector({0, 0, -1});
     ForwardVec.z = -ForwardVec.z; //??? WHY? WHY WHY??? Is LookQuaternion busted???
 
-    Vec3f MoveVec = {d.x, 0, d.y};
-    MoveVec = LookQuaternion.rotateVector(MoveVec);
+    Vec3f MoveVec = LookQuaternion.rotateVector({d.x, 0, d.y});
     float nx = MoveVec.x;
     float ny = MoveVec.y;
 
@@ -521,7 +485,8 @@ void DoneProbes(bool bReRun) {
 
     int iterations = 0;
 
-    Quaternion orotmat[3];Quaternion newquat;
+    Quaternion orotmat[3];
+    Quaternion newquat;
 
     CollisionProbe * tp = gpTest;
 
@@ -758,11 +723,6 @@ clend:
     while (gh.MapOffset.z > GLH_SIZEZ) gh.MapOffset.z -= GLH_SIZEZ;
 
     //	printf( "%7.1f %7.1f %7.1f  /  %7.1f %7.1f %7.1f (%f %f %f)\n", NewYaw, NewPitch, NewRoll, Yaw, Pitch, Roll, gh.MapOffsetX, gh.MapOffsetY, gh.MapOffsetZ );
-
-
-
-
-
 }
 
 //Our rotation may have changed depending on physics.
@@ -775,25 +735,17 @@ void UpdatePositionAndRotation() {
     glMultMatrixf(mat44);
 }
 
-void ThisWindowStatus(int status) {
-    gFocused = status == 1;
-}
-
 void draw() {
     static double TotalTime = 280;
     glClearColor(.1f, .1f, .2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    double DeltaTime = glut.TackFPS();
-    worldDeltaTime = DeltaTime;
+    worldDeltaTime = glut.TackFPS();
     if (gKeyMap[9]) worldDeltaTime *= 10.;
     if (gKeyMap['`']) worldDeltaTime /= 10.;
     if (bPause) worldDeltaTime = 0;
     TotalTime += worldDeltaTime;
-    glLoadIdentity();
-
-    float mat44[16];
-    LookQuaternion.toMatrix(mat44);
-    glMultMatrixf(mat44);
+    
+    UpdatePositionAndRotation();
 
     glPushMatrix();
     gh.DrawMap(worldDeltaTime, TotalTime);
@@ -837,14 +789,11 @@ void draw() {
 
     PopFrom2D();
 
-
-    frame++;
     glutSwapBuffers();
     glutPostRedisplay();
 
 }
 TCC tcc;
-Vec3f*test;
 int main(int argc, char ** argv) {
     for (unsigned i = 0; i < 256; i++)
         gKeyMap[i] = 0;
@@ -853,12 +802,10 @@ int main(int argc, char ** argv) {
     tcc.addheader(readFile("scripthelpers.h"));
     
 #define TCCADDFUN(var) tcc.add(#var, &var)
-    tcc.add("cosf",&cosf);
-    tcc.add("sinf",&sinf);
     tcc.add("sin",(double(*)(double))&sin);
     tcc.add("cos",(double(*)(double))&cos);
-    test = &gPosition;tcc.add("gPosition",&gPosition);
-    
+    TCCADDFUN(cosf);
+    TCCADDFUN(sinf);
     TCCADDFUN(swoovey);
     TCCADDFUN(ChangeCell);
     TCCADDFUN(ClearCell);
@@ -876,39 +823,33 @@ int main(int argc, char ** argv) {
     TCCADDFUN(ClearPickableBlocks);
     TCCADDFUN(PlacePickableAt);
     TCCADDFUN(die);
-#define TCCADDINT(var, sym, type) tcc.add(#var, sym);tcc.addheader("extern "#type" "#var";")
+    TCCADDFUN(gDaytime);
+#define TCCADDVAR(var, sym, type) tcc.add(#var, sym);\
+        tcc.addheader("extern "#type" "#var";")
 
-#define TCCADD(var, type) TCCADDINT(var, &var, type)
-#define TCCADDVEC(var) TCCADDINT(var##X, &var.x, float);\
-        TCCADDINT(var##Y, &var.y, float);\
-        TCCADDINT(var##Z, &var.z, float);
+#define TCCADD(var, type) TCCADDVAR(var, &var, type)
+#define TCCADDVEC(var) TCCADDVAR(var##X, &var.x, float);\
+        TCCADDVAR(var##Y, &var.y, float);\
+        TCCADDVAR(var##Z, &var.z, float);
     TCCADDVEC(gPosition);
     TCCADDVEC(gDirection);
     TCCADDVEC(gTargetNormal);
     TCCADDVEC(gTargetCompression);
     TCCADDVEC(gTargetHit);
-    TCCADDFUN(gDaytime);
 
     LookQuaternion = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
-    glut.Init(argc, (char**) argv, xSize, ySize, "No! Euclid!");
-#ifndef EMSCRIPTEN
-    glutWindowStatusFunc(ThisWindowStatus);
-#endif
+    glut.Init(argc, argv, xSize, ySize, "No! Euclid!");
+
 #ifdef _WIN32
 	printf("Initializing GLEW.\n");
 	printf("glewInit() = %d\n",glewInit());
 #endif
     //For display purposes, we should depth test all of our surfaces.
     glEnable(GL_DEPTH_TEST);
-
+    
     gh.Init(0);
-
     gh.MapOffset = {GLH_SIZEX / 2, GLH_SIZEY / 2, 5};
-
-    glutKeyboardFunc(pKeyDown);
-    glutKeyboardUpFunc(pKeyUp);
-
-
+    
     glut.DrawAndDoMainLoop();
 }

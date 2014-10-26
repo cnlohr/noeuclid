@@ -92,7 +92,6 @@ struct DeathBlock {
 extern double worldDeltaTime;
 
 extern float gDaytime;
-
 extern float gRenderMixval;
 extern float gRenderDensityLimit;
 extern float gRenderDensityMux;

@@ -16,12 +16,6 @@
 
 using namespace std;
 
-GameMap::GameMap() {
-}
-
-GameMap::~GameMap() {
-}
-
 void GameMap::die() {
     rooms[curroom].reset();
     GameAttempt++;
@@ -33,6 +27,7 @@ void GameMap::collision(CollisionProbe * ddat) {
     //printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
 }
 
+// read into string until a line containing  only '}'
 string readScript(ifstream& file, int& lineNum) {
     string script = "", line;
     int beginning = lineNum;
@@ -93,7 +88,6 @@ void GameMap::update() {
     static int was_level_change_pressed;
     if (gOverallUpdateNo % 30 == 0 && fileChanged("rooms.txt")) {
         loadRooms("rooms.txt");
-
     }
     
     if (gOverallUpdateNo == 0) {
@@ -104,6 +98,7 @@ void GameMap::update() {
     if (curroom != lastroom) {
         curroom = (curroom%rooms.size()+rooms.size())%rooms.size();
         printf("Switching to room %d\n", curroom);
+        GameTimer = rooms[curroom].maxTime;
         rooms[curroom].begin();
         lastroom = curroom;
     }
@@ -185,32 +180,22 @@ void GameMap::setRoom(int i, bool reset) {
 }
 
 void GameMap::AddDeathBlock(Vec3i p) {
-    int i;
-
     //Don't add multiple.
-    for (i = 0; i < MAX_DEATH_BLOCKS; i++) {
-        struct DeathBlock * db = &DeathBlocks[i];
-        if (db->p == p) {
-            return;
-        }
-    }
+    for (DeathBlock& db:DeathBlocks)
+        if (db.p == p) return;
 
-    for (i = 0; i < MAX_DEATH_BLOCKS; i++) {
-        struct DeathBlock * db = &DeathBlocks[i];
-        if (db->in_use == 0) {
-            db->in_use = 1;
-            db->p = p;
+    for (DeathBlock& db:DeathBlocks) {
+        if (db.in_use == 0) {
+            db.in_use = 1;
+            db.p = p;
             break;
         }
     }
 }
 bool GameMap::IsOnDeathBlock(Vec3i p) {
-    int i;
-    for (i = 0; i < MAX_DEATH_BLOCKS; i++) {
-        struct DeathBlock * db = &DeathBlocks[i];
-        if (db->p.x == p.x && db->p.y == p.y && (db->p.z == p.z || db->p.z == p.z - 1)) {
+    for (DeathBlock& db:DeathBlocks) {
+        if (db.p.x == p.x && db.p.y == p.y && (db.p.z == p.z || db.p.z == p.z - 1))
             return 1;
-        }
     }
     return 0;
 }
@@ -218,7 +203,6 @@ bool GameMap::IsOnDeathBlock(Vec3i p) {
 //Returns id if pickable is there.
 //Returns -1 if no block.
 //Returns -2 if block tween incomplete.
-
 int GameMap::GetPickableAt(Vec3i p) {
     int i;
     for (i = 0; i < MAX_PICKABLES; i++) {
@@ -232,15 +216,13 @@ int GameMap::GetPickableAt(Vec3i p) {
 }
 
 void GameMap::DissolvePickable(int pid) {
-    struct PickableBlock * pb = &PBlocks[pid];
-    pb->phasing = -1;
+    PBlocks[pid].phasing = -1;
 }
 
 //If -1, no pickables left.
 //If -2, Pickable already there.
 //Otherwise returns which pickable!
 //initial_density should be 0 unless you want to shorten (+) or lengthen (-) tween.
-
 int GameMap::PlacePickableAt(Vec3i p, float initial_density) {
     int i;
 
@@ -262,13 +244,11 @@ int GameMap::PlacePickableAt(Vec3i p, float initial_density) {
 }
 
 void GameMap::ClearPickableBlocks() {
-    int i;
-    for (i = 0; i < MAX_PICKABLES; i++) {
-        PickableBlock * pb = &PBlocks[i];
-        pb->p = Vec3i{0,0,0};
-        pb->phasing = 0;
-        pb->density = 0;
-        pb->in_use = 0;
+    for (PickableBlock& pb : PBlocks) {
+        pb.p = Vec3i{0,0,0};
+        pb.phasing = 0;
+        pb.density = 0;
+        pb.in_use = 0;
     }
     pickables_in_inventory = 0;
 }
@@ -276,31 +256,27 @@ void GameMap::ClearPickableBlocks() {
 //Redraw 
 
 void GameMap::UpdatePickableBlocks() {
-    int i;
-    for (i = 0; i < MAX_PICKABLES; i++) {
-        struct PickableBlock * pb = &PBlocks[i];
+    for (PickableBlock& pb : PBlocks) {
+        if (!pb.in_use) continue;
 
-        if (!pb->in_use) continue;
+        pb.density += worldDeltaTime * pb.phasing;
 
-        pb->density += worldDeltaTime * pb->phasing;
-
-        if (pb->density >= 1.0 && pb->phasing > 0) {
-            pb->density = 1.0;
-            pb->phasing = 0;
+        if (pb.density >= 1.0 && pb.phasing > 0) {
+            pb.density = 1.0;
+            pb.phasing = 0;
         }
-        if (pb->density <= 0 && pb->phasing < 0) {
-            pb->density = 0.0;
-            pb->phasing = 0.0;
-            pb->in_use = 0;
+        if (pb.density <= 0 && pb.phasing < 0) {
+            pb.density = 0.0;
+            pb.phasing = 0.0;
+            pb.in_use = 0;
         }
-        float drawden = (pb->density < 0) ? 0.0 : ((pb->density > 1.0) ? 1.0 : pb->density);
+        float drawden = (pb.density < 0) ? 0.0 : ((pb.density > 1.0) ? 1.0 : pb.density);
 
         if (drawden > .01) {
-            PaintRangeV(pb->p, {1, 1, 1}, {1,190,byte(drawden * 200), PICKABLE_CELL});
+            PaintRangeV(pb.p, {1, 1, 1}, {1,190,byte(drawden * 200), PICKABLE_CELL});
         } else {
-            ClearCellV(pb->p);
+            ClearCellV(pb.p);
         }
-
     }
 }
 
@@ -323,6 +299,5 @@ void GameMap::PickableClick(bool left, Vec3f p, float dist) {
         } else {
             printf("No pickable at (%d,%d,%d)",(int)p.x,(int)p.y,(int)p.z);
         }
-
     }
 }

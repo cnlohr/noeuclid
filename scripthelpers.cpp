@@ -88,7 +88,9 @@ void JumpSpaceV(Vec3i p, Vec3i s, Vec3f offset, Vec3f f1, Vec3f f2, Vec3f f3) {
     for (i = p.x; i <= p.x + s.x; i++)
         for (j = p.y; j <= p.y + s.y; j++)
             for (k = p.z; k <= p.z + s.z; k++) {
-                QuickCell1GBAOnlyV({i, j, k}, 0, newalloc % AddSizeStride, newalloc / AddSizeStride);
+                    gh.TMap->TexCell(1, {i, j, k}).g = 0;
+                    gh.TMap->TexCell(1, {i, j, k}).b = newalloc % AddSizeStride;
+                    gh.TMap->TexCell(1, {i, j, k}).a = newalloc / AddSizeStride;
             }
     UpdateZoneV(p, s + Vec3i{1,1,1});
     gh.MarkAddInfoForReload();
@@ -130,6 +132,7 @@ int PlayerInRangeV(Vec3f p, Vec3f s) {
     return 0;
 }
 
+// true if file has changed since last call
 bool fileChanged(string fname) {
     static unordered_map<string, time_t> modTime;
     struct stat s; stat(fname.c_str(), &s);
@@ -139,6 +142,7 @@ bool fileChanged(string fname) {
     } else return false;
 }
 
+// read complete file into string
 string readFile(string fname) {
     ifstream i(fname);
     if(!i.is_open()) throw runtime_error("Can't open file "+fname);
@@ -155,9 +159,7 @@ void QuickCellV(int t, Vec3i p, RGBA c) {
 }
 
 void QuickCell1GBAOnlyV(Vec3i p, byte g, byte b, byte a) {
-    gh.TMap->TexCell(1, p).g = g;
-    gh.TMap->TexCell(1, p).b = b;
-    gh.TMap->TexCell(1, p).a = a;
+
 }
 
 void UpdateZoneV(Vec3i p, Vec3i s) {

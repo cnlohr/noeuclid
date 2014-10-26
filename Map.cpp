@@ -4,7 +4,7 @@
 #include "RTHelper.h"
 #include <sys/time.h>
 
-Map::Map(string filename, RTHelper * p, bool fake) : /* bQuitBlockUpdater( false ),*/ m_bReloadFullTexture(false), doSubtrace(true), parent(p) {
+Map::Map(RTHelper * p, bool fake) : /* bQuitBlockUpdater( false ),*/ m_bReloadFullTexture(false), doSubtrace(true), parent(p) {
     printf("Making map...\n");
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

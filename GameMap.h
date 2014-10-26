@@ -27,13 +27,10 @@ public:
     DeathBlock DeathBlocks[MAX_DEATH_BLOCKS];
     PickableBlock PBlocks[MAX_PICKABLES];
     vector<Room> rooms;
-    GameMap();
-    GameMap(const GameMap& orig);
     void update();
     void die();
     void setRoom(int newroom, bool reset = false);
     void collision(struct CollisionProbe * ddat);
-    virtual ~GameMap();
     
     #define DONE (i>>ws).eof()
 //TODO nobody can read this
