@@ -201,7 +201,26 @@ vec3 mixfn( vec3 ins, float mixa )
 
 }
 
+vec4 additionalInformation(vec4 voxel, float index) {
+	return texture2D(AdditionalInformationMap, vec2(voxel.b+(index/255.), voxel.a));
+}
 
+void doJumpSpace() {
+	vec3 ra = additionalInformation(lastvox, 0);
+	vec3 rb = additionalInformation(lastvox, 1);
+	vec3 rc = additionalInformation(lastvox, 2);
+	mat3 rm = mat3( ra, rb, rc );
+
+	dir = dir * rm;
+	ARotation = ARotation * rm;
+
+	rdir = normalize( dir * lastmov.xyz );
+
+	vec3 offset = additionalInformation(lastvox, 3);
+	// vec3 pivot = texture2D( AdditionalInformationMap, vec2( lastvox.b+(4./255.), lastvox.a ) ).rgb;
+	vec3 lp = CameraOffset/msize + ptr + offset;
+	ptr = lp * rm - CameraOffset/msize; //-lp * rm;// + ( ptr + FloorCameraPos - pivot ) * rm;
+}
 
 //Large-scale traversal function
 void TraverseIn( )
@@ -210,21 +229,7 @@ void TraverseIn( )
 	lastvox = texture3D( AddTex, ( floor(ptr) )*msize  + CameraOffset );
 	lastmov = texture3D( MovTex, ( floor(ptr) )*msize  + CameraOffset );
 
-	if( lastvox.a > 0.0 )
-	{
-		vec3 ra = texture2D( AdditionalInformationMap, vec2( lastvox.b+(0./255.), lastvox.a ) ).rgb;
-		vec3 rb = texture2D( AdditionalInformationMap, vec2( lastvox.b+(1./255.), lastvox.a ) ).rgb;
-		vec3 rc = texture2D( AdditionalInformationMap, vec2( lastvox.b+(2./255.), lastvox.a ) ).rgb;
-		mat3 rm = mat3( ra, rb, rc );
-
-		dir = dir * rm;
-		ARotation = ARotation * rm;
-
-		rdir = normalize( dir * lastmov.xyz );
-		vec3 offset = texture2D( AdditionalInformationMap, vec2( lastvox.b+(3./255.), lastvox.a ) ).rgb;
-		vec3 lp = CameraOffset/msize + ptr + offset;
-		ptr = lp * rm - CameraOffset/msize; //-lp * rm;// + ( ptr + FloorCameraPos - pivot ) * rm;
-	}
+	if( lastvox.a > 0.0 ) doJumpSpace();
 
 	//come up with vector to neutralize the sign on all computations
 	//for traversal.  This makes it possible to always treat it like
@@ -268,20 +273,8 @@ void TraverseIn( )
 
 		if( lastvox.a > 0.0 )
 		{
-			vec3 ra = texture2D( AdditionalInformationMap, vec2( lastvox.b+(0./255.), lastvox.a ) ).rgb;
-			vec3 rb = texture2D( AdditionalInformationMap, vec2( lastvox.b+(1./255.), lastvox.a ) ).rgb;
-			vec3 rc = texture2D( AdditionalInformationMap, vec2( lastvox.b+(2./255.), lastvox.a ) ).rgb;
-			mat3 rm = mat3( ra, rb, rc );
-
-			dir = dir * rm;
-			ARotation = ARotation * rm;
-
-			rdir = normalize( dir * lastmov.xyz );
+			doJumpSpace();
 			dircomps = sign( rdir );
-			vec3 offset = texture2D( AdditionalInformationMap, vec2( lastvox.b+(3./255.), lastvox.a ) ).rgb;
-//			vec3 pivot = texture2D( AdditionalInformationMap, vec2( lastvox.b+(4./255.), lastvox.a ) ).rgb;
-			vec3 lp = CameraOffset/msize + ptr + offset;
-			ptr = lp * rm - CameraOffset/msize; //-lp * rm;// + ( ptr + FloorCameraPos - pivot ) * rm;
 		}
 #ifdef PHYSICS
 		rdir = normalize( dir * lastmov.xyz/lastmov.w );
@@ -370,7 +363,7 @@ void main()
 			if( lastvox.a > 0.0 )
 			{
 				dir = vec3( -dir.y, dir.x, dir.z );
-				ptr += texture2D( AdditionalInformationMap, vec2( lastvox.b+(3./255.), lastvox.a ) ).rgb;
+				ptr += additionalInformation(lastvox, 3);
 			}
 #endif
 			rdir = normalize( dir * lastlastmov );
