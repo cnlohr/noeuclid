@@ -32,6 +32,8 @@ vec3 rdir; //Modified Direction
 //before any of the tricks described below are applied.
 varying vec3 InitialCamera;
 
+varying vec3 AuxRotation;
+vec3 ARotation;
 
 //So, because of floating point error, we must always keep the
 //camera close to the origin.  We can fix this by virtually
@@ -107,6 +109,18 @@ vec3 cellhit = vec3( 0.5 );
 //Similar - used in subtrace, but contains the offset for the selected point.
 vec3 CellPoint = vec3( 0. );
 
+#ifdef PHYSICS
+//Uncomment this to override subtrace (may speed it up on some systems)
+//By enabling the override, the GLSL compiler can drop some code on the floor
+//thus decreasing the shader's footprint.
+//In practice, this doesn't affect too much.
+//#define SUBTRACE_OVERRIDE
+#ifdef SUBTRACE_OVERRIDE
+#define do_subtrace = 0.;
+#else
+uniform float do_subtrace;
+#endif
+#endif
 
 //Size of voxel texture in pixels.
 uniform float msX;
@@ -133,8 +147,6 @@ const int maxsteps = 190;
 //const float maxdist = 256.;
 varying float maxdist;
 
-varying vec3 AuxRotation;
-vec3 ARotation;
 
 
 //For subtracing (these are where the local block pairs information goes).
@@ -147,20 +159,27 @@ vec4 vectop = vec4( 0., 0., 0., 0. );
 //axis before we must consider checking to see if we hit something
 vec3 dists;
 
-//For Physics
-//varying float doPhysics;
-#define doPhysics 0.0
-
 const float linearstep = .1;
 const int binaryRefinements = 8;
+
+#ifdef PHYSICS
+varying float doPhysics;
+//Subtrace tunable parameters:
+const float mixval = .9;
+const float densitylimit = .2;
+#else
+#define doPhysics 0.0
+uniform float mixval; //.9
+uniform float densitylimit; //.2
+uniform float densitymux; //1.0
+#endif
+
+
 
 //For pseudo z-buffering things...
 float TotalDistanceTraversed;
 float PerceivedDistanceTraversed;
 
-uniform float mixval; //.9
-uniform float densitylimit; //.2
-uniform float densitymux; //1.0
 
 //This is the shape mixing function for subtrace.
 vec3 mixfn( vec3 ins, float mixa )
@@ -200,6 +219,7 @@ void TraverseIn( )
 
 		dir = dir * rm;
 		ARotation = ARotation * rm;
+
 		rdir = normalize( dir * lastmov.xyz );
 		vec3 offset = texture2D( AdditionalInformationMap, vec2( lastvox.b+(3./255.), lastvox.a ) ).rgb;
 		vec3 lp = CameraOffset/msize + ptr + offset;
@@ -245,11 +265,7 @@ void TraverseIn( )
 		lastmov = texture3D( MovTex, floor( ptr )*msize  + CameraOffset );
 
 		//Jump?
-/*		if( length( lastvox.gba ) > 0.01 )
-		{
-			ptr += vec3( lastvox.gba ) * 255.0;
-		}
-*/
+
 		if( lastvox.a > 0.0 )
 		{
 			vec3 ra = texture2D( AdditionalInformationMap, vec2( lastvox.b+(0./255.), lastvox.a ) ).rgb;
@@ -259,14 +275,19 @@ void TraverseIn( )
 
 			dir = dir * rm;
 			ARotation = ARotation * rm;
+
 			rdir = normalize( dir * lastmov.xyz );
 			dircomps = sign( rdir );
 			vec3 offset = texture2D( AdditionalInformationMap, vec2( lastvox.b+(3./255.), lastvox.a ) ).rgb;
+//			vec3 pivot = texture2D( AdditionalInformationMap, vec2( lastvox.b+(4./255.), lastvox.a ) ).rgb;
 			vec3 lp = CameraOffset/msize + ptr + offset;
 			ptr = lp * rm - CameraOffset/msize; //-lp * rm;// + ( ptr + FloorCameraPos - pivot ) * rm;
 		}
-
+#ifdef PHYSICS
+		rdir = normalize( dir * lastmov.xyz/lastmov.w );
+#else
 		rdir = normalize( dir * lastmov.xyz );
+#endif
 		
 		//If it's a hit, we're good!  Return 
 		if( lastvox.r > .1 )
@@ -286,7 +307,11 @@ void TraverseIn( )
 
 float Density( vec3 ltexptr )
 {
+#ifdef PHYSICS
+	return texture3D( GeoTex, ltexptr*msize + CameraOffset ).b;
+#else 
 	return texture3D( GeoTex, ltexptr*msize + CameraOffset ).b * densitymux;
+#endif
 //	vec2 ltm = texture3D( AddTex, ltexptr*msize +CameraOffset ).rg;
 //	return texture2D( AttribMap, vec2( ltm.g + (7./128.), ltm.r ) ).r;
 }
@@ -302,12 +327,17 @@ void main()
 	CurrentCamera = mod( InitialCamera, 1.0 );
 	FloorCameraPos = floor( InitialCamera );
 	CameraOffset = mod( (FloorCameraPos * msize), 1.0 ) + lshw;
+#ifdef PHYSICS
+	ptr = CurrentCamera + vec3(do_subtrace*0.5);
+#else
 	ptr = CurrentCamera + vec3(0.5);
+#endif
 	optr = ptr;
 	dir = normalize(RayDirection);
 	step = 0;
 	vec4 firstmov = texture3D( MovTex, ( floor(ptr) )*msize  + CameraOffset );
 	PerceivedDistanceTraversed = 0.0;
+	ARotation = AuxRotation;
 
 	//For subtracing
 	vec3 nlc;
@@ -329,22 +359,20 @@ void main()
 	float First = 1.0;
 	TotalDistanceTraversed = 0.0;
 
-	ARotation = AuxRotation;
-
 	do
 	{
 		if( First > 0.5 )
 		{
 			lastvox = texture3D( AddTex, ( floor(ptr) )*msize  + CameraOffset );
 			lastmov = texture3D( MovTex, ( floor(ptr) )*msize  + CameraOffset );
-
+			lastlastmov = (lastmov.xyz/lastmov.w);
+#ifndef PHYSICS
 			if( lastvox.a > 0.0 )
 			{
 				dir = vec3( -dir.y, dir.x, dir.z );
 				ptr += texture2D( AdditionalInformationMap, vec2( lastvox.b+(3./255.), lastvox.a ) ).rgb;
 			}
-
-			lastlastmov = (lastmov.xyz/lastmov.w);
+#endif
 			rdir = normalize( dir * lastlastmov );
 			if( lastvox.r < .1 )
 				TraverseIn( );
@@ -375,7 +403,11 @@ void main()
 				}
 
 				gl_FragData[2] = vec4( (InitialCamera+ptr-optr).xyz, PerceivedDistanceTraversed );
+#ifdef PHYSICS
+				gl_FragData[3] = vec4( ARotation, 0.0 );
+#else
 				gl_FragData[3] = vec4( dir, 0.0 );
+#endif
 			}
 			else
 			{
@@ -392,7 +424,30 @@ void main()
 
 		if( lastvox.r > .99 )
 		{
+#ifdef PHYSICS
+			//If we're not subtracing, we need to just calculate the normal
+			//and get out!  The rest of this function is used for subtracing.
+			if( do_subtrace < .5 )
+			{
+				cellhit = fract( ptr.xyz );
 
+				vec3 lch = abs( cellhit-0.50 );
+				if( lch.x > lch.y && lch.x > lch.z )
+				{
+					normal = vec3( sign(- rdir.x ), 0., 0. );
+				}
+				else if ( lch.y > lch.z )
+				{
+					normal = vec3( 0., sign(- rdir.y ), 0. );
+				}
+				else
+				{
+					normal = vec3( 0., 0., sign(- rdir.z ) );
+				}
+
+				break;
+			}
+#endif
 
 			//Calculate parameters for /this/ cell
 			lc = fract(ptr.xyz);
@@ -486,7 +541,11 @@ void main()
 			}
 
 			gl_FragData[2] = vec4( (InitialCamera+ptr-optr).xyz, PerceivedDistanceTraversed );
+#ifdef PHYSICS
+			gl_FragData[3] = vec4( ARotation, 0.0 );
+#else
 			gl_FragData[3] = vec4( dir, 0.0 );
+#endif
 			return;
 		}
 		else
@@ -496,7 +555,9 @@ void main()
 			return;
 		}
 	}
-
+#ifdef PHYSICS
+	if( do_subtrace > 0.5 )
+#endif
 	{
 		//Binary search the remaining space.
 		//This means we're a hit, and just want to get our XYZ location of the hit very precice.
@@ -562,7 +623,11 @@ void main()
 		}
 
 		gl_FragData[2] = vec4( (InitialCamera+ptr-optr).xyz, PerceivedDistanceTraversed );
+#ifdef PHYSICS
+		gl_FragData[3] = vec4( ARotation, 0.0 );
+#else
 		gl_FragData[3] = vec4( dir, 0.0 );
+#endif
 	}
 	else
 	{
@@ -577,9 +642,11 @@ void main()
 			gl_FragData[1] = vec4( normal, closesthitstretchandtex.a );
 			return;
 		}
-
+#ifdef PHYSICS
+		gl_FragData[0] = vec4( (InitialCamera+ptr-optr).xyz, step );
+#else
 		gl_FragData[0] = vec4( ptr, step );
-//		gl_FragData[0] = vec4( (ptr-optr).xyz, step );
+#endif
 		gl_FragData[1] = vec4( normal.xyz, 1. );
 	}
 	return;

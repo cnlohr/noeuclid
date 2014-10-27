@@ -68,16 +68,16 @@ void Shader::CheckForNewer(string sShaderName) {
     }
 }
 
-bool Shader::LoadShader(string sShaderName) {
+bool Shader::LoadShader(string sShaderName, string preamble) {
     string s1 = sShaderName + ".frag", s2 = sShaderName + ".vert";
 
-    string sh1 = readFile(s1);
+    string sh1 = preamble + readFile(s1);
     printf("Compiling: %s\n", s1.c_str());
     if (!LoadShaderFrag(sh1.c_str())) {
         printf("Reporting failed shaderload. Not linking.\n");
         return false;
     }
-    string sh2 = readFile(s2);
+    string sh2 = preamble + readFile(s2);
     printf("Compiling: %s\n", s2.c_str());
     if (!LoadShaderVert(sh2.c_str())) {
         printf("Reporting failed shaderload. Not linking.\n");

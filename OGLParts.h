@@ -53,7 +53,7 @@ public:
 	    attempt to load, compile and link the files.  If any errors are found, they will
 	    be announced at STDOUT.  When Geometry shader support is added, it will search
 	    for .geom files */
-	bool LoadShader(string sShaderName );
+	bool LoadShader(string sShaderName, string preamble = "");
 
 	///Explicitly load a fragment shader
 	/** This function takes on raw code in the sShaderCode string and attemps to compile
@@ -129,6 +129,7 @@ private:
 	GLuint	fragmentProgram;
 	///ASM Only information for programs
 	bool bIsGLSLAsm;
+        string filename;
 };
 
 ///Element for setting texture states in OpenGL.

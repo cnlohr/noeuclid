@@ -75,7 +75,7 @@ void RTHelper::Init(bool fakemode) {
 
     printf("RB Setup. Loading Shaders.\n");
 
-    Pass1Physics.LoadShader("Shaders/Pass1Physics");
+    Pass1Physics.LoadShader("Shaders/Pass1", "#define PHYSICS\n");
     Pass1.LoadShader("Shaders/Pass1");
     Pass2.LoadShader("Shaders/Pass2");
     Pass3.LoadShader("Shaders/Pass3");
@@ -263,7 +263,6 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
     float aspect = (float) glut.miWidth / (float) glut.miHeight;
 
     Pass1.CheckForNewer("Shaders/Pass1");
-    Pass1Physics.CheckForNewer("Shaders/Pass1Physics");
     Pass2.CheckForNewer("Shaders/Pass2");
     Pass3.CheckForNewer("Shaders/Pass3");
 
