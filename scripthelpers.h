@@ -90,7 +90,6 @@ struct DeathBlock {
 #define SPAAACE_CELL 255
 
 extern double worldDeltaTime;
-
 extern float gDaytime;
 extern float gRenderMixval;
 extern float gRenderDensityLimit;

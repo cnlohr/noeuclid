@@ -44,7 +44,7 @@ class RTHelper
 {
 public:
 	RTHelper() :
-            Pass1("Shaders/Pass1"), Pass1Physics("Shaders/Pass1"),
+            Pass1("Shaders/Pass1"), Pass1Physics("Shaders/Pass1", "#define PHYSICS\n"),
             Pass2("Shaders/Pass2"), Pass3("Shaders/Pass3"),
             v({0,0,0}), ProbePlace(0) {};
 	~RTHelper();

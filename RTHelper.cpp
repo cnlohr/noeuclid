@@ -75,7 +75,7 @@ void RTHelper::Init(bool fakemode) {
 
     printf("RB Setup. Loading Shaders.\n");
 
-    Pass1Physics.LoadShader("#define PHYSICS\n");
+    Pass1Physics.LoadShader();
     Pass1.LoadShader();
     Pass2.LoadShader();
     Pass3.LoadShader();

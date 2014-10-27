@@ -800,34 +800,48 @@ int main(int argc, char ** argv) {
     unsigned int xSize = 720, ySize = 480;
 
     tcc.addheader(readFile("scripthelpers.h"));
-    
-#define TCCADDFUN(var) tcc.add(#var, &var)
     tcc.add("sin",(double(*)(double))&sin);
     tcc.add("cos",(double(*)(double))&cos);
-    TCCADDFUN(cosf);
-    TCCADDFUN(sinf);
-    TCCADDFUN(swoovey);
-    TCCADDFUN(ChangeCell);
-    TCCADDFUN(ClearCell);
-    TCCADDFUN(ClearRange);
-    TCCADDFUN(EmptyBox);
-    TCCADDFUN(WarpSpace);
-    TCCADDFUN(PlayerInRange);
-    TCCADDFUN(PaintRange);
-    TCCADDFUN(JumpSpace);
-    TCCADDFUN(JumpSpaceExtended);
-    TCCADDFUN(UpdateZone);
-    TCCADDFUN(AddDeathBlock);
-    TCCADDFUN(QuickCell);
-    TCCADDFUN(loopingarrayaccess);
-    TCCADDFUN(ClearPickableBlocks);
-    TCCADDFUN(PlacePickableAt);
-    TCCADDFUN(die);
-    TCCADDFUN(gDaytime);
+#define TCCADD(var) tcc.add(#var, &var)
+    TCCADD(cosf);
+    TCCADD(sinf);
+    TCCADD(swoovey);
+    TCCADD(ChangeCell);
+    TCCADD(ClearCell);
+    TCCADD(ClearRange);
+    TCCADD(EmptyBox);
+    TCCADD(WarpSpace);
+    TCCADD(PlayerInRange);
+    TCCADD(PaintRange);
+    TCCADD(JumpSpace);
+    TCCADD(JumpSpaceExtended);
+    TCCADD(UpdateZone);
+    TCCADD(AddDeathBlock);
+    TCCADD(QuickCell);
+    TCCADD(loopingarrayaccess);
+    TCCADD(ClearPickableBlocks);
+    TCCADD(PlacePickableAt);
+    TCCADD(die);
+	TCCADD(worldDeltaTime);
+	TCCADD(gDaytime);
+	TCCADD(gRenderMixval);
+	TCCADD(gRenderDensityLimit);
+	TCCADD(gRenderDensityMux);
+	TCCADD(gTargetActualDistance);
+	TCCADD(gTargetProjDistance);
+	TCCADD(gTargetPerceivedDistance);
+	TCCADD(gDialog);
+	TCCADD(gKeyMap);
+	TCCADD(gFocused);
+	TCCADD(gMouseLastClickButton);
+	TCCADD(gTimeSinceOnGround);
+	TCCADD(pickables_in_inventory);
+	TCCADD(gOverallUpdateNo);
+	TCCADD(GameTimer);
+	TCCADD(GameAttempt);
 #define TCCADDVAR(var, sym, type) tcc.add(#var, sym);\
         tcc.addheader("extern "#type" "#var";")
 
-#define TCCADD(var, type) TCCADDVAR(var, &var, type)
 #define TCCADDVEC(var) TCCADDVAR(var##X, &var.x, float);\
         TCCADDVAR(var##Y, &var.y, float);\
         TCCADDVAR(var##Z, &var.z, float);

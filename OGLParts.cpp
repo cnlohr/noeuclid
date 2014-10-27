@@ -44,7 +44,7 @@ void DestroyShaderProgram(GLhandleARB iProgramID) {
     return;
 }
 
-Shader::Shader(string sShaderName) : sShaderName(sShaderName) {
+Shader::Shader(string sShaderName, string preamble) : sShaderName(sShaderName), preamble(preamble) {
     iProgramID = (GLhandleARB) NULL;
     vertexShader = (GLhandleARB) NULL;
     fragmentShader = (GLhandleARB) NULL;
@@ -61,11 +61,11 @@ void Shader::CheckForNewer() {
             || fileChanged(sShaderName+".frag")
             || fileChanged(sShaderName+".geom")) {
         DestroyShaderProgram(iProgramID);
-        LoadShader(sShaderName);
+        LoadShader();
     }
 }
 
-bool Shader::LoadShader(string preamble) {
+bool Shader::LoadShader() {
     string s1 = sShaderName + ".frag", s2 = sShaderName + ".vert";
 
     string sh1 = preamble + readFile(s1);

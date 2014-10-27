@@ -206,9 +206,9 @@ vec4 additionalInformation(vec4 voxel, float index) {
 }
 
 void doJumpSpace() {
-	vec3 ra = additionalInformation(lastvox, 0);
-	vec3 rb = additionalInformation(lastvox, 1);
-	vec3 rc = additionalInformation(lastvox, 2);
+	vec3 ra = additionalInformation(lastvox, 0.).rgb;
+	vec3 rb = additionalInformation(lastvox, 1.).rgb;
+	vec3 rc = additionalInformation(lastvox, 2.).rgb;
 	mat3 rm = mat3( ra, rb, rc );
 
 	dir = dir * rm;
@@ -216,7 +216,7 @@ void doJumpSpace() {
 
 	rdir = normalize( dir * lastmov.xyz );
 
-	vec3 offset = additionalInformation(lastvox, 3);
+	vec3 offset = additionalInformation(lastvox, 3.).rgb;
 	// vec3 pivot = texture2D( AdditionalInformationMap, vec2( lastvox.b+(4./255.), lastvox.a ) ).rgb;
 	vec3 lp = CameraOffset/msize + ptr + offset;
 	ptr = lp * rm - CameraOffset/msize; //-lp * rm;// + ( ptr + FloorCameraPos - pivot ) * rm;
@@ -363,7 +363,7 @@ void main()
 			if( lastvox.a > 0.0 )
 			{
 				dir = vec3( -dir.y, dir.x, dir.z );
-				ptr += additionalInformation(lastvox, 3);
+				ptr += additionalInformation(lastvox, 3.).rgb;
 			}
 #endif
 			rdir = normalize( dir * lastlastmov );
