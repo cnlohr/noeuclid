@@ -75,10 +75,10 @@ void RTHelper::Init(bool fakemode) {
 
     printf("RB Setup. Loading Shaders.\n");
 
-    Pass1Physics.LoadShader("Shaders/Pass1", "#define PHYSICS\n");
-    Pass1.LoadShader("Shaders/Pass1");
-    Pass2.LoadShader("Shaders/Pass2");
-    Pass3.LoadShader("Shaders/Pass3");
+    Pass1Physics.LoadShader("#define PHYSICS\n");
+    Pass1.LoadShader();
+    Pass2.LoadShader();
+    Pass3.LoadShader();
 
     printf("Shaders loaded.\n");
     PassPhysicsOutputs[0].MakeDynamicTexture(PHYSICS_SIZE, PHYSICS_SIZE, TTRGBA32);
@@ -262,9 +262,10 @@ void RTHelper::ExecProbes(bool isRerun) {
 void RTHelper::DrawMap(double dTime, double fTotalTime) {
     float aspect = (float) glut.miWidth / (float) glut.miHeight;
 
-    Pass1.CheckForNewer("Shaders/Pass1");
-    Pass2.CheckForNewer("Shaders/Pass2");
-    Pass3.CheckForNewer("Shaders/Pass3");
+    Pass1.CheckForNewer();
+    Pass1Physics.CheckForNewer();
+    Pass2.CheckForNewer();
+    Pass3.CheckForNewer();
 
     if (fileChanged("tileattributes.txt"))
         LoadAttributeMap();
