@@ -262,14 +262,15 @@ void RTHelper::ExecProbes(bool isRerun) {
 void RTHelper::DrawMap(double dTime, double fTotalTime) {
     float aspect = (float) glut.miWidth / (float) glut.miHeight;
 
-    Pass1.CheckForNewer();
-    Pass1Physics.CheckForNewer();
-    Pass2.CheckForNewer();
-    Pass3.CheckForNewer();
+    if(gOverallUpdateNo % 30 == 0) {
+        Pass1.LoadIfNewer();
+        Pass1Physics.LoadIfNewer();
+        Pass2.LoadIfNewer();
+        Pass3.LoadIfNewer();
 
-    if (fileChanged("tileattributes.txt"))
-        LoadAttributeMap();
-
+        if (fileChanged("tileattributes.txt"))
+            LoadAttributeMap();
+    }
 
     if (bAddInfoForceReload) {
         bAddInfoForceReload = false;

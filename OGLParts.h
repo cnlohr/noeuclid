@@ -98,7 +98,7 @@ public:
 	bool DeactivateShader();
 
 	///Check for newer version of 'this' shader
-	void CheckForNewer();
+	void LoadIfNewer();
         
 
 	///Explicitly get the OpenGL ProgramID in the event you need it for advanced techniques

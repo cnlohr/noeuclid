@@ -50,16 +50,16 @@ Shader::Shader(string sShaderName, string preamble) : sShaderName(sShaderName), 
     fragmentShader = (GLhandleARB) NULL;
     geometryShader = (GLhandleARB) NULL;
     bIsGLSLAsm = 0;
+    fileChanged(sShaderName+".vert");
+    fileChanged(sShaderName+".frag");
 }
 
 Shader::~Shader() {
     DestroyShaderProgram(iProgramID);
 }
 
-void Shader::CheckForNewer() {
-    if (fileChanged(sShaderName+".vert") 
-            || fileChanged(sShaderName+".frag")
-            || fileChanged(sShaderName+".geom")) {
+void Shader::LoadIfNewer() {
+    if (fileChanged(sShaderName+".vert") || fileChanged(sShaderName+".frag")) {
         DestroyShaderProgram(iProgramID);
         LoadShader();
     }
