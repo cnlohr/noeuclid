@@ -43,6 +43,7 @@ void reshape(int Width, int Height);
 void pKeyDown(byte key, int x, int y);
 void pKeyUp(byte key, int x, int y);
 void draw();
+void unpauseGame();
 
 extern GLuint imTypes[6];
 extern GLuint imXTypes[6];
@@ -99,6 +100,7 @@ public:
 
         //Pre-emptively call the resize and draw functions to get the cycle going
         reshape(miWidth, miHeight);
+        unpauseGame();
         draw();
         glutMainLoop();
     };
@@ -167,7 +169,7 @@ double GameTimer = 1000;
 double GameAttempt = 1;
 float gTimeSinceOnGround;
 byte gKeyMap[256];
-bool bPause = false;
+bool bPause = true;
 byte gFocused;
 double worldDeltaTime;
 int show_debugging = 0;
@@ -216,14 +218,26 @@ void StripDataFromBuffer(int ix, int iy, int iwidth, int iheight, TextureType tt
     glReadPixels(ix, iy, iwidth, iheight, imXTypes[tt], byTypes[tt], buffer);
 }
 
+void pauseGame() {
+    bPause = true;
+    glutSetCursor(GLUT_CURSOR_INHERIT);
+}
+
+void unpauseGame() {
+    bPause = false;
+    glut.TackFPS();
+    glutSetCursor(GLUT_CURSOR_NONE);
+    glutWarpPointer(glut.miWidth / 2, glut.miHeight / 2);
+    glutPostRedisplay();
+}
+
 void pKeyDown(byte key, int x, int y) {
     if (key == 27) {
-        printf("Esc was pushed\n");
-        //if(bPause)
-            exit(0);
-        //else bPause = !bPause;
+        printf("Esc was pressed, press again to exit.\n");
+        if(bPause) exit(0);
+        else pauseGame();
     }
-    if (key == 'p') bPause = !bPause;
+    if (key == 'p') pauseGame();
     if (key == 'g') gGodMode = !gGodMode;
     if (key == '0') show_debugging = !show_debugging;
     if (key == '8') {
@@ -260,11 +274,12 @@ unordered_map<string, int> aliases;
 void mousePress(int b, int state, int x, int y) {
     glut.miLastMouseX = x;
     glut.miLastMouseY = y;
+    if(bPause) unpauseGame();
     if (state) gMouseLastClickButton = b;
 }
 
 void mouseDrag(int x, int y) {
-    if (!gFocused) return;
+    if (!gFocused || bPause) return;
     //Find the amount moved from last frame to this frame.
     float dx = x - glut.miWidth / 2;
     float dy = y - glut.miHeight / 2;
@@ -273,11 +288,8 @@ void mouseDrag(int x, int y) {
     glut.miLastMouseX = x;
     glut.miLastMouseY = y;
 
-    if (gFocused) {
-        if (dx != 0 || dy != 0) {
-            glutWarpPointer(glut.miWidth / 2, glut.miHeight / 2);
-            glutSetCursor(GLUT_CURSOR_NONE);
-        }
+    if (dx != 0 || dy != 0) {
+        glutWarpPointer(glut.miWidth / 2, glut.miHeight / 2);
     }
 
     Quaternion qinitrotFwd = Quaternion::fromAxisAngle({1, 0, 0}, 3.14159 / 2.);
@@ -486,7 +498,6 @@ void DoneProbes(bool bReRun) {
     int iterations = 0;
 
     Quaternion orotmat[3];
-    Quaternion newquat;
 
     CollisionProbe * tp = gpTest;
 
@@ -650,13 +661,8 @@ void DoneProbes(bool bReRun) {
     orotmat[0] = gpRotFwd->NewDirection; //X
     orotmat[1] = gpRotUp->NewDirection; //Y
     orotmat[2] = orotmat[0].cross3d(orotmat[1]);
-
-    newquat = Quaternion::fromMatrix((float*)orotmat).normalize();
     //TODO: If we are in a situation where we're stuck on our side, don't exceute this line of code.
-    LookQuaternion[0] = newquat[0];
-    LookQuaternion[1] = newquat[1];
-    LookQuaternion[2] = newquat[2];
-    LookQuaternion[3] = newquat[3];
+    LookQuaternion = Quaternion::fromMatrix((float*)orotmat).normalize();
 
     //Attempt to re-right the player
 
@@ -736,13 +742,13 @@ void UpdatePositionAndRotation() {
 }
 
 void draw() {
+    if (bPause) return;
     static double TotalTime = 280;
     glClearColor(.1f, .1f, .2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     worldDeltaTime = glut.TackFPS();
     if (gKeyMap[9]) worldDeltaTime *= 10.;
     if (gKeyMap['`']) worldDeltaTime /= 10.;
-    if (bPause) worldDeltaTime = 0;
     TotalTime += worldDeltaTime;
     
     UpdatePositionAndRotation();
