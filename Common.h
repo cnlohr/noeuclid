@@ -75,7 +75,7 @@ public:
     }
 
     const Vec3<T> operator*(const T s) const {
-        return Vec3{x*s, y*s, z * s};
+        return Vec3{x*s, y*s, z*s};
     }
     
     const Vec3<T> operator/(const T s) const {
@@ -106,11 +106,11 @@ public:
         return (*this)/len();
     }
 
-    const T dot(const Vec3& b) {
+    const T dot(const Vec3& b) const {
         return x * b.x + y * b.y + z * b.z;
     }
     
-    const Vec3<T> cross(const Vec3& b) {
+    Vec3<T> cross(const Vec3& b) const {
         return Vec3{y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x};
     }
     
@@ -193,13 +193,13 @@ struct Quaternion {
     }
     
     Quaternion reciprocal() const {
-        return this->conjugate().scale(this->invsqmagnitude());
+        return conjugate().scale(this->invsqmagnitude());
     }
     
     Vec3f rotateVector(Vec3f v) const {
         //XXX IS THIS RIGHT? IT LOOKS WRONG!!!
         Quaternion vquat = {(v.len2() < 0.001) ? 1.f : 0.f,v.x,v.y,v.z};
-        vquat = this->rotateabout(vquat).rotateabout(this->reciprocal());
+        vquat = rotateabout(vquat).rotateabout(this->reciprocal());
         return {vquat[1],vquat[2],vquat[3]};
     }
     
