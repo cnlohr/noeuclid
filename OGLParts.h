@@ -59,7 +59,7 @@ public:
 	/** This function takes on raw code in the sShaderCode string and attemps to compile
 	    it.  Any errors it runs into will be displayed at STDOUT.  Note you are
             discouraged to use this function, in favor of using LoadShader(). */
-	bool LoadShader(int shaderType, GLhandleARB& target, string sShaderCode);
+	bool LoadShader(int shaderType, GLuint& target, string sShaderCode);
 
 	///Explicitly link all shaders currently loaded
 	/** This takes vertexShader and fragmentShader and converts them into iProgramID.
@@ -90,7 +90,7 @@ public:
         
 
 	///Explicitly get the OpenGL ProgramID in the event you need it for advanced techniques
-	GLhandleARB	GetProgramID() { return iProgramID; }
+	GLuint	GetProgramID() { return iProgramID; }
 private:
 	///Get the last modified time for sShaderName
 	/* This function takes on iOut as being where to put the last time the shader was modified.
@@ -98,21 +98,21 @@ private:
 	void GetTimeCodes( unsigned long * iOut, const char * sShaderName  );
 
 	///The OpenGL Program ID
-	GLhandleARB	iProgramID;
+	GLuint	iProgramID = 0;
 
 	///The OpenGL Geometry Program ID
-	GLhandleARB	geometryShader;
+	GLuint	geometryShader = 0;
 
 	///The OpenGL Vertex Program ID
-	GLhandleARB	vertexShader;
+	GLuint	vertexShader = 0;
 
 	///The OpenGL Fragment Program ID
-	GLhandleARB	fragmentShader;
+	GLuint	fragmentShader = 0;
 
 	///ASM Only information for vertex programs
-	GLuint  vertexProgram;
+	GLuint  vertexProgram = 0;
 	///ASM Only information for fragment programs
-	GLuint	fragmentProgram;
+	GLuint	fragmentProgram = 0;
     string sShaderName, preamble;
 };
 

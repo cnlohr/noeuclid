@@ -10,7 +10,7 @@
 
 using namespace std;
 
-GLuint imTypes[6] = {GL_LUMINANCE8, GL_RGB, GL_RGBA, GL_RGBA16F_ARB, GL_RGBA32F_ARB, 0};
+GLuint imTypes[6] = {GL_LUMINANCE8, GL_RGB, GL_RGBA, GL_RGBA16F, GL_RGBA32F, 0};
 int channels[6] = {1, 3, 4, 4, 4, 0};
 //For things that require GL_RGBA when dealing with floating point data; usually when dealing with verticies or host data.
 GLuint imXTypes[6] = {GL_LUMINANCE, GL_RGB, GL_RGBA, GL_RGBA, GL_RGBA, 0};
@@ -18,37 +18,24 @@ GLuint byTypes[6] = {GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_FL
 
 PFNGLPROGRAMPARAMETERIEXTPROC glProgramParameteriEXT_v = 0;
 
-void DestroyShaderProgram(GLhandleARB iProgramID) {
-    GLhandleARB *objects = NULL;
-    GLint i, count = -1;
+void DestroyShaderProgram(GLuint iProgramID) {
+    GLint count = -1;
 
     if (!iProgramID)
         return;
-
-    //If we can't destroy the object, then don't try.
-    glGetObjectParameterivARB(iProgramID, GL_OBJECT_ATTACHED_OBJECTS_ARB, &count);
-
+    glGetProgramiv(iProgramID, GL_ATTACHED_SHADERS, &count);
+    GLuint objects[count];
     //Iterate through all children.
     if (count > 0) {
-        objects = (GLhandleARB *) malloc(count * sizeof (GLhandleARB));
         glGetAttachedShaders(iProgramID, count, NULL, objects);
-    } else
-        return;
+    } else return;
 
-    for (i = 0; i < count; ++i) {
-        glDetachShader(iProgramID, objects[i]);
-    }
-
+    for (GLuint obj : objects) glDetachShader(iProgramID, obj);
     glDeleteShader(iProgramID);
-    free(objects);
     return;
 }
 
 Shader::Shader(string sShaderName, string preamble) : sShaderName(sShaderName), preamble(preamble) {
-    iProgramID = (GLhandleARB) NULL;
-    vertexShader = (GLhandleARB) NULL;
-    fragmentShader = (GLhandleARB) NULL;
-    geometryShader = (GLhandleARB) NULL;
     fileChanged(sShaderName+".vert");
     fileChanged(sShaderName+".frag");
 }
@@ -77,8 +64,8 @@ bool Shader::LoadShader() {
     return LinkShaders();
 }
 
-// x=GL_FRAGMENT_SHADER_ARB or GL_VERTEX_SHADER_ARB
-bool Shader::LoadShader(int shaderType, GLhandleARB& target, string sShaderCode) {
+// shaderType=GL_FRAGMENT_SHADER or GL_VERTEX_SHADER
+bool Shader::LoadShader(int shaderType, GLuint& target, string sShaderCode) {
     if (sShaderCode.size() < 5) return false;
     GLint bCompiled;
     GLint stringLength;
@@ -90,7 +77,7 @@ bool Shader::LoadShader(int shaderType, GLhandleARB& target, string sShaderCode)
     //Did the shader compile?  Were there any errors?
     glGetShaderiv(target, GL_COMPILE_STATUS, &bCompiled);
     glGetShaderiv(target, GL_INFO_LOG_LENGTH, &stringLength);
-    if (stringLength > 1) {
+    if (stringLength > 1 || !bCompiled) {
         char errorLog[stringLength+1];
         glGetShaderInfoLog(target, stringLength, NULL, errorLog);
         cout << "Compiling Shader response follows:" << errorLog;
@@ -118,15 +105,13 @@ bool Shader::LinkShaders() {
 
 
     //See if there were any errors.
-    glGetObjectParameterivARB(iProgramID, GL_OBJECT_LINK_STATUS_ARB, &bLinked);
-    glGetObjectParameterivARB(iProgramID, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
+    glGetProgramiv(iProgramID, GL_LINK_STATUS, &bLinked);
+    glGetProgramiv(iProgramID, GL_INFO_LOG_LENGTH, &stringLength);
     printf("Shaders Linked.\n");
-    if (stringLength > 1 || bLinked == 0) {
-        char * tmpstr = (char*) malloc(stringLength + 1);
-        glGetInfoLogARB(iProgramID, stringLength, NULL, tmpstr);
-        puts("Linking shaders. response follows:");
-        puts(tmpstr);
-        free(tmpstr);
+    if (stringLength > 1 || !bLinked) {
+        char errorLog[stringLength+1];
+        glGetProgramInfoLog(iProgramID, stringLength, NULL, errorLog);
+        cout << "Linking shaders response follows:" << errorLog;
         return bLinked != 0;
     }
     return true;
@@ -143,12 +128,10 @@ bool Shader::ActivateShader(vector<string> &vsAllSamplerLocs, vector<pair<string
 }
 
 bool Shader::ActivateShader(vector<string> &vsAllSamplerLocs) {
-    
-
     glUseProgram(iProgramID);
 
     for (unsigned i = 0; i < vsAllSamplerLocs.size(); ++i) {
-        int iTexPosID = glGetUniformLocationARB(iProgramID, vsAllSamplerLocs[i].c_str());
+        int iTexPosID = glGetUniformLocation(iProgramID, vsAllSamplerLocs[i].c_str());
         if (iTexPosID > -1)
             glUniform1i(iTexPosID, i);
     }
@@ -221,14 +204,14 @@ bool Texture::LoadTexture(char * sRawData, int iWidth, int iHeight, TextureType 
 }
 
 bool Texture::ActivateTexture(int iPlace) {
-    glActiveTexture(GL_TEXTURE0_ARB + iPlace);
+    glActiveTexture(GL_TEXTURE0 + iPlace);
     glBindTexture(iTextureType, iTexture);
     glEnable(iTextureType);
     return true;
 }
 
 bool Texture::DeactivateTexture(int iPlace) {
-    glActiveTexture(GL_TEXTURE0_ARB + iPlace);
+    glActiveTexture(GL_TEXTURE0 + iPlace);
     glDisable(iTextureType);
     return true;
 }
@@ -319,7 +302,7 @@ bool RFBuffer::End(int iRegVPX, int iRegVPY) {
         glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + i,
                 GL_TEXTURE_2D, 0, 0);
 
-        glActiveTexture(GL_TEXTURE0_ARB + i);
+        glActiveTexture(GL_TEXTURE0 + i);
         glDisable(GL_TEXTURE_2D);
     }
     glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0);
@@ -331,17 +314,16 @@ bool RFBuffer::End(int iRegVPX, int iRegVPY) {
 VertexData::~VertexData() {
     if (iVertexData == 0)
         return;
-    glDeleteBuffersARB(1, &iVertexData);
+    glDeleteBuffers(1, &iVertexData);
 }
 
 void VertexData::Init(float * Verts, int iNumVerts, int iStride) {
     mStride = iStride;
-    glGenBuffersARB(1, &iVertexData);
+    glGenBuffers(1, &iVertexData);
     if (!Verts) {
-        glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, iVertexData);
-        glBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, iNumVerts * 4 * sizeof ( float), 0, GL_STREAM_COPY);
-        glBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
-        //glBufferDataARB( GL_ARRAY_BUFFER_ARB, iNumVerts * iStride*4, 0, GL_DYNAMIC_DRAW );
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, iVertexData);
+        glBufferData(GL_PIXEL_PACK_BUFFER, iNumVerts * 4 * sizeof ( float), 0, GL_STREAM_COPY);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     } else {
         UpdateData(Verts, iNumVerts, iStride);
     }
@@ -349,9 +331,9 @@ void VertexData::Init(float * Verts, int iNumVerts, int iStride) {
 
 void VertexData::UpdateData(float * Verts, int iNumVerts, int iStride) {
     mStride = iStride;
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, iVertexData);
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB, iNumVerts * iStride * sizeof ( float), Verts, GL_STATIC_DRAW_ARB);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, iVertexData);
+    glBufferData(GL_ARRAY_BUFFER, iNumVerts * iStride * sizeof ( float), Verts, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
