@@ -16,8 +16,6 @@ int channels[6] = {1, 3, 4, 4, 4, 0};
 GLuint imXTypes[6] = {GL_LUMINANCE, GL_RGB, GL_RGBA, GL_RGBA, GL_RGBA, 0};
 GLuint byTypes[6] = {GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE, GL_FLOAT, GL_FLOAT, 0};
 
-PFNGLPROGRAMPARAMETERIEXTPROC glProgramParameteriEXT_v = 0;
-
 void DestroyShaderProgram(GLuint iProgramID) {
     GLint count = -1;
 

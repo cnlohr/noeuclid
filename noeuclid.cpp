@@ -51,10 +51,6 @@ extern GLuint byTypes[6];
 
 class GLUTCore {
 public:
-
-    GLUTCore() {
-    };
-
     ///Initialization function, call this before doing anything else
 
     /** This must be called AFTER you use GLUTCore's callbacks and before
@@ -295,7 +291,7 @@ void mouseDrag(int x, int y) {
     Quaternion qinitrotFwd = Quaternion::fromAxisAngle({1, 0, 0}, 3.14159 / 2.);
     Quaternion qinitrotBack = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
-    LookQuaternion = LookQuaternion.rotateabout(qinitrotFwd);
+    LookQuaternion = LookQuaternion * qinitrotFwd;
 
 
     Quaternion invrot = LookQuaternion;
@@ -308,9 +304,7 @@ void mouseDrag(int x, int y) {
 
     Quaternion qtmp2 = Quaternion::fromEuler({-dy * 0.005f, 0.0, 0.0});
     Quaternion qtmp1 = Quaternion::fromEuler({0.0, 0.0, dx * 0.005f});
-    LookQuaternion = LookQuaternion.rotateabout(qtmp2)
-            .rotateabout(invrot).rotateabout(qtmp1)
-            .rotateabout(rot).rotateabout(qinitrotBack);
+    LookQuaternion = LookQuaternion * qtmp2 * invrot * qtmp1 * rot * qinitrotBack;
 }
 
 void reshape(int Width, int Height) {
@@ -364,10 +358,9 @@ void LoadProbes(bool isRerun) {
          */
     }
 
-    Vec3f ForwardVec = LookQuaternion.rotateVector({0, 0, -1});
+    Vec3f ForwardVec = LookQuaternion * Vec3f{0, 0, -1};
     ForwardVec.z = -ForwardVec.z; //??? WHY? WHY WHY??? Is LookQuaternion busted???
-
-    Vec3f MoveVec = LookQuaternion.rotateVector({d.x, 0, d.y});
+    Vec3f MoveVec = LookQuaternion * Vec3f{d.x, 0, d.y};
     float nx = MoveVec.x;
     float ny = MoveVec.y;
 
@@ -389,15 +382,6 @@ void LoadProbes(bool isRerun) {
             gh.v.z -= worldDeltaTime * 16.; //gravity
             gh.v.z *= .995; //terminal velocity
         }
-        /*			else
-                        {
-                                gh.vX = 0;
-                                gh.vY = 0;
-        //				gh.vZ = 0;
-                        }
-                        gh.vZ = gh.vZ * .994;
-         */
-
     }
 
 
@@ -457,8 +441,8 @@ void LoadProbes(bool isRerun) {
     //???
 
 
-    Vec3f FrontRot = LookQuaternion.rotateVector({1, 0, 0});
-    Vec3f UpRot = LookQuaternion.rotateVector({0, 1, 0});
+    Vec3f FrontRot = LookQuaternion * Vec3f{1, 0, 0};
+    Vec3f UpRot = LookQuaternion * Vec3f{0, 1, 0};
 
     //	FrontRot[1] *= -1;
     //	FrontRot[0] *= -1;
@@ -669,13 +653,9 @@ void DoneProbes(bool bReRun) {
 
 #define AUTO_RIGHT_COMP .8
     {
-        //		float uptestcomp[3] = { 1, 0, 0 };
-        Vec3f lefttest {1, 0, 0}; // 0, camera "up", -into screen
-        Vec3f uptest {0, 1, 0}; // 0, camera "up", -into screen
-        Vec3f fwdtest {0, 0, 1}; // 0, camera "up", -into screen
-        Vec3f upout = LookQuaternion.rotateVector(uptest);
-        Vec3f fwdtestout = LookQuaternion.rotateVector(fwdtest);
-        Vec3f lefttestout = LookQuaternion.rotateVector(lefttest);
+        Vec3f upout = LookQuaternion * Vec3f{0, 1, 0};
+        Vec3f fwdtestout = LookQuaternion * Vec3f{0, 0, 1};
+        Vec3f lefttestout = LookQuaternion * Vec3f{1, 0, 0};
         upout.z *= -1;
         fwdtestout.x *= -1;
         lefttestout.x *= -1;
@@ -684,19 +664,14 @@ void DoneProbes(bool bReRun) {
 
         lefttestout.z = 0; //Force flat test.
 
-
-        //		cross3d( rerotaxis, uptestcomp, upout );
         float irtcos = upout.dot(lefttestout) * AUTO_RIGHT_COMP; //how much effort to try to right?
-
         float cosofs = (3.14159 / 2.0);
 
         //Tricky: If we're upside-down we need to re-right ourselves.
-        if (upout.z < 0) {
-            irtcos *= -1.0;
-        }
+        if (upout.z < 0) irtcos *= -1.0;
 
-        Quaternion uprotator = Quaternion::fromAxisAngle(fwdtest, acos(irtcos) - cosofs);
-        LookQuaternion = LookQuaternion.rotateabout(uprotator);
+        Quaternion uprotator = Quaternion::fromAxisAngle({0, 0, 1}, acos(irtcos) - cosofs);
+        LookQuaternion = LookQuaternion * uprotator;
 
     }
 clend:

@@ -77,6 +77,9 @@ public:
     const Vec3<T> operator*(const T s) const {
         return Vec3{x*s, y*s, z*s};
     }
+    friend Vec3<T> operator*(const T s, const Vec3<T> v) {
+        return v * s;
+    }
     
     const Vec3<T> operator/(const T s) const {
         return Vec3{x/s, y/s, z/s};
@@ -163,13 +166,13 @@ struct Quaternion {
     }
     
     Quaternion normalize() const {
-        return this->scale(this->invsqmagnitude());
+        return scale(invsqmagnitude());
     }
     Quaternion scale(float scale) const {
         return {f[0]*scale,f[1]*scale,f[2]*scale,f[3]*scale};
     }
-    Quaternion rotateabout(Quaternion b) const {
-        Quaternion q1 = this->normalize();
+    Quaternion operator*(const Quaternion& b) const {
+        Quaternion q1 = normalize();
         Quaternion q2 = b.normalize();
         return {
             (q1[0] * q2[0])-(q1[1] * q2[1])-(q1[2] * q2[2])-(q1[3] * q2[3]),
@@ -185,6 +188,7 @@ struct Quaternion {
         const Quaternion& q = *this;
         return 1. / ((q[0] * q[0])+(q[1] * q[1])+(q[2] * q[2])+(q[3] * q[3]));
     }
+
     const float& operator[](int index) const {
         return f[index];
     }
@@ -192,15 +196,11 @@ struct Quaternion {
         return f[index];
     }
     
-    Quaternion reciprocal() const {
-        return conjugate().scale(this->invsqmagnitude());
-    }
-    
-    Vec3f rotateVector(Vec3f v) const {
-        //XXX IS THIS RIGHT? IT LOOKS WRONG!!!
-        Quaternion vquat = {(v.len2() < 0.001) ? 1.f : 0.f,v.x,v.y,v.z};
-        vquat = rotateabout(vquat).rotateabout(this->reciprocal());
-        return {vquat[1],vquat[2],vquat[3]};
+    Vec3f operator*(const Vec3f& v) const {
+        // http://molecularmusings.wordpress.com/2013/05/24/a-faster-quaternion-vector-multiplication/
+        Vec3f q = Vec3f{f[1],f[2],f[3]};
+        Vec3f t = 2 * q.cross(v);
+        return v + f[0] * t + q.cross(t);
     }
     
     void toMatrix(float *matrix44) {
