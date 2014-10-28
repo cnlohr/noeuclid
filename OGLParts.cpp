@@ -49,7 +49,6 @@ Shader::Shader(string sShaderName, string preamble) : sShaderName(sShaderName), 
     vertexShader = (GLhandleARB) NULL;
     fragmentShader = (GLhandleARB) NULL;
     geometryShader = (GLhandleARB) NULL;
-    bIsGLSLAsm = 0;
     fileChanged(sShaderName+".vert");
     fileChanged(sShaderName+".frag");
 }
@@ -66,147 +65,89 @@ void Shader::LoadIfNewer() {
 }
 
 bool Shader::LoadShader() {
-    string s1 = sShaderName + ".frag", s2 = sShaderName + ".vert";
-
-    string sh1 = preamble + readFile(s1);
-    printf("Compiling: %s\n", s1.c_str());
-    if (!LoadShaderFrag(sh1.c_str())) {
-        printf("Reporting failed shaderload. Not linking.\n");
+    cout << "Compiling " << sShaderName << endl;
+    if (!LoadShader(GL_FRAGMENT_SHADER, fragmentShader, preamble + readFile(sShaderName + ".frag"))) {
+        printf("Loading fragment shader failed. Not linking.\n");
         return false;
     }
-    string sh2 = preamble + readFile(s2);
-    printf("Compiling: %s\n", s2.c_str());
-    if (!LoadShaderVert(sh2.c_str())) {
-        printf("Reporting failed shaderload. Not linking.\n");
+    if (!LoadShader(GL_VERTEX_SHADER, vertexShader, preamble + readFile(sShaderName + ".vert"))) {
+        printf("Loading vertex shader failed. Not linking.\n");
         return false;
     }
     return LinkShaders();
 }
 
-bool Shader::LoadShaderFrag(const char * sShaderCode) {
-    if (strlen(sShaderCode) < 5)
-        return false;
-
-    GLint bFragCompiled;
+// x=GL_FRAGMENT_SHADER_ARB or GL_VERTEX_SHADER_ARB
+bool Shader::LoadShader(int shaderType, GLhandleARB& target, string sShaderCode) {
+    if (sShaderCode.size() < 5) return false;
+    GLint bCompiled;
     GLint stringLength;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
-    glShaderSource(fragmentShader, 1, &sShaderCode, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &bFragCompiled);
-    glGetObjectParameterivARB(fragmentShader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
-    if (stringLength > 1) {
-        char * tmpstr = (char*) malloc(stringLength + 1);
-        glGetInfoLogARB(fragmentShader, stringLength, NULL, tmpstr);
-        puts("Compiling Fragment Shader response follows:");
-        puts(tmpstr);
-        free(tmpstr);
-        return bFragCompiled != 0;
-    }
-    return true;
-}
-
-bool Shader::LoadShaderVert(const char * sShaderCode) {
-    if (strlen(sShaderCode) < 5)
-        return false;
-
-    GLint bVertCompiled;
-    GLint stringLength;
-    //Create a new vertex shader
-    vertexShader = glCreateShader(GL_VERTEX_SHADER_ARB);
+    target = glCreateShader(shaderType);
     //Bind the shader to the text, setting that to be its source.
-    glShaderSource(vertexShader, 1, &sShaderCode, NULL);
-    //Compile the shader
-    glCompileShader(vertexShader);
+    const char* sShaderCodeChars = sShaderCode.c_str();
+    glShaderSource(target, 1, &sShaderCodeChars, NULL);
+    glCompileShader(target);
     //Did the shader compile?  Were there any errors?
-    glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &bVertCompiled);
-    glGetObjectParameterivARB(vertexShader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
+    glGetShaderiv(target, GL_COMPILE_STATUS, &bCompiled);
+    glGetShaderiv(target, GL_INFO_LOG_LENGTH, &stringLength);
     if (stringLength > 1) {
-        char * tmpstr = (char*) malloc(stringLength + 1);
-        glGetInfoLogARB(vertexShader, stringLength, NULL, tmpstr);
-        puts("Compiling Vertex Shader response follows:");
-        puts(tmpstr);
-        free(tmpstr);
-        return bVertCompiled != 0;
+        char errorLog[stringLength+1];
+        glGetShaderInfoLog(target, stringLength, NULL, errorLog);
+        cout << "Compiling Shader response follows:" << errorLog;
+        return bCompiled != 0;
     }
-
     return true;
 }
 
 bool Shader::LinkShaders() {
-    if (bIsGLSLAsm) {
-        return true;
-    } else {
-        GLint bLinked;
-        GLint stringLength;
-        //Create the actual shader prgoram
-        iProgramID = glCreateProgram();
-        printf("Linking Shaders. %d <- %d + %d + %d\n", iProgramID, vertexShader, fragmentShader, geometryShader);
-        //Attach the fragment/vertex shader to it.
-        if (vertexShader)
-            glAttachShader(iProgramID, vertexShader);
-        if (fragmentShader)
-            glAttachShader(iProgramID, fragmentShader);
-        if (geometryShader)
-            glAttachShader(iProgramID, geometryShader);
-        //Attempt to link the shader
-        glLinkProgram(iProgramID);
-        printf("Shaders Linked\n");
+    GLint bLinked;
+    GLint stringLength;
+    //Create the actual shader prgoram
+    iProgramID = glCreateProgram();
+    printf("Linking Shaders. %d <- %d + %d + %d\n", iProgramID, vertexShader, fragmentShader, geometryShader);
+    //Attach the fragment/vertex shader to it.
+    if (vertexShader)
+        glAttachShader(iProgramID, vertexShader);
+    if (fragmentShader)
+        glAttachShader(iProgramID, fragmentShader);
+    if (geometryShader)
+        glAttachShader(iProgramID, geometryShader);
+    //Attempt to link the shader
+    glLinkProgram(iProgramID);
+    printf("Shaders Linked\n");
 
 
-        //See if there were any errors.
-        glGetObjectParameterivARB(iProgramID, GL_OBJECT_LINK_STATUS_ARB, &bLinked);
-        glGetObjectParameterivARB(iProgramID, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
-        printf("Shaders Linked.\n");
-        if (stringLength > 1 || bLinked == 0) {
-            char * tmpstr = (char*) malloc(stringLength + 1);
-            glGetInfoLogARB(iProgramID, stringLength, NULL, tmpstr);
-            puts("Linking shaders. response follows:");
-            puts(tmpstr);
-            free(tmpstr);
-            return bLinked != 0;
-        }
-        return true;
-    }
-}
-
-bool Shader::ActivateShader(vector< string > &vsAllSamplerLocs, vector< string > &vsUniformFloats, vector < float > & vfUniformFloats) {
-    unsigned i;
-
-    if (bIsGLSLAsm) {
-        glEnable(GL_VERTEX_PROGRAM_ARB);
-        glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vertexProgram);
-        glEnable(GL_FRAGMENT_PROGRAM_ARB);
-        glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, fragmentProgram);
-
-        for (i = 0; i < vfUniformFloats.size(); ++i) {
-            glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, i, vfUniformFloats[i], 0, 0, 0);
-            glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, i, vfUniformFloats[i], 0, 0, 0);
-        }
-    } else {
-        glUseProgram(iProgramID);
-
-        for (i = 0; i < vsAllSamplerLocs.size(); ++i) {
-            int iTexPosID = glGetUniformLocation(iProgramID, vsAllSamplerLocs[i].c_str());
-            if (iTexPosID > -1)
-                glUniform1i(iTexPosID, i);
-        }
-
-        for (i = 0; i < vsUniformFloats.size(); ++i) {
-            int iTexPosID = glGetUniformLocation(iProgramID, vsUniformFloats[i].c_str());
-            if (iTexPosID > -1)
-                glUniform1f(iTexPosID, vfUniformFloats[i]);
-        }
+    //See if there were any errors.
+    glGetObjectParameterivARB(iProgramID, GL_OBJECT_LINK_STATUS_ARB, &bLinked);
+    glGetObjectParameterivARB(iProgramID, GL_OBJECT_INFO_LOG_LENGTH_ARB, &stringLength);
+    printf("Shaders Linked.\n");
+    if (stringLength > 1 || bLinked == 0) {
+        char * tmpstr = (char*) malloc(stringLength + 1);
+        glGetInfoLogARB(iProgramID, stringLength, NULL, tmpstr);
+        puts("Linking shaders. response follows:");
+        puts(tmpstr);
+        free(tmpstr);
+        return bLinked != 0;
     }
     return true;
 }
 
-bool Shader::ActivateShader(vector< string > &vsAllSamplerLocs) {
-    unsigned i;
+bool Shader::ActivateShader(vector<string> &vsAllSamplerLocs, vector<pair<string,float>> &vUniformFloats) {
+    glUseProgram(iProgramID);
+    ActivateShader(vsAllSamplerLocs);
+    for (pair<string,float>& v:vUniformFloats) {
+        int iTexPosID = glGetUniformLocation(iProgramID, v.first.c_str());
+        if (iTexPosID > -1) glUniform1f(iTexPosID, v.second);
+    }
+    return true;
+}
+
+bool Shader::ActivateShader(vector<string> &vsAllSamplerLocs) {
+    
 
     glUseProgram(iProgramID);
 
-    for (i = 0; i < vsAllSamplerLocs.size(); ++i) {
+    for (unsigned i = 0; i < vsAllSamplerLocs.size(); ++i) {
         int iTexPosID = glGetUniformLocationARB(iProgramID, vsAllSamplerLocs[i].c_str());
         if (iTexPosID > -1)
             glUniform1i(iTexPosID, i);

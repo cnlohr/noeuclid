@@ -34,6 +34,7 @@
 #include <sstream>
 #include "scripthelpers.h"
 
+using namespace std;
 float gDaytime;
 float gRenderMixval = .9;
 float gRenderDensityLimit = .2;
@@ -302,35 +303,23 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
         "Pass1A","Pass1B","Pass2"
     };
 
-
-    vector< string > vsAllFloats;
-    vector< float > vfAllFloats;
-    vsAllFloats.push_back("msX");
-    vfAllFloats.push_back(GLH_SIZEX);
-    vsAllFloats.push_back("msY");
-    vfAllFloats.push_back(GLH_SIZEY);
-    vsAllFloats.push_back("msZ");
-    vfAllFloats.push_back(GLH_SIZEZ);
-    vsAllFloats.push_back("msX");
-    vfAllFloats.push_back(GLH_SIZEX);
-    vsAllFloats.push_back("ScreenX");
-    vfAllFloats.push_back(glut.miWidth);
-    vsAllFloats.push_back("ScreenY");
-    vfAllFloats.push_back(glut.miHeight);
-    vsAllFloats.push_back("time");
-    vfAllFloats.push_back(gDaytime);
-    vsAllFloats.push_back("do_subtrace");
-    vfAllFloats.push_back(1);
-    vsAllFloats.push_back("mixval");
-    vfAllFloats.push_back(gRenderMixval);
-    vsAllFloats.push_back("densitylimit");
-    vfAllFloats.push_back(gRenderDensityLimit);
-    vsAllFloats.push_back("densitymux");
-    vfAllFloats.push_back(gRenderDensityMux);
+    vector<pair<string,float>> vAllFloats {
+        {"msX", GLH_SIZEX},
+        {"msY", GLH_SIZEY},
+        {"msZ", GLH_SIZEZ},
+        {"msX", GLH_SIZEX},
+        {"ScreenX", glut.miWidth},
+        {"ScreenY", glut.miHeight},
+        {"time", gDaytime},
+        {"do_subtrace", 1},
+        {"mixval", gRenderMixval},
+        {"densitylimit", gRenderDensityLimit},
+        {"densitymux", gRenderDensityMux}
+    };
 
     //Pre-pass: Physics
     PassPhysicsRFB.ConfigureAndStart(PHYSICS_SIZE, PHYSICS_SIZE, 4, &PassPhysicsOutputs[0], true);
-    Pass1Physics.ActivateShader(vsAllSamplerLocs, vsAllFloats, vfAllFloats);
+    Pass1Physics.ActivateShader(vsAllSamplerLocs, vAllFloats);
     bProbeReRun = false;
     do {
         bool bIsRerun = bProbeReRun;
@@ -353,7 +342,7 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
 
     //Pass 1: Core ray tracer
     Pass1RFB.ConfigureAndStart(lastWidth, lastHeight, 2, &Pass1Outputs[0], true);
-    Pass1.ActivateShader(vsAllSamplerLocs, vsAllFloats, vfAllFloats);
+    Pass1.ActivateShader(vsAllSamplerLocs, vAllFloats);
     SplitDrawSquare(-aspect, -1, aspect, 1);
     Pass1.DeactivateShader();
     Pass1RFB.End(lastWidth, lastHeight);
@@ -375,7 +364,7 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
 
     glClearColor(0., 0., 0., 0.);
     Pass2RFB.ConfigureAndStart(lastWidth, lastHeight, 1, &Pass2Output, true);
-    Pass2.ActivateShader(vsAllSamplerLocs, vsAllFloats, vfAllFloats);
+    Pass2.ActivateShader(vsAllSamplerLocs, vAllFloats);
     SplitDrawSquare(-aspect, -1, aspect, 1);
     Pass2.DeactivateShader();
     Pass2RFB.End(lastWidth, lastHeight);
@@ -390,7 +379,7 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
     //Pass 3: Final pass
     Pass2Output.ActivateTexture(7);
 
-    Pass3.ActivateShader(vsAllSamplerLocs, vsAllFloats, vfAllFloats);
+    Pass3.ActivateShader(vsAllSamplerLocs, vAllFloats);
     SplitDrawSquare(-aspect, -1, aspect, 1);
     Pass3.DeactivateShader();
 

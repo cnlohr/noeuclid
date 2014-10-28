@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 #include <stdlib.h>
 #include <string.h>
 #include <GL/gl.h>
@@ -17,8 +18,7 @@
 #include <GL/glut.h>
 #include <GL/glext.h>
 
-using std::vector;
-using std::string;
+using namespace std;
 using byte = unsigned char;
 ///Texture type for use with CPPGPGPU.
 enum TextureType
@@ -59,19 +59,7 @@ public:
 	/** This function takes on raw code in the sShaderCode string and attemps to compile
 	    it.  Any errors it runs into will be displayed at STDOUT.  Note you are
             discouraged to use this function, in favor of using LoadShader(). */
-	bool LoadShaderFrag( const char * sShaderCode );
-
-	///Explicitly load a vertex shader
-	/** This function takes on raw code in the sShaderCode string and attemps to compile
-	    it.  Any errors it runs into will be displayed at STDOUT. You should use
-	    LoadShader() instead of this function. */
-	bool LoadShaderVert( const char * sShaderCode );
-
-	///Explicitly load a geometry shader
-	/** This function takes on raw code in the sShaderCode string and attemps to compile
-	    it.  Any errors it runs into will be displayed at STDOUT. You should use
-	    LoadShader() instead of this function. */
-	bool LoadShaderGeom( const char * sShaderCode );
+	bool LoadShader(int shaderType, GLhandleARB& target, string sShaderCode);
 
 	///Explicitly link all shaders currently loaded
 	/** This takes vertexShader and fragmentShader and converts them into iProgramID.
@@ -83,7 +71,7 @@ public:
 	    vsAllSamplerLocs, this assigns numerically values 0-8 to the values in
 	    vsAllSamplerLocs.  vsUniformFloats are uniform floats that get assigned values
 	    vfUniformFloats.  Then it turns the shader on for all future rendering */
-	bool ActivateShader( vector< string > &vsAllSamplerLocs, vector< string > &vsUniformFloats, vector < float > & vfUniformFloats );
+	bool ActivateShader(vector<string> &vsAllSamplerLocs, vector<pair<string,float>> &vUniformFloats);
 
 	///Activate Shader using default uniform floats
 	bool ActivateShader( vector< string > &vsAllSamplerLocs);
@@ -125,9 +113,7 @@ private:
 	GLuint  vertexProgram;
 	///ASM Only information for fragment programs
 	GLuint	fragmentProgram;
-	///ASM Only information for programs
-	bool bIsGLSLAsm;
-        string sShaderName, preamble;
+    string sShaderName, preamble;
 };
 
 ///Element for setting texture states in OpenGL.
