@@ -321,29 +321,12 @@ struct Quaternion {
     }
 };
 
-struct Vec3range;
-struct Vec3it {
-    const Vec3range& c;
-    Vec3<int> i;
-    bool operator!=(const Vec3it& o) {
-        return i.x!=o.i.x&&i.y!=o.i.y&&i.z!=o.i.z;
-    }
-    Vec3i operator*() const {
-        return i;
-    }
-    const Vec3it& operator++();
-};
-// usage: for(Vec3 v: Vec3range{{20,40,2}, {25,45,4}}) doStuff(v);
-struct Vec3range {
-    Vec3<int> s,e;
-    Vec3it begin() const { return {*this,s};}
-    Vec3it end() const { return {*this,e};}
-};
-
 struct RGBA {
     byte r, g, b, a;
 };
 extern unordered_map<string, int> aliases;
+
+// automatically convert BlockType aliases to chars using istream >> blockType;
 struct BlockType {
     byte t = 0;
     operator char() {return t;}
