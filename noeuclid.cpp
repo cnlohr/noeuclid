@@ -402,7 +402,8 @@ void LoadProbes(bool isRerun) {
 
 
     if (!isRerun) {
-        gv = gh.v*worldDeltaTime;
+        if(worldDeltaTime != 0) gv = gh.v*worldDeltaTime;
+        else gv = {1e-10,1e-10,1e-10}; //TODO fix crash when gv == 0,0,0
     } else {
         printf("GVRerun\n");
     }
@@ -742,11 +743,11 @@ void UpdatePositionAndRotation() {
 }
 
 void draw() {
-    if (bPause) return;
     static double TotalTime = 280;
     glClearColor(.1f, .1f, .2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     worldDeltaTime = glut.TackFPS();
+    if(bPause) worldDeltaTime = 0;
     if (gKeyMap[9]) worldDeltaTime *= 10.;
     if (gKeyMap['`']) worldDeltaTime /= 10.;
     TotalTime += worldDeltaTime;
