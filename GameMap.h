@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   GameMap.h
  * Author: tehdog
  *
@@ -31,17 +31,17 @@ public:
     void die();
     void setRoom(int newroom, bool reset = false);
     void collision(struct CollisionProbe * ddat);
-    
+
     #define DONE (i>>ws).eof()
 //TODO nobody can read this
     unordered_map<string, std::function<initfn(istream&)>> initfuncs {
         {"EmptyBox", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;
             int density = DEFAULT_DENSITY; if(!DONE) i>>density;
-            return bind(EmptyBoxV, p, s, true, RGBA{1, DEFAULT_BRIGHT, byte(density), b});
-        }}, {"Cell", [](istream& i) -> initfn { 
+            return bind(EmptyBoxV, p, s, true, RGBA{1, DEFAULT_BRIGHT, byte(density), static_cast<byte>(b)});
+        }}, {"Cell", [](istream& i) -> initfn {
             Vec3i p; BlockType b; i>>p>>b;
-            return bind(ChangeCellV, 0, p, RGBA{1, DEFAULT_BRIGHT, 255, b});
+            return bind(ChangeCellV, 0, p, RGBA{1, DEFAULT_BRIGHT, 255, static_cast<byte>(b)});
         }}, {"ClearCell", [](istream& i) -> initfn {
             Vec3i p; i>>p; //TODO merge with "Block"
             return bind(ChangeCellV, 0, p, RGBA{0, DEFAULT_BRIGHT, 0, DEFAULT_EMPTY_BLOCK});
@@ -51,8 +51,8 @@ public:
         }}, {"PaintRange", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;
             int density = DEFAULT_DENSITY; if(!DONE) i>>density;
-            return bind(PaintRangeV, p, s, RGBA{1,190,byte(density),b});
-        }}, {"Warp", [](istream& i) -> initfn { 
+            return bind(PaintRangeV, p, s, RGBA{1,190,byte(density),static_cast<byte>(b)});
+        }}, {"Warp", [](istream& i) -> initfn {
             Vec3i p,s; Vec3f x;
             i>>p>>s>>x;
             return bind(WarpSpaceV, p, s, x);
@@ -87,7 +87,7 @@ public:
         }}
     };
     unordered_map<string, int> aliases;
-    
+
     void AddDeathBlock(Vec3i p);
     bool IsOnDeathBlock(Vec3i p);
 
@@ -107,7 +107,7 @@ public:
 
     void ClearPickableBlocks();
 
-    //Redraw 
+    //Redraw
 
     void UpdatePickableBlocks();
 
@@ -119,4 +119,3 @@ private:
 
 
 #endif	/* GAMEMAP_H */
-
