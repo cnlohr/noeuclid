@@ -13,10 +13,25 @@
 #include <utility>
 #include <stdlib.h>
 #include <string.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <GL/glext.h>
+
+#ifdef __APPLE__
+
+#  include <OpenGL/gl.h>
+#  include <OpenGL/glu.h>
+#  include <GLUT/glut.h>
+#  include <OpenGL/glext.h>
+
+#  define GL_RGBA16F 0x881A
+#  define GL_RGBA32F 0x8814
+
+#else
+
+#  include <GL/gl.h>
+#  include <GL/glu.h>
+#  include <GL/glut.h>
+#  include <GL/glext.h>
+
+#endif
 
 using namespace std;
 using byte = unsigned char;
@@ -67,7 +82,7 @@ public:
 	bool LinkShaders();
 
 	///Activate shader with extra parameters
-	/** Activate 'this' shader with the following uniform sampler2D values in 
+	/** Activate 'this' shader with the following uniform sampler2D values in
 	    vsAllSamplerLocs, this assigns numerically values 0-8 to the values in
 	    vsAllSamplerLocs.  vsUniformFloats are uniform floats that get assigned values
 	    vfUniformFloats.  Then it turns the shader on for all future rendering */
@@ -87,7 +102,7 @@ public:
 
 	///Check for newer version of 'this' shader
 	void LoadIfNewer();
-        
+
 
 	///Explicitly get the OpenGL ProgramID in the event you need it for advanced techniques
 	GLuint	GetProgramID() { return iProgramID; }
@@ -297,7 +312,7 @@ void SetupFor2D();
 ///Go back into 3D mode
 void PopFrom2D();
 
-///Strip data from the render/frame buffer into a vertex buffer object. 
+///Strip data from the render/frame buffer into a vertex buffer object.
 void StripDataFromBuffer( int ix, int iy, int iwidth, int iheight, TextureType tt, char * buffer );
 
 ///Write a buffer to filename in PPM format with 8 bits per pixel RGB.
@@ -314,8 +329,8 @@ enum TextAlignment
 };
 
 ///Draw text by the given name at the given location on screen.
-bool DrawText( const char * text, float size = 1.0, const string & sFontName = "Arial", 
-	float MaxWidth = 10000., float MaxHeight = 10000., TextAlignment Horiz = TEXT_LEFT, 
+bool DrawText( const char * text, float size = 1.0, const string & sFontName = "Arial",
+	float MaxWidth = 10000., float MaxHeight = 10000., TextAlignment Horiz = TEXT_LEFT,
 	TextAlignment Vert = TEXT_HTOP );
 
 /********** GENERAL UTILITY SECTION  **********************************************************/
