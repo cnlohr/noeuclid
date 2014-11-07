@@ -40,128 +40,15 @@
 void mousePress(int b, int state, int x, int y);
 void mouseDrag(int x, int y);
 void reshape(int Width, int Height);
-void pKeyDown(sf::Keyboard::Key key);
-void pKeyUp(sf::Keyboard::Key key);
+void keyDown(sf::Keyboard::Key key);
 void charTyped(unsigned int c);
 void draw();
 void unpauseGame();
+float TackFPS(bool bSilent = false);
+
 bool bPause = true;
-sf::RenderWindow window(sf::VideoMode(720,480),"No! Euclid!");
-
-extern GLuint imTypes[6];
-extern GLuint imXTypes[6];
-extern GLuint byTypes[6];
-
-class GLUTCore {
-public:
-    ///Initialization function, call this before doing anything else
-
-    /** This must be called AFTER you use GLUTCore's callbacks and before
-        pretty much anything else with GLUT you can simply call this
-        immediately after main with the parameters from your main() function
-        as well as the initial width, height and title for the window */
-    void Init(int argc, char**argv, int iWidth, int iHeight, const char * sName) {
-        fGLUTCamDistance = 5.0;
-        iNumFrames = 0;
-        iLastSecond = 0;
-        miWidth = iWidth;
-        miHeight = iHeight;
-        //TODO glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-        
-        window.setVerticalSyncEnabled(true);
-        window.setKeyRepeatEnabled(false);
-    };
-
-    ///Main GLUT Loop call
-
-    /** Call this after you've done everything you want to have execute once.
-        This is what causes the different callbacks to get called over and
-        over. */
-    void DrawAndDoMainLoop() {
-        //The first time you run TackFPS it will return a trash value, so get it out of the way now
-        TackFPS(true);
-
-        //Pre-emptively call the resize and draw functions to get the cycle going
-        reshape(miWidth, miHeight);
-        
-        bool running = true;
-        sf::Event event;
-        while(running) {
-            draw();
-            while(window.pollEvent(event)) {
-                switch(event.type) {
-                    case sf::Event::Closed: running = false; break;
-                    case sf::Event::Resized: reshape(event.size.width, event.size.height); break;
-                    case sf::Event::KeyPressed: pKeyDown(event.key.code); break;// TODO codes
-                    case sf::Event::KeyReleased: pKeyUp(event.key.code); break;
-                    case sf::Event::MouseMoved: mouseDrag(event.mouseMove.x, event.mouseMove.y); break;
-                    case sf::Event::MouseButtonPressed: mousePress(event.mouseButton.button, 1, event.mouseButton.x, event.mouseButton.y); break;
-                    case sf::Event::MouseButtonReleased: mousePress(event.mouseButton.button, 0, event.mouseButton.x, event.mouseButton.y); break;
-                    case sf::Event::TextEntered: charTyped(event.text.unicode); break;
-                    default: cout << "unhandled event:" << event.type << endl; break;
-                }
-            }
-            window.display();
-        }
-    };
-    ///FPS Tack and Get Delta Time
-
-    /** This function updates the internal (GLUTCore) timers and if a
-        second has been past, it will display FPS.  It will always return
-        the total time between last frame and this frame */
-    float TackFPS(bool bSilent = false) {
-        iNumFrames++;
-
-        unsigned iCurSecond, iCurMillisecond;
-        struct timeval T;
-        gettimeofday(&T, 0);
-        iCurSecond = T.tv_sec;
-        iCurMillisecond = T.tv_usec;
-        if (iCurSecond != iLastSecond) {
-            iLastSecond = iCurSecond;
-            if (!bSilent)
-                printf("FPS: %d\n", iNumFrames);
-            iNumFrames = 0;
-        }
-        iDeltaMS = (iCurSecond - iTmrLastSecond)*1000000 + (iCurMillisecond - iTmrLastMillisecond);
-        iTmrLastSecond = iCurSecond;
-        iTmrLastMillisecond = iCurMillisecond;
-        return ((float) iDeltaMS) / 1000000.0f;
-    };
-
-    ///The current Width and Height of the window
-    int miWidth, miHeight;
-
-    ///The last location of the mouse
-    int miLastMouseX, miLastMouseY;
-
-    ///The current location of the mouse
-    int miSetMouseX = 0, miSetMouseY = 0;
-
-    int miZoomY;
-
-    ///This value gets set by SetCamDistance (See that function)
-    float fGLUTCamDistance;
-
-private:
-    ///Delta time between last frame and this frame
-    int iDeltaMS;
-
-    ///Total number of frames ever seen
-    unsigned iNumFrames;
-    ///The last seen second.  If this is different, FPS will be printed upon tack.
-    unsigned iLastSecond;
-
-    ///The last second seen by the frametimer.
-    unsigned iTmrLastSecond;
-    ///The last millisecond seen by the frametimer.
-    unsigned iTmrLastMillisecond;
-};
-
-GLUTCore glut;
 
 RTHelper gh;
-
 int gGodMode = 0;
 
 float mouseSensitivity = 0.5;
@@ -185,9 +72,72 @@ float gTargetPerceivedDistance;
 char gDialog[1024];
 int gMouseLastClickButton = -1;
 int gOverallUpdateNo = 0; //Gets reset if we "re-load" everything
+int miWidth = 720, miHeight = 480;
+
+sf::RenderWindow window(sf::VideoMode(miWidth, miHeight), "No! Euclid!");
 GameMap gamemap;
 // aliases of the block types
 unordered_map<string, int> aliases;
+
+extern GLuint imTypes[6];
+extern GLuint imXTypes[6];
+extern GLuint byTypes[6];
+
+void mainLoop() {
+    //The first time you run TackFPS it will return a trash value, so get it out of the way now
+    TackFPS(true);
+
+    //Pre-emptively call the resize and draw functions to get the cycle going
+    reshape(miWidth, miHeight);
+
+    bool running = true;
+    sf::Event event;
+    while(running) {
+        draw();
+        while(window.pollEvent(event)) {
+            switch(event.type) {
+                case sf::Event::Closed: running = false; break;
+                case sf::Event::Resized: reshape(event.size.width, event.size.height); break;
+                case sf::Event::KeyPressed: keyDown(event.key.code); break;// TODO codes
+                case sf::Event::MouseMoved: mouseDrag(event.mouseMove.x, event.mouseMove.y); break;
+                case sf::Event::MouseButtonPressed: mousePress(event.mouseButton.button, 1, event.mouseButton.x, event.mouseButton.y); break;
+                case sf::Event::MouseButtonReleased: mousePress(event.mouseButton.button, 0, event.mouseButton.x, event.mouseButton.y); break;
+                case sf::Event::TextEntered: charTyped(event.text.unicode); break;
+                default: cout << "unhandled event:" << event.type << endl; break;
+            }
+        }
+        window.display();
+    }
+}
+
+float TackFPS(bool bSilent) {
+    ///Total number of frames ever seen
+    static unsigned iNumFrames = 0;
+    ///The last seen second.  If this is different, FPS will be printed upon tack.
+    static unsigned iLastSecond = 0;
+    ///The last second seen by the frametimer.
+    static unsigned iTmrLastSecond;
+    ///The last millisecond seen by the frametimer.
+    static unsigned iTmrLastMillisecond;
+    iNumFrames++;
+
+    unsigned iCurSecond, iCurMillisecond;
+    struct timeval T;
+    gettimeofday(&T, 0);
+    iCurSecond = T.tv_sec;
+    iCurMillisecond = T.tv_usec;
+    if (iCurSecond != iLastSecond) {
+        iLastSecond = iCurSecond;
+        if (!bSilent)
+            printf("FPS: %u\n", iNumFrames);
+        iNumFrames = 0;
+    }
+    float iDeltaMS = (iCurSecond - iTmrLastSecond)*1000000 + (iCurMillisecond - iTmrLastMillisecond);
+    iTmrLastSecond = iCurSecond;
+    iTmrLastMillisecond = iCurMillisecond;
+    return iDeltaMS / 1000000.0f;
+}
+
 
 void DrawSquare(float minx, float miny, float maxx, float maxy) {
     glBegin(GL_QUADS);
@@ -212,7 +162,7 @@ void SetupFor2D() {
     glLoadIdentity();
     glScalef(1.0, -1.0, 0.0);
     glTranslatef(-1.0, -1.0, 0.0);
-    glScalef(2.0 / float(glut.miWidth), 2.0 / float(glut.miHeight), 0.0);
+    glScalef(2.0 / float(miWidth), 2.0 / float(miHeight), 0.0);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -238,30 +188,32 @@ void pauseGame() {
 
 void unpauseGame() {
     bPause = false;
-    glut.TackFPS();
+    TackFPS();
     window.setMouseCursorVisible(false);
-    sf::Mouse::setPosition(sf::Vector2i(glut.miWidth / 2, glut.miHeight / 2), window);
-    glut.DrawAndDoMainLoop();
+    sf::Mouse::setPosition(sf::Vector2i(miWidth / 2, miHeight / 2), window);
 }
 
-void pKeyDown(sf::Keyboard::Key key) {
-    if (key == sf::Keyboard::Escape) {
-        if(bPause) exit(0);
-        else {
-            printf("Esc was pressed, press again to exit.\n");
-            pauseGame();
-        }
-    }
-    if (key == sf::Keyboard::P) pauseGame();
-    if (key == sf::Keyboard::G) gGodMode = !gGodMode;
-    if (key == sf::Keyboard::Num0) show_debugging = !show_debugging;
-    if (key == sf::Keyboard::Num8) {
-        mouseSensitivity *= .75;
-        if (mouseSensitivity < .1) mouseSensitivity = .1;
-    }
-    if (key == sf::Keyboard::Num9) {
-        mouseSensitivity *= 1.5;
-        if (mouseSensitivity > 2.0) mouseSensitivity = 2.0;
+void keyDown(sf::Keyboard::Key key) {
+    switch(key) {
+        case sf::Keyboard::Escape: {
+            if(bPause) exit(0);
+            else {
+                printf("Esc was pressed, press again to exit.\n");
+                pauseGame();
+            }
+        } break;
+        case sf::Keyboard::P: pauseGame(); break;
+        case sf::Keyboard::G: gGodMode = !gGodMode; break;
+        case sf::Keyboard::Num0: show_debugging = !show_debugging; break;
+        case sf::Keyboard::Num8: {
+            mouseSensitivity *= .75;
+            if (mouseSensitivity < .1) mouseSensitivity = .1;
+        } break;
+        case sf::Keyboard::Num9: {
+            mouseSensitivity *= 1.5;
+            if (mouseSensitivity > 2.0) mouseSensitivity = 2.0;
+        } break;
+        default: break;
     }
 }
 
@@ -274,12 +226,7 @@ void charTyped(unsigned int c) {
     }
 }
 
-void pKeyUp(sf::Keyboard::Key key) {
-}
-
 void mousePress(int b, int state, int x, int y) {
-    glut.miLastMouseX = x;
-    glut.miLastMouseY = y;
     if(bPause) unpauseGame();
     if (state) gMouseLastClickButton = b;
 }
@@ -287,22 +234,19 @@ void mousePress(int b, int state, int x, int y) {
 void mouseDrag(int x, int y) {
     if (bPause) return;
     //Find the amount moved from last frame to this frame.
-    float dx = x - glut.miWidth / 2;
-    float dy = y - glut.miHeight / 2;
+    float dx = x - miWidth / 2;
+    float dy = y - miHeight / 2;
     dx *= mouseSensitivity * worldDeltaTime * 40;
     dy *= mouseSensitivity * worldDeltaTime * 40;
-    glut.miLastMouseX = x;
-    glut.miLastMouseY = y;
 
     if (dx != 0 || dy != 0) {
-        sf::Mouse::setPosition(sf::Vector2i(glut.miWidth / 2, glut.miHeight / 2),window);
+        sf::Mouse::setPosition(sf::Vector2i(miWidth / 2, miHeight / 2),window);
     }
 
     Quaternion qinitrotFwd = Quaternion::fromAxisAngle({1, 0, 0}, 3.14159 / 2.);
     Quaternion qinitrotBack = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
     LookQuaternion = LookQuaternion * qinitrotFwd;
-
 
     Quaternion invrot = LookQuaternion;
     invrot[0] *= -1;
@@ -319,17 +263,15 @@ void mouseDrag(int x, int y) {
 
 void reshape(int Width, int Height) {
     //set up a projection, rotation and general camera stuff with respect to mouse input
-    glut.miWidth = Width;
-    glut.miHeight = Height;
+    miWidth = Width;
+    miHeight = Height;
     glViewport(0, 0, Width, Height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(45.0f, (float) Width / (float) Height, 0.1f, 100.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -glut.fGLUTCamDistance);
-    glRotatef(glut.miSetMouseY * 0.5f, 1.0f, 0.0f, 0.0f);
-    glRotatef(glut.miSetMouseX * 0.5f, 0.0f, 0.0f, 1.0f);
+    glTranslatef(0, 0, -5);
 }
 
 vector<CollisionProbe *> probes;
@@ -341,8 +283,7 @@ CollisionProbe * gpRotFwd;
 CollisionProbe * gpRotUp;
 
 void LoadProbes(bool isRerun) {
-    
-    #define mod(a,b) fmod(fmod(a,b)+b,b)
+    #define mod(a,b) a = fmod(fmod(a,b)+b,b)
     mod(gPosition.x,GLH_SIZEX);
     mod(gPosition.y,GLH_SIZEY);
     mod(gPosition.z,GLH_SIZEZ);
@@ -728,7 +669,7 @@ void draw() {
     static double TotalTime = 280;
     glClearColor(.1f, .1f, .2f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    worldDeltaTime = glut.TackFPS();
+    worldDeltaTime = TackFPS();
     if(bPause) worldDeltaTime = 0;
     //if (gKeyMap[9]) worldDeltaTime *= 10.;
     //if (sf::Keyboard::isKeyPressed(sf::Keyboard::Quote)) worldDeltaTime /= 10.;
@@ -747,7 +688,7 @@ void draw() {
     SetupFor2D();
 
     glPushMatrix();
-    glTranslatef(glut.miWidth / 2 - 7, glut.miHeight / 2 - 12, 0);
+    glTranslatef(miWidth / 2 - 7, miHeight / 2 - 12, 0);
     DrawText("+");
     glPopMatrix();
     glTranslatef(10, 30, 0);
@@ -762,7 +703,7 @@ void draw() {
         DrawText(tt);
     }
 
-    float pers = glut.miWidth * glut.miHeight / (gh.LastPass1Time / 1. + gh.LastPass2Time / 1. + gh.LastPass3Time);
+    float pers = miWidth * miHeight / (gh.LastPass1Time / 1. + gh.LastPass2Time / 1. + gh.LastPass3Time);
     glTranslatef(0, 25, 0);
     if (show_debugging) {
         sprintf(tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh.LastPass1Time / 1000000., gh.LastPass2Time / 1000000., gh.LastPass3Time / 1000000., pers);
@@ -832,7 +773,8 @@ int main(int argc, char ** argv) {
 
     LookQuaternion = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
-    glut.Init(argc, argv, 720, 480, "aaa");
+    window.setVerticalSyncEnabled(true);
+    window.setKeyRepeatEnabled(false);
 
 #ifdef _WIN32
 	printf("Initializing GLEW.\n");
@@ -845,5 +787,5 @@ int main(int argc, char ** argv) {
     gh.MapOffset = {GLH_SIZEX / 2, GLH_SIZEY / 2, 5};
     
     unpauseGame();
-    glut.DrawAndDoMainLoop();
+    mainLoop();
 }
