@@ -98,8 +98,6 @@ extern float gTargetActualDistance;
 extern float gTargetProjDistance;
 extern float gTargetPerceivedDistance;
 extern char gDialog[1024];
-extern byte gKeyMap[256];
-extern byte gFocused;
 extern int gMouseLastClickButton;
 extern float gTimeSinceOnGround;
 extern int pickables_in_inventory;

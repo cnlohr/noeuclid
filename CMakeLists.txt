@@ -6,10 +6,10 @@ project (noeuclid)
 add_executable(noeuclid ${files})
 add_definitions(-std=c++11)
 find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(SFML REQUIRED COMPONENTS graphics window system)
 
 
 add_definitions(-DGLEW_STATIC -DGLUT_STATIC -DGL_GLEXT_PROTOTYPES -DGLUT_DISABLE_ATEXIT_HACK)
-include_directories(${GLEW_INCLUDE_PATH} ${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS})
-target_link_libraries(noeuclid ${GLEW_LIBRARY} ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} -ltcc -ldl )
+include_directories(${GLEW_INCLUDE_PATH} ${OPENGL_INCLUDE_DIRS}  ${SFML_INCLUDE_DIR})
+target_link_libraries(noeuclid ${GLEW_LIBRARY} ${OPENGL_LIBRARIES} ${SFML_LIBRARIES} -ltcc -ldl)

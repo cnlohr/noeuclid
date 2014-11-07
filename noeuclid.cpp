@@ -27,7 +27,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <GL/glew.h>
-#include <GL/glut.h>
 #endif
 #include "OGLParts.h"
 #include "RTHelper.h"
@@ -37,13 +36,17 @@
 #include "GameMap.h"
 #include "TCC.h"
 #include <fstream>
+#include <SFML/Graphics.hpp>
 void mousePress(int b, int state, int x, int y);
 void mouseDrag(int x, int y);
 void reshape(int Width, int Height);
-void pKeyDown(byte key, int x, int y);
-void pKeyUp(byte key, int x, int y);
+void pKeyDown(sf::Keyboard::Key key);
+void pKeyUp(sf::Keyboard::Key key);
+void charTyped(unsigned int c);
 void draw();
 void unpauseGame();
+bool bPause = true;
+sf::RenderWindow window(sf::VideoMode(720,480),"No! Euclid!");
 
 extern GLuint imTypes[6];
 extern GLuint imXTypes[6];
@@ -63,26 +66,10 @@ public:
         iLastSecond = 0;
         miWidth = iWidth;
         miHeight = iHeight;
-        /* ask for a window at 0,0 with dimensions winWidth, winHeight */
-        /* need color, depth (for 3D drawing) and double buffer (smooth display) */
-        glutInit(&argc, argv);
-        glutInitWindowPosition(0, 0);
-        glutInitWindowSize(iWidth, iHeight);
-        glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-        glutCreateWindow(sName);
-
-        /* set callback functions to be called by GLUT for drawing, window
-        resize, keypress, mouse button press, and mouse movement */
-        glutDisplayFunc(draw);
-        glutReshapeFunc(reshape);
-        glutMouseFunc(mousePress);
-        glutMotionFunc(mouseDrag);
-        glutPassiveMotionFunc(mouseDrag);
-        glutKeyboardFunc(pKeyDown);
-        glutKeyboardUpFunc(pKeyUp);
-        #ifndef EMSCRIPTEN
-        glutWindowStatusFunc([](int status) {gFocused = status == 1;});
-        #endif
+        //TODO glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
+        
+        window.setVerticalSyncEnabled(true);
+        window.setKeyRepeatEnabled(false);
     };
 
     ///Main GLUT Loop call
@@ -96,9 +83,26 @@ public:
 
         //Pre-emptively call the resize and draw functions to get the cycle going
         reshape(miWidth, miHeight);
-        unpauseGame();
-        draw();
-        glutMainLoop();
+        
+        bool running = true;
+        sf::Event event;
+        while(running) {
+            draw();
+            while(window.pollEvent(event)) {
+                switch(event.type) {
+                    case sf::Event::Closed: running = false; break;
+                    case sf::Event::Resized: reshape(event.size.width, event.size.height); break;
+                    case sf::Event::KeyPressed: pKeyDown(event.key.code); break;// TODO codes
+                    case sf::Event::KeyReleased: pKeyUp(event.key.code); break;
+                    case sf::Event::MouseMoved: mouseDrag(event.mouseMove.x, event.mouseMove.y); break;
+                    case sf::Event::MouseButtonPressed: mousePress(event.mouseButton.button, 1, event.mouseButton.x, event.mouseButton.y); break;
+                    case sf::Event::MouseButtonReleased: mousePress(event.mouseButton.button, 0, event.mouseButton.x, event.mouseButton.y); break;
+                    case sf::Event::TextEntered: charTyped(event.text.unicode); break;
+                    default: cout << "unhandled event:" << event.type << endl; break;
+                }
+            }
+            window.display();
+        }
     };
     ///FPS Tack and Get Delta Time
 
@@ -164,13 +168,26 @@ float mouseSensitivity = 0.5;
 double GameTimer = 1000;
 double GameAttempt = 1;
 float gTimeSinceOnGround;
-byte gKeyMap[256];
-bool bPause = true;
-byte gFocused;
+
 double worldDeltaTime;
 int show_debugging = 0;
 int pickables_in_inventory = 0;
 int AddSizeStride = ADDSIZEX;
+Quaternion LookQuaternion = {0, 0, 0, 1.0f};
+Vec3f gPosition;
+Vec3f gDirection;
+Vec3f gTargetNormal;
+Vec3f gTargetCompression;
+Vec3f gTargetHit;
+float gTargetActualDistance;
+float gTargetProjDistance;
+float gTargetPerceivedDistance;
+char gDialog[1024];
+int gMouseLastClickButton = -1;
+int gOverallUpdateNo = 0; //Gets reset if we "re-load" everything
+GameMap gamemap;
+// aliases of the block types
+unordered_map<string, int> aliases;
 
 void DrawSquare(float minx, float miny, float maxx, float maxy) {
     glBegin(GL_QUADS);
@@ -216,56 +233,49 @@ void StripDataFromBuffer(int ix, int iy, int iwidth, int iheight, TextureType tt
 
 void pauseGame() {
     bPause = true;
-    glutSetCursor(GLUT_CURSOR_INHERIT);
+    window.setMouseCursorVisible(true);
 }
 
 void unpauseGame() {
     bPause = false;
     glut.TackFPS();
-    glutSetCursor(GLUT_CURSOR_NONE);
-    glutWarpPointer(glut.miWidth / 2, glut.miHeight / 2);
-    glutPostRedisplay();
+    window.setMouseCursorVisible(false);
+    sf::Mouse::setPosition(sf::Vector2i(glut.miWidth / 2, glut.miHeight / 2), window);
+    glut.DrawAndDoMainLoop();
 }
 
-void pKeyDown(byte key, int x, int y) {
-    if (key == 27) {
-        printf("Esc was pressed, press again to exit.\n");
+void pKeyDown(sf::Keyboard::Key key) {
+    if (key == sf::Keyboard::Escape) {
         if(bPause) exit(0);
-        else pauseGame();
+        else {
+            printf("Esc was pressed, press again to exit.\n");
+            pauseGame();
+        }
     }
-    if (key == 'p') pauseGame();
-    if (key == 'g') gGodMode = !gGodMode;
-    if (key == '0') show_debugging = !show_debugging;
-    if (key == '8') {
+    if (key == sf::Keyboard::P) pauseGame();
+    if (key == sf::Keyboard::G) gGodMode = !gGodMode;
+    if (key == sf::Keyboard::Num0) show_debugging = !show_debugging;
+    if (key == sf::Keyboard::Num8) {
         mouseSensitivity *= .75;
         if (mouseSensitivity < .1) mouseSensitivity = .1;
     }
-    if (key == '9') {
+    if (key == sf::Keyboard::Num9) {
         mouseSensitivity *= 1.5;
         if (mouseSensitivity > 2.0) mouseSensitivity = 2.0;
     }
-    gKeyMap[key] = 1;
 }
 
-void pKeyUp(byte key, int x, int y) {
-    gKeyMap[key] = 0;
+void charTyped(unsigned int c) {
+    switch(c) {
+        case 'l': for (Room& room:gamemap.rooms) room.begin(); break;
+        case 'r': gamemap.rooms[gamemap.curroom].reset(); break;
+        case '+': case '=': gamemap.setRoom(gamemap.curroom+1,true); break;
+        case '-': case '_': gamemap.setRoom(gamemap.curroom-1,true); break;
+    }
 }
 
-Quaternion LookQuaternion = {0, 0, 0, 1.0f};
-Vec3f gPosition;
-Vec3f gDirection;
-Vec3f gTargetNormal;
-Vec3f gTargetCompression;
-Vec3f gTargetHit;
-float gTargetActualDistance;
-float gTargetProjDistance;
-float gTargetPerceivedDistance;
-char gDialog[1024];
-int gMouseLastClickButton = -1;
-int gOverallUpdateNo = 0; //Gets reset if we "re-load" everything
-GameMap gamemap;
-// aliases of the block types
-unordered_map<string, int> aliases;
+void pKeyUp(sf::Keyboard::Key key) {
+}
 
 void mousePress(int b, int state, int x, int y) {
     glut.miLastMouseX = x;
@@ -275,7 +285,7 @@ void mousePress(int b, int state, int x, int y) {
 }
 
 void mouseDrag(int x, int y) {
-    if (!gFocused || bPause) return;
+    if (bPause) return;
     //Find the amount moved from last frame to this frame.
     float dx = x - glut.miWidth / 2;
     float dy = y - glut.miHeight / 2;
@@ -285,7 +295,7 @@ void mouseDrag(int x, int y) {
     glut.miLastMouseY = y;
 
     if (dx != 0 || dy != 0) {
-        glutWarpPointer(glut.miWidth / 2, glut.miHeight / 2);
+        sf::Mouse::setPosition(sf::Vector2i(glut.miWidth / 2, glut.miHeight / 2),window);
     }
 
     Quaternion qinitrotFwd = Quaternion::fromAxisAngle({1, 0, 0}, 3.14159 / 2.);
@@ -311,7 +321,7 @@ void reshape(int Width, int Height) {
     //set up a projection, rotation and general camera stuff with respect to mouse input
     glut.miWidth = Width;
     glut.miHeight = Height;
-    glViewport(0, 0, (GLint) Width, (GLint) Height);
+    glViewport(0, 0, Width, Height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(45.0f, (float) Width / (float) Height, 0.1f, 100.0f);
@@ -331,24 +341,34 @@ CollisionProbe * gpRotFwd;
 CollisionProbe * gpRotUp;
 
 void LoadProbes(bool isRerun) {
+    
+    #define mod(a,b) fmod(fmod(a,b)+b,b)
+    mod(gPosition.x,GLH_SIZEX);
+    mod(gPosition.y,GLH_SIZEY);
+    mod(gPosition.z,GLH_SIZEZ);
+    
+    if (!gGodMode) {
+        gh.MapOffset = gPosition;
+    }
+    
     Vec3f gv; //Goal direction.
     Vec3f d = {0, 0, 0};
 
     if (!isRerun) {
-        if (gKeyMap['t']) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::T)) {
             //reset full map.
             gh.TMap->DefaultIt();
             gh.TMap->RecalculateAccelerationStructure(0, 0, 0, GLH_SIZEX, GLH_SIZEY, GLH_SIZEZ);
             gh.TMap->m_bReloadFullTexture = true;
 
         }
-        if (gKeyMap['a']) d.x -= 1.;
-        if (gKeyMap['d']) d.x += 1.;
-        if (gKeyMap['s']) d.y += 1.;
-        if (gKeyMap['w']) d.y -= 1.;
-        if (gKeyMap[']']) d.z += 1.;
-        if (gKeyMap['[']) d.z -= 1.;
-        if (gKeyMap[' '] && gTimeSinceOnGround < 0.1) gh.v.z = 10; // && gh.gTimeSinceOnGround < 0.1
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) d.x -= 1.;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) d.x += 1.;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) d.y += 1.;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) d.y -= 1.;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::RBracket)) d.z += 1.;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LBracket)) d.z -= 1.;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && gTimeSinceOnGround < 0.1) gh.v.z = 10; // && gh.gTimeSinceOnGround < 0.1
         gTimeSinceOnGround += worldDeltaTime;
 
         /*
@@ -676,7 +696,6 @@ void DoneProbes(bool bReRun) {
     }
 clend:
     probes.clear();
-
     gPosition = newp;
     gDirection = gpForward->Direction.vec();
     gTargetNormal = gpForward->Normal.vec();
@@ -691,18 +710,6 @@ clend:
 
     gOverallUpdateNo++;
     //printf( "%f %f %f\n", gPositionX, gPositionY, gPositionZ );
-
-    if (!gGodMode) {
-        gh.MapOffset = gPosition;
-    }
-
-
-    while (gh.MapOffset.x < 0) gh.MapOffset.x += GLH_SIZEX;
-    while (gh.MapOffset.y < 0) gh.MapOffset.y += GLH_SIZEY;
-    while (gh.MapOffset.z < 0) gh.MapOffset.z += GLH_SIZEZ;
-    while (gh.MapOffset.x > GLH_SIZEX) gh.MapOffset.x -= GLH_SIZEX;
-    while (gh.MapOffset.y > GLH_SIZEY) gh.MapOffset.y -= GLH_SIZEY;
-    while (gh.MapOffset.z > GLH_SIZEZ) gh.MapOffset.z -= GLH_SIZEZ;
 
     //	printf( "%7.1f %7.1f %7.1f  /  %7.1f %7.1f %7.1f (%f %f %f)\n", NewYaw, NewPitch, NewRoll, Yaw, Pitch, Roll, gh.MapOffsetX, gh.MapOffsetY, gh.MapOffsetZ );
 }
@@ -723,8 +730,8 @@ void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     worldDeltaTime = glut.TackFPS();
     if(bPause) worldDeltaTime = 0;
-    if (gKeyMap[9]) worldDeltaTime *= 10.;
-    if (gKeyMap['`']) worldDeltaTime /= 10.;
+    //if (gKeyMap[9]) worldDeltaTime *= 10.;
+    //if (sf::Keyboard::isKeyPressed(sf::Keyboard::Quote)) worldDeltaTime /= 10.;
     TotalTime += worldDeltaTime;
     
     UpdatePositionAndRotation();
@@ -770,17 +777,9 @@ void draw() {
     DrawText(tt);
 
     PopFrom2D();
-
-    glutSwapBuffers();
-    glutPostRedisplay();
-
 }
 TCC tcc;
 int main(int argc, char ** argv) {
-    for (unsigned i = 0; i < 256; i++)
-        gKeyMap[i] = 0;
-    unsigned int xSize = 720, ySize = 480;
-
     tcc.addheader(readFile("scripthelpers.h"));
     tcc.add("sin",(double(*)(double))&sin);
     tcc.add("cos",(double(*)(double))&cos);
@@ -813,8 +812,6 @@ int main(int argc, char ** argv) {
 	TCCADD(gTargetProjDistance);
 	TCCADD(gTargetPerceivedDistance);
 	TCCADD(gDialog);
-	TCCADD(gKeyMap);
-	TCCADD(gFocused);
 	TCCADD(gMouseLastClickButton);
 	TCCADD(gTimeSinceOnGround);
 	TCCADD(pickables_in_inventory);
@@ -835,7 +832,7 @@ int main(int argc, char ** argv) {
 
     LookQuaternion = Quaternion::fromAxisAngle({1, 0, 0}, -3.14159 / 2.);
 
-    glut.Init(argc, argv, xSize, ySize, "No! Euclid!");
+    glut.Init(argc, argv, 720, 480, "aaa");
 
 #ifdef _WIN32
 	printf("Initializing GLEW.\n");
@@ -847,5 +844,6 @@ int main(int argc, char ** argv) {
     gh.Init(0);
     gh.MapOffset = {GLH_SIZEX / 2, GLH_SIZEY / 2, 5};
     
+    unpauseGame();
     glut.DrawAndDoMainLoop();
 }
