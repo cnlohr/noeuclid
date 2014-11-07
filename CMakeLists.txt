@@ -10,6 +10,6 @@ find_package(GLEW REQUIRED)
 find_package(SFML REQUIRED COMPONENTS graphics window system)
 
 
-add_definitions(-DGLEW_STATIC -DGLUT_STATIC -DGL_GLEXT_PROTOTYPES -DGLUT_DISABLE_ATEXIT_HACK)
+add_definitions(-DGLEW_STATIC -DGL_GLEXT_PROTOTYPES)
 include_directories(${GLEW_INCLUDE_PATH} ${OPENGL_INCLUDE_DIRS}  ${SFML_INCLUDE_DIR})
 target_link_libraries(noeuclid ${GLEW_LIBRARY} ${OPENGL_LIBRARIES} ${SFML_LIBRARIES} -ltcc -ldl)

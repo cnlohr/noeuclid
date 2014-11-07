@@ -441,7 +441,7 @@ void RTHelper::SplitDrawSquare(float minx, float miny, float maxx, float maxy, f
             glEnd();
             glFinish();
             glFlush();
-            glutSwapBuffers();
+            //glutSwapBuffers();
         }
 
 }
