@@ -18,7 +18,6 @@
 
 #  include <OpenGL/gl.h>
 #  include <OpenGL/glu.h>
-#  include <GLUT/glut.h>
 #  include <OpenGL/glext.h>
 
 #  define GL_RGBA16F 0x881A
@@ -28,7 +27,6 @@
 
 #  include <GL/gl.h>
 #  include <GL/glu.h>
-#  include <GL/glut.h>
 #  include <GL/glext.h>
 
 #endif

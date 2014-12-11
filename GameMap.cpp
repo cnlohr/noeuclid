@@ -85,7 +85,6 @@ void GameMap::loadRooms(string fname) {
 }
 
 void GameMap::update() {
-    static int was_level_change_pressed;
     if (gOverallUpdateNo % 30 == 0 && fileChanged("rooms.txt")) {
         loadRooms("rooms.txt");
     }
@@ -113,29 +112,9 @@ void GameMap::update() {
 
     sprintf(gDialog, "Room: %d\n", curroom);
 
-    if (gKeyMap['l'] || gKeyMap['L']) {
-        for (Room& room:rooms) {
-            room.begin();
-        }
-    }
+    
 
     UpdatePickableBlocks(); //Draw the pickables.
-
-    //Press 'r' to reset room.
-    if (gKeyMap['r'] || gKeyMap['R']) {
-        rooms[curroom].reset();
-    }
-
-    if (gKeyMap['='] || gKeyMap['+']) {
-        if (!was_level_change_pressed)
-            setRoom(curroom+1,true);
-        was_level_change_pressed = 1;
-    } else if (gKeyMap['-'] || gKeyMap['_']) {
-        if (!was_level_change_pressed)
-            setRoom(curroom-1,true);
-        was_level_change_pressed = 1;
-    } else
-        was_level_change_pressed = 0;
 
     //printf( "%f %f %f   %f %f %f\n", targetx, targety, targetz, gDirectionX, gDirectionY, gDirectionZ );
     if (gMouseLastClickButton != -1) {
