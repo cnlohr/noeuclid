@@ -43,8 +43,12 @@ float gRenderDensityMux = 1.0;
 #define NOISESIZE 16
 #define PHYSICS_PIXEL( x )  float((x%PHYSICS_SIZE)+0.1)/PHYSICS_SIZE, float((PHYSICS_SIZE-(x/PHYSICS_SIZE)) - 0.1)/PHYSICS_SIZE
 
-extern int miWidth, miHeight;
-
+class GLUT {
+public:
+    int miWidth;
+    int miHeight;
+};
+extern GLUT glut;
 void RTHelper::Init(bool fakemode) {
     printf("Populate Complete.\n");
 
@@ -257,7 +261,7 @@ void RTHelper::ExecProbes(bool isRerun) {
 }
 
 void RTHelper::DrawMap(double dTime, double fTotalTime) {
-    float aspect = (float) miWidth / (float) miHeight;
+    float aspect = (float) glut.miWidth / (float) glut.miHeight;
 
     if(gOverallUpdateNo % 30 == 0) {
         Pass1.LoadIfNewer();
@@ -274,12 +278,12 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
         ReloadAdditionalInformatioMapData();
     }
 
-    if (miWidth != lastWidth || miHeight != lastHeight) {
-        Pass1Outputs[0].MakeDynamicTexture(miWidth, miHeight, TTRGBA32);
-        Pass1Outputs[1].MakeDynamicTexture(miWidth, miHeight, TTRGBA32);
-        Pass2Output.MakeDynamicTexture(miWidth, miHeight, TTRGBA32);
-        lastWidth = miWidth;
-        lastHeight = miHeight;
+    if (glut.miWidth != lastWidth || glut.miHeight != lastHeight) {
+        Pass1Outputs[0].MakeDynamicTexture(glut.miWidth, glut.miHeight, TTRGBA32);
+        Pass1Outputs[1].MakeDynamicTexture(glut.miWidth, glut.miHeight, TTRGBA32);
+        Pass2Output.MakeDynamicTexture(glut.miWidth, glut.miHeight, TTRGBA32);
+        lastWidth = glut.miWidth;
+        lastHeight = glut.miHeight;
     }
     glEnable(GL_TEXTURE_3D);
 
@@ -304,8 +308,8 @@ void RTHelper::DrawMap(double dTime, double fTotalTime) {
         {"msY", GLH_SIZEY},
         {"msZ", GLH_SIZEZ},
         {"msX", GLH_SIZEX},
-        {"ScreenX", miWidth},
-        {"ScreenY", miHeight},
+        {"ScreenX", glut.miWidth},
+        {"ScreenY", glut.miHeight},
         {"time", gDaytime},
         {"do_subtrace", 1},
         {"mixval", gRenderMixval},
@@ -441,7 +445,7 @@ void RTHelper::SplitDrawSquare(float minx, float miny, float maxx, float maxy, f
             glEnd();
             glFinish();
             glFlush();
-            //glutSwapBuffers();
+            glutSwapBuffers();
         }
 
 }

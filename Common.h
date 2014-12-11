@@ -77,7 +77,7 @@ public:
     const Vec3<T> operator*(const T s) const {
         return Vec3{x*s, y*s, z*s};
     }
-    friend Vec3 operator*(const T s, const Vec3& v) {
+    friend Vec3<T> operator*(const T s, const Vec3<T> v) {
         return v * s;
     }
     
