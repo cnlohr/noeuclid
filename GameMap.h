@@ -1,10 +1,3 @@
-/*
- * File:   GameMap.h
- * Author: tehdog
- *
- * Created on 19. Oktober 2014, 02:26
- */
-
 #ifndef GAMEMAP_H
 #define	GAMEMAP_H
 //Define all lava/death blocks.

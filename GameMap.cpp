@@ -1,10 +1,3 @@
-/* 
- * File:   GameMap.cpp
- * Author: tehdog
- * 
- * Created on 19. Oktober 2014, 02:26
- */
-
 #include "GameMap.h"
 #include <cstring>
 #include <functional>
