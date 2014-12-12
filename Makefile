@@ -1,6 +1,6 @@
-CXXFLAGS=-std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -g -Wall -O2
+CXXFLAGS=-std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -DGLUT_DISABLE_ATEXIT_HACK -DGL_GLEXT_PROTOTYPES -g -Wall -O2
 LDFLAGS=-g -Wall
-LDLIBS=-lGLEW -lGLU -lGL -lsfml-graphics -lsfml-window -lsfml-system -ltcc -ldl
+LDLIBS=-lGLEW -lglut -lGLU -lGL -ltcc -ldl
 LINK.o = $(LINK.cc)
 
 SRCS=$(wildcard *.cpp)

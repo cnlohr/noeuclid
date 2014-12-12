@@ -1,10 +1,7 @@
 ### Compiling and running
 ```
-mkdir build && cd build
-cmake .. # for crosscompiling to windows: cmake -DCMAKE_TOOLCHAIN_FILE=../Windows.cmake ..
-make
-cd ..
-build/noeuclid
+make -j
+./noeuclid
 ```
 
 [Explanation Video](https://www.youtube.com/watch?v=tl40xidKF-4)
