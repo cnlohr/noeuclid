@@ -1,10 +1,3 @@
-/* 
- * File:   Room.h
- * Author: tehdog
- *
- * Created on 20. Oktober 2014, 22:12
- */
-
 #ifndef ROOM_H
 #define	ROOM_H
 
