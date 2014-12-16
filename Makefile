@@ -1,4 +1,4 @@
-CXXFLAGS=-std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -g -Wall
+CXXFLAGS=-std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -g -Wall -O2
 LDFLAGS=-g -Wall
 LDLIBS=-lGLEW -lGLU -lGL -lsfml-graphics -lsfml-window -lsfml-system -ltcc -ldl
 LINK.o = $(LINK.cc)

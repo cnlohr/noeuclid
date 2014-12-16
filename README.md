@@ -34,5 +34,6 @@ You can add new blocks by modifying tileattributes.txt
 
 
 Building on Linux:
-Be sure to install: (Debian-style)
-  build-essential, zlib1g-dev, freeglut3-dev ... maybe more?
+Needed packages:
+
+    sudo apt-get install build-essential libtcc-dev libsfml-dev libglew-dev
