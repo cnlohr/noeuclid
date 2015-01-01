@@ -27,7 +27,7 @@ public:
         if(state == -1) {
             throw std::invalid_argument("Error compiling code (("+code+"))");
         }
-        int size = tcc_relocate(tcc, TCC_RELOCATE_AUTO);
+        int size = tcc_relocate(tcc, NULL);
         if(size == -1) {
             throw std::invalid_argument("Error compiling code 2 (("+code+"))");
         }
