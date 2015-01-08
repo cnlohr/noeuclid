@@ -132,7 +132,7 @@ int PlayerInRangeV(Vec3f p, Vec3f s) {
     return 0;
 }
 
-// true if file has changed since last call
+/** returns true if file has changed since last call of the method */
 bool fileChanged(string fname) {
     static unordered_map<string, time_t> modTime;
     struct stat s; stat(fname.c_str(), &s);

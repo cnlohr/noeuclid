@@ -1,9 +1,18 @@
-# Static room settings
-# "Init" calls the c++ room init function at that position
+# Room settings
+
+# Parens are used to declare 3-dimensional vectors
+# Syntax in init/run scripts is C. vectors are declared as v(x,y,z) for ints or vf(x,y,z) for floats
+
+# The room that is loaded when the game is started
 StartAtRoom 0
+
+# Begin declaration of room number 0
 Room 0
+# Time in seconds until player dies of old age
 Time 100
+# Start coordinates
 Start (3 3 64)
+# Corners of the exit box
 Exit (4 4 61) (1 1 1)
 
 EmptyBox (1 1 60) (6 6 6) Sand 
