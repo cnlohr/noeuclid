@@ -54,6 +54,9 @@
 using namespace std;
 using byte = unsigned char;
 
+/**
+ * Simple 3d vector class. Uses operator overloads calculations
+ */
 template<class T> class Vec3 {
 public:
     T x, y, z;
@@ -77,6 +80,7 @@ public:
     const Vec3<T> operator*(const T s) const {
         return Vec3{x*s, y*s, z*s};
     }
+    
     friend Vec3<T> operator*(const T s, const Vec3<T> v) {
         return v * s;
     }
@@ -147,12 +151,18 @@ struct RGBAf {
         return {r,g,b};
     }
     
+    /**
+     * Parse four floats separated by whitespace from an istream as a color
+     */
     friend istream &operator>>(istream &inp, RGBAf &c) {
         inp>>c.r>>c.g>>c.b>>c.a;
         return inp;
     }
 };
 
+/**
+ * Represents a quaternion for rotation calculations.
+ */
 struct Quaternion {
     Quaternion(float f1=0,float f2=0, float f3=0, float f4=0): 
         f{f1,f2,f3,f4} {};
@@ -189,6 +199,7 @@ struct Quaternion {
         return 1. / ((q[0] * q[0])+(q[1] * q[1])+(q[2] * q[2])+(q[3] * q[3]));
     }
 
+    /** allow access like a float[4] array */
     const float& operator[](int index) const {
         return f[index];
     }
@@ -326,7 +337,10 @@ struct RGBA {
 };
 extern unordered_map<string, int> aliases;
 
-// automatically convert BlockType aliases to chars using istream >> blockType;
+/**
+ *  Identifies a type of block using a character
+ *  automatically convert BlockType aliases (like Wood) to their char identifier using istream >> blockType;
+ */
 struct BlockType {
     byte t = 0;
     operator char() {return t;}
