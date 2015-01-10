@@ -26,7 +26,11 @@ public:
     void collision(struct CollisionProbe * ddat);
 
     #define DONE (i>>ws).eof()
-//TODO nobody can read this
+    /**
+     * A list of functions that return partially apply the utility functions
+     * removing their parameters so that they can then be run when a room is initialized or updated
+     * TODO code is hard to read
+     */
     unordered_map<string, std::function<initfn(istream&)>> initfuncs {
         {"EmptyBox", [](istream& i) -> initfn {
             Vec3i p,s; BlockType b; i>>p>>s>>b;

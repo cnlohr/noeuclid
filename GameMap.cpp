@@ -20,7 +20,11 @@ void GameMap::collision(CollisionProbe * ddat) {
     //printf( "CC %f %f %f  (%f)\n", ddat->TargetLocation.r, ddat->TargetLocation.g, ddat->TargetLocation.b, ddat->Normal.a ); 
 }
 
-// read into string until a line containing  only '}'
+/**
+ * read into string until a line containing  only '}'
+ * Used to parse initialization and run scripts from the level file
+ * TODO: Change syntax or use a real parser
+ */
 string readScript(ifstream& file, int& lineNum) {
     string script = "", line;
     int beginning = lineNum;
@@ -33,6 +37,7 @@ string readScript(ifstream& file, int& lineNum) {
     return "";
 }
 
+/** Loads a list of rooms (block positions and scripts) */
 void GameMap::loadRooms(string fname) {
     rooms.clear();
     ifstream file(fname);
