@@ -50,7 +50,7 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
-#include <noexcept>
+#include <stdexcept>
 
 using namespace std;
 using byte = unsigned char;

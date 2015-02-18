@@ -3,7 +3,7 @@
 #include <string>
 #include <libtcc.h>
 #include <vector>
-#include <noexcept>
+#include <stdexcept>
 
 using string=std::string;
 struct TCCSymbol { string name; void* func;};
