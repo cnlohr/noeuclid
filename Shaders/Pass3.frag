@@ -72,6 +72,7 @@ float skybright;
 vec3 SkyBrightPos;
 
 varying mat4 toss;
+varying vec4 BasePosition; //Initial ray direction (currently unused)
 
 void main()
 {

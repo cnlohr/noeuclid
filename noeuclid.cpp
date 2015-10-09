@@ -689,10 +689,10 @@ void draw() {
 
     glPushMatrix();
     glTranslatef(miWidth / 2 - 7, miHeight / 2 - 12, 0);
-    DrawText("+");
+    DrawBitmapText("+");
     glPopMatrix();
     glTranslatef(10, 30, 0);
-    DrawText(gDialog);
+    DrawBitmapText(gDialog);
     glTranslatef(-10, -30, 0);
 
     glTranslatef(0, 125, 0);
@@ -700,22 +700,22 @@ void draw() {
     char tt[1024];
     if (show_debugging) {
         sprintf(tt, "%1.2f %1.2f %1.2f\n", gh.MapOffset.x, gh.MapOffset.y, gh.MapOffset.z);
-        DrawText(tt);
+        DrawBitmapText(tt);
     }
 
     float pers = miWidth * miHeight / (gh.LastPass1Time / 1. + gh.LastPass2Time / 1. + gh.LastPass3Time);
     glTranslatef(0, 25, 0);
     if (show_debugging) {
         sprintf(tt, "T1: %1.3f\nT2: %1.3f\nT3: %1.3f\n%f Perf\n", gh.LastPass1Time / 1000000., gh.LastPass2Time / 1000000., gh.LastPass3Time / 1000000., pers);
-        DrawText(tt);
+        DrawBitmapText(tt);
     }
 
     glTranslatef(30, -150, 0);
     sprintf(tt, "%3.2f\n", GameTimer);
-    DrawText(tt);
+    DrawBitmapText(tt);
     glTranslatef(300, 0, 0);
     sprintf(tt, "TRY %1.f\nInven: %d", GameAttempt, pickables_in_inventory);
-    DrawText(tt);
+    DrawBitmapText(tt);
 
     PopFrom2D();
 }

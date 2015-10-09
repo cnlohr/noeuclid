@@ -248,7 +248,7 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     //	timeval tv1;
     //	gettimeofday( &tv1, 0 );	
 
-    byte inskips[GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ];
+    byte * inskips = new byte[GLH_SIZEX * GLH_SIZEY * GLH_SIZEZ];
     //	byte ouskips[GLH_SIZEX*GLH_SIZEY*GLH_SIZEZ];
     if (parent->LTTex != NULL) {
         for (int z = iz; z < sz; z++)
@@ -299,6 +299,8 @@ void Map::RecalculateAccelerationStructure(int ix, int iy, int iz, int sx, int s
     } else {
         fprintf(stderr, "We are not doing thigns without subtracing anymore.\n");
     }
+
+	free( inskips );
 }
 
 void Map::UpdateCellSpecific(Vec3i p, Vec3i s) {

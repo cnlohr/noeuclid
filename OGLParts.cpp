@@ -488,7 +488,7 @@ private:
     int FontHeight;
 
     static vector< TextUtil > g_AllFonts;
-    friend bool DrawText(const char * text, float size, const string & sFontName, float MaxWidth, float MaxHeight, TextAlignment Horiz, TextAlignment Vert);
+    friend bool DrawBitmapText(const char * text, float size, const string & sFontName, float MaxWidth, float MaxHeight, TextAlignment Horiz, TextAlignment Vert);
 };
 
 vector< TextUtil > TextUtil::g_AllFonts;
@@ -634,7 +634,7 @@ void TextUtil::DrawFont(const char * todraw, float MaxWidth, float MaxHeight, Te
     FontFull.DeactivateTexture(0);
 }
 
-bool DrawText(const char * text, float size, const string & sFontName, float MaxWidth, float MaxHeight, TextAlignment Horiz, TextAlignment Vert) {
+bool DrawBitmapText(const char * text, float size, const string & sFontName, float MaxWidth, float MaxHeight, TextAlignment Horiz, TextAlignment Vert) {
     TextUtil * t = TextUtil::CheckAndLoadFont(sFontName);
     if (t) {
         glPushMatrix();

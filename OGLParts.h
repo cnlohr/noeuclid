@@ -327,7 +327,7 @@ enum TextAlignment
 };
 
 ///Draw text by the given name at the given location on screen.
-bool DrawText( const char * text, float size = 1.0, const string & sFontName = "Arial",
+bool DrawBitmapText( const char * text, float size = 1.0, const string & sFontName = "Arial",
 	float MaxWidth = 10000., float MaxHeight = 10000., TextAlignment Horiz = TEXT_LEFT,
 	TextAlignment Vert = TEXT_HTOP );
 
