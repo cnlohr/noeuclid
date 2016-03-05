@@ -6,12 +6,12 @@ OBJS=$(subst .cpp,.o,$(SRCS))
 
 
 #otherwise... uncomment this
-LDFLAGS:=$(LDFLAGS) -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS:=$(LDFLAGS) -I/usr/local/include/ -L /usr/local/lib/ -lsfml-graphics -lsfml-window -lsfml-system
 
-CXXFLAGS:=$(CXXFLAGS) -std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -g -Wall -O2
+CXXFLAGS:=$(CXXFLAGS) -std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -I/usr/local/include/ -g -Wall -O2
 LDFLAGS:=$(LDFLAGS) -g -Wall
 
-LDLIBS:=$(LDFLAGS) $(LDLIBS) -lGLEW -lGLU -lGL -ltcc -ldl
+LDLIBS:=$(LDFLAGS) $(LDLIBS) -framework GLUT -framework OpenGL -framework Cocoa -lGLEW -ltcc -ldl
 LINK.o = $(LINK.cc)
 
 WINCXXFLAGS:=-DGLEXT -std=c++11 -g -O2 -IWindows -IWindows/SFML-2.2/include -DGLEW_STATIC  -DDrawText=DrawText
