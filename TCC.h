@@ -11,17 +11,17 @@ class TCC {
 public:
     template<typename T>
     void add(string name, T* func) {
-        //TODO memory leak
-        if(!tcc) tcc = tcc_new();
+        // TODO memory leak
+        // if(!tcc) tcc = init();
         symbols.push_back({name, (void*) func});
     }
-    
+
     void addheader(string header) {
         headers += header+"\n";
     }
 
     template<typename T> T* compile(string code, string symbol) {
-        if(!tcc) tcc = tcc_new();
+        if(!tcc) tcc = init();
         tcc_define_symbol(tcc, "IS_TCC_RUNTIME", nullptr);
         for(TCCSymbol& s:symbols) tcc_add_symbol(tcc, s.name.c_str(), s.func);
         code = headers + code;
@@ -46,10 +46,18 @@ public:
         return compile<T>(code, "fun");
     }
 private:
+    static TCCState *init() {
+        TCCState *s = tcc_new();
+
+        // MUST BE CALLED before any compilation
+        tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
+
+        return s;
+    }
+
     TCCState* tcc;
     std::string headers;
     std::vector<TCCSymbol> symbols;
 };
 
 #endif	/* TCC_H */
-
