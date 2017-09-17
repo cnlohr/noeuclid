@@ -29,10 +29,7 @@ public:
         if(state == -1) {
             throw std::invalid_argument("Error compiling code (("+code+"))");
         }
-#ifdef WIN32
-		tcc_add_library_path(tcc,".");
-		tcc_add_library(tcc, "./libtcc1.a");
-#endif
+
         int size = tcc_relocate(tcc, TCC_RELOCATE_AUTO);
         if(size == -1) {
             throw std::invalid_argument("Error compiling code 2 (("+code+"))");
@@ -48,6 +45,10 @@ public:
 private:
     static TCCState *init() {
         TCCState *s = tcc_new();
+
+#ifdef _WIN32
+        tcc_add_library_path(s, "./Windows");
+#endif
 
         // MUST BE CALLED before any compilation
         tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
