@@ -46,7 +46,6 @@ InitScript {
       }
 }
 RunScript {
-       double f = fmod(timeInRoom,1); if(f<0)f=-f;
        EmptyBox( v(2,2,48), v(4,4,11), 4, swoovey(timeInRoom * .1, 1)*70 + 185);
        ClearCell( v(4,4,60) );
        ClearCell( v(4,4,59) );
