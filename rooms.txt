@@ -323,6 +323,12 @@ InitScript {
             }
         }
     }
+
+    for (int x = 0; x < 14; x++)
+        for (int y = 0; y < 14; y++) {
+            QuickCell(0, v(4 + x, 34 + y, 43 + 10), 9, (byte)(sin(x * 2 + y)*80 + 80));
+        }
+    UpdateZone(v(3, 33, 43 + 10),v( 15, 15, 3));
 }
 PaintRange (3 28 48) (6 1 2) Bedrock
 PaintRange (5 47 43) (1 1 1) Bedrock
