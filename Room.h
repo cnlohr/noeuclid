@@ -15,7 +15,7 @@ public:
     void begin();
     void update();
     void (*initscript)(void);
-    void (*runscript)(double);
+    void (*runscript)(double, double);
 };
 
 #endif	/* ROOM_H */
