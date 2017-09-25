@@ -4,7 +4,7 @@ SRCS=$(wildcard *.cpp)
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 OS:=$(shell uname)
-WIN32:=1
+CROSS:=0
 
 LDFLAGS:=$(LDFLAGS) -lsfml-graphics -lsfml-window -lsfml-system
 CXXFLAGS:=$(CXXFLAGS) -std=c++11 -DGLEW_STATIC -DGL_GLEXT_PROTOTYPES -g -Wall -O2
@@ -19,7 +19,7 @@ else
   LDLIBS:=$(LDFLAGS) $(LDLIBS) -lGLEW -lGLU -lGL -ltcc -ldl
 endif
 
-ifeq ($(WIN32),0)
+ifneq ($(CROSS),0)
   WINCXX:=i686-w64-mingw32-g++
 else
   WINCXX:=g++
