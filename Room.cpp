@@ -14,8 +14,8 @@ void Room::begin() {
 
 void Room::update() {
     timeInRoom+=worldDeltaTime;
-    if(runscript) (*runscript)(timeInRoom);
-    for(auto& runfn:runs) runfn(timeInRoom);
+    if(runscript) (*runscript)(timeInRoom, worldDeltaTime);
+    for(auto& runfn:runs) runfn(timeInRoom, worldDeltaTime);
 
     if (PlayerInRangeV(exitr1, exitr2)) {
         gamemap.setRoom(gamemap.curroom+1);

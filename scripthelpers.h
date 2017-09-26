@@ -48,6 +48,7 @@ extern Vec3f gTargetNormal;
 extern Vec3f gTargetCompression;
 extern Vec3f gTargetHit;
 
+extern double worldDeltaTime;
 extern int AddSizeStride;
 
 void ClearCellV(Vec3i p);
@@ -89,7 +90,6 @@ struct DeathBlock {
 #define DEFAULT_EMPTY_BLOCK 0
 #define SPAAACE_CELL 255
 
-extern double worldDeltaTime;
 extern float gDaytime;
 extern float gRenderMixval;
 extern float gRenderDensityLimit;

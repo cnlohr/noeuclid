@@ -8,7 +8,7 @@
 #include <functional>
 #include "scripthelpers.h"
 using initfn = std::function<void()>;
-using runfn = std::function<void(double timeIn)>;
+using runfn = std::function<void(double timeIn, double deltaTime)>;
 #include "Room.h"
 #include "TCC.h"
 #include <unordered_map>
@@ -66,19 +66,19 @@ public:
     unordered_map<string, function<runfn(istream&)>> runfuncs {
         {"AnimateOpen", [](istream& i) -> runfn {
             Vec3i p,s; i>>p>>s;
-            return [p,s](double timeIn) {
+            return [p,s](double timeIn, double deltaTime) {
                 int capden = 255 - timeIn * 200;
                 PaintRangeV(p, s, {1, 190, byte(capden<0?0:capden), GOAL_BLOCK});
             };
         }}, {"AnimateClose", [](istream& i) -> runfn {
             Vec3i p,s; i>>p>>s;
-            return [p,s](double timeIn) {
+            return [p,s](double timeIn, double deltaTime) {
                 int capden = 255 - timeIn * 200;
                 PaintRangeV(p, s, {1,190,byte(capden<0?255:255-capden),DEADGOAL_BLOCK});
             };
         }}, {"DieInRange", [](istream& i) -> runfn {
             Vec3f p,s; i>>p>>s;
-            return [p,s](double timeIn) {
+            return [p,s](double timeIn, double deltaTime) {
                 if (PlayerInRangeV(p,s)) ::die();
             };
         }}

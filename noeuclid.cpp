@@ -744,7 +744,6 @@ int main(int argc, char ** argv) {
     TCCADD(ClearPickableBlocks);
     TCCADD(PlacePickableAt);
     TCCADD(die);
-	TCCADD(worldDeltaTime);
 	TCCADD(gDaytime);
 	TCCADD(gRenderMixval);
 	TCCADD(gRenderDensityLimit);

@@ -54,7 +54,7 @@ void GameMap::loadRooms(string fname) {
         if(line[0]=='#') continue;
         if(line == "RunScript {") {
             if(rooms[rid].runscript) cout <<lineNum<<": Error: Already has run script." << endl;
-            rooms[rid].runscript = tcc.eval<void(double)>("void fun(double timeInRoom) {"+readScript(file, lineNum)+"}");
+            rooms[rid].runscript = tcc.eval<void(double, double)>("void fun(double timeInRoom, double worldDeltaTime) {"+readScript(file, lineNum)+"}");
             continue;
         }
         if(line == "InitScript {") {

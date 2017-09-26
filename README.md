@@ -1,7 +1,15 @@
 ### Compiling and running
+On Linux:
 ```
 make -j
 ./noeuclid
+```
+
+On Windows:
+Open MSYS shell and run:
+```
+make noeuclid.exe
+./noeuclid.exe
 ```
 [Explanation Video](https://www.youtube.com/watch?v=tl40xidKF-4)
 
@@ -44,3 +52,6 @@ Building on Linux:
 Needed packages:
 
     sudo apt-get install build-essential libtcc-dev libsfml-dev libglew-dev
+
+Building on Windows:
+You need MinGW to build on Windows.
