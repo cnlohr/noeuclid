@@ -55,3 +55,8 @@ Needed packages:
 
 Building on Windows:
 You need MinGW to build on Windows.
+
+### Caveats
+
+Does not run on discrete GPU on macOS.
+If running on macOS use a tool such as [gfxCardStatus](https://gfx.io/) to force the integrated GPU
