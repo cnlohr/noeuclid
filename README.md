@@ -17,7 +17,7 @@ make noeuclid.exe
 
 You'll probably want to compile your own copy of TinyCC, you'll need to build tcc 0.9.26.
 
-Right now we use GLUT, But we plant to (already have moved?) to SDL.
+Right now we use GLUT, But we plan to (already have moved?) to SDL.
 
 And you'll need a modern GPU.  Some intel GPUs kind of work, most post-2013 NVIDIA and ATI GPUs work, too.  (And higher end ones from before)
 
@@ -55,3 +55,8 @@ Needed packages:
 
 Building on Windows:
 You need MinGW to build on Windows.
+
+### Caveats
+
+Does not run on discrete GPU on macOS.
+If running on macOS use a tool such as [gfxCardStatus](https://gfx.io/) to force the integrated GPU
