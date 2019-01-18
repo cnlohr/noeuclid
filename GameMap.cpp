@@ -116,14 +116,14 @@ void GameMap::update() {
 
     //printf( "%f %f %f   %f %f %f\n", targetx, targety, targetz, gDirectionX, gDirectionY, gDirectionZ );
     if (gMouseLastClickButton != -1) {
-        printf("Click on: %f %f %f\n", gTargetHit.x, gTargetHit.y, gTargetHit.z);
+        printf("Click on: %f %f %f [%d]\n", gTargetHit.x, gTargetHit.y, gTargetHit.z, gMouseLastClickButton );
         if (gMouseLastClickButton == 0) {
             //Left-mouse
             Vec3f target = gTargetHit + gTargetNormal * .5;
             Vec3f dist = (target-gPosition);
             
             PickableClick(true, target, dist.len());
-        } else if (gMouseLastClickButton == 2) {
+        } else if (gMouseLastClickButton == 2 || gMouseLastClickButton == 1 ) {
             //Right-mouse
             Vec3f target = gTargetHit - gTargetNormal * .5;
             Vec3f dist = (target-gPosition);
@@ -278,3 +278,4 @@ void GameMap::PickableClick(bool left, Vec3f p, float dist) {
         }
     }
 }
+
