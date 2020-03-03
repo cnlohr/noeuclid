@@ -33,17 +33,22 @@ Modifying rooms.txt while the game is running will just cause it to be recompile
 
  Key | Action
 -----|---
- 'a', 's', 'd', 'w' | Walk around
-' ' | jump
-'g' | Go into noclip mode.
-']', '[' | Go up/down
-'0' | Show additional debug info.
-|'-' | Go down level.
-'+' | Go up level.
-'r' | Reload current.
-'l' | Load ALL levels right now.
-'p' | Pauses.
-'8' / '9' | Change mouse sensitivity.
+ `a` | Walk forward.
+ `s` | Walk backward.
+ `d` | Walk right.
+ `w` | Walk Left.
+` ` &nbsp; (spacebar) | jump.
+`g` | Go into noclip mode.
+`]` | Go up.
+`[` | Go down.
+`0` | Show additional debug info.
+`+` | Go up level.
+`-` | Go down level.
+`r` | Reload current.
+`l` | Load ALL levels right now.
+`p` | Pauses.
+`8` | Mouse Sensitivity down.
+`9` | Mouse Sensitivity up.
 
 You can add new blocks by modifying tileattributes.txt
 
