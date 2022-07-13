@@ -33,10 +33,10 @@ Modifying rooms.txt while the game is running will just cause it to be recompile
 
  Key | Action
 -----|---
- `a` | Walk forward.
+ `w` | Walk forward.
  `s` | Walk backward.
  `d` | Walk right.
- `w` | Walk Left.
+ `a` | Walk Left.
 ` ` &nbsp; (spacebar) | jump.
 `g` | Go into noclip mode.
 `]` | Go up.
